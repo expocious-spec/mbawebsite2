@@ -80,10 +80,13 @@ export default function Navigation() {
                 className="flex items-center gap-2 px-3 py-2 minecraft-button border-2 bg-gray-100 dark:bg-gray-800 border-gray-400 dark:border-gray-600 ml-2"
               >
                 {session.user.profilePicture ? (
-                  <img
+                  <Image
                     src={session.user.profilePicture}
                     alt={session.user.minecraftUsername}
+                    width={32}
+                    height={32}
                     className="w-8 h-8 border-2 border-gray-300 dark:border-gray-600"
+                    unoptimized
                   />
                 ) : (
                   <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
