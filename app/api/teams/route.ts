@@ -66,6 +66,7 @@ export async function POST(request: Request) {
         conference: body.conference || 'Desert',
         primary_color: body.primaryColor || '#00A8E8',
         secondary_color: body.secondaryColor || '#0A0E27',
+        guild_id: '1450671860520976559',
       })
       .select()
       .single();
