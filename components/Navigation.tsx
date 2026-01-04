@@ -31,7 +31,7 @@ export default function Navigation() {
   console.log('[NAV DEBUG] Player ID:', session?.user?.playerId);
 
   return (
-    <nav className="bg-white dark:bg-mba-dark border-b border-gray-200 dark:border-gray-800 shadow-sm">
+    <nav className="bg-white dark:bg-mba-dark border-b-4 border-gray-800 dark:border-gray-600 shadow-minecraft">
       <div className="max-w-full mx-auto px-2 sm:px-4 lg:px-8">
         <div className="flex items-center justify-between min-h-16 py-2">
           <div className="flex items-center">
@@ -60,10 +60,10 @@ export default function Navigation() {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`flex items-center gap-1 px-2 py-2 rounded-md text-sm font-medium transition-colors ${
+                    className={`flex items-center gap-1 px-2 py-2 minecraft-button border-2 text-sm font-medium ${
                       isActive
-                        ? 'bg-mba-blue text-white'
-                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                        ? 'bg-mba-blue text-white border-blue-700'
+                        : 'text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 border-gray-400 dark:border-gray-600'
                     }`}
                   >
                     <Icon className="w-4 h-4" />
@@ -77,16 +77,16 @@ export default function Navigation() {
             {status === "authenticated" && session?.user?.playerId && session?.user?.minecraftUsername ? (
               <Link
                 href={`/players/${session.user.playerId}`}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ml-2"
+                className="flex items-center gap-2 px-3 py-2 minecraft-button border-2 bg-gray-100 dark:bg-gray-800 border-gray-400 dark:border-gray-600 ml-2"
               >
                 {session.user.profilePicture ? (
                   <img
                     src={session.user.profilePicture}
                     alt={session.user.minecraftUsername}
-                    className="w-8 h-8 rounded-lg object-cover border-2 border-gray-300 dark:border-gray-600"
+                    className="w-8 h-8 border-2 border-gray-300 dark:border-gray-600"
                   />
                 ) : (
-                  <div className="w-8 h-8 rounded-lg bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
+                  <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
                     <User className="w-5 h-5 text-gray-600 dark:text-gray-300" />
                   </div>
                 )}
@@ -98,7 +98,7 @@ export default function Navigation() {
               <button
                 onClick={() => signIn("discord", { callbackUrl: '/' })}
                 disabled={status === "loading"}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-mba-blue text-white hover:bg-blue-700 transition-colors shadow-sm ml-2 disabled:opacity-50"
+                className="flex items-center gap-2 px-4 py-2 minecraft-button border-3 text-sm font-medium bg-mba-blue text-white border-blue-700 ml-2 disabled:opacity-50"
               >
                 <User className="w-4 h-4" />
                 <span className="whitespace-nowrap">Log In</span>
@@ -107,7 +107,7 @@ export default function Navigation() {
             
             <button
               onClick={toggleTheme}
-              className="ml-2 p-2 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              className="ml-2 p-2 minecraft-button border-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 border-gray-400 dark:border-gray-600"
               aria-label="Toggle theme"
             >
               {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
