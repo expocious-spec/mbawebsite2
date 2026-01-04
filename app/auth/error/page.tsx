@@ -9,7 +9,7 @@ export default function AuthErrorPage() {
 
   const errorMessages: Record<string, string> = {
     Configuration: "There is a problem with the server configuration.",
-    AccessDenied: "You must verify your Minecraft username on Discord before signing in to the website. Join the Discord server and use the verification bot.",
+    AccessDenied: "You need to /linkdiscord in the official MBA Discord.",
     Verification: "The verification link has expired or has already been used.",
     OAuthSignin: "Error constructing the authorization URL.",
     OAuthCallback: "Error handling the Discord OAuth callback.",
@@ -20,7 +20,7 @@ export default function AuthErrorPage() {
     EmailSignin: "Error sending the verification email.",
     CredentialsSignin: "Sign in failed. Check your credentials.",
     SessionRequired: "Please sign in to access this page.",
-    Default: "You need to verify your Minecraft username on Discord before you can sign in.",
+    Default: "You need to /linkdiscord in the official MBA Discord.",
   };
 
   const message = error ? errorMessages[error] || errorMessages.Default : errorMessages.Default;
