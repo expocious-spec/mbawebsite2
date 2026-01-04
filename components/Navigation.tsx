@@ -74,15 +74,15 @@ export default function Navigation() {
             </div>
             
             {/* User Profile/Login Section */}
-            {status === "authenticated" && session?.user ? (
+            {status === "authenticated" && session?.user?.playerId && session?.user?.minecraftUsername ? (
               <Link
-                href={session.user.playerId && session.user.minecraftUsername ? `/players/${session.user.playerId}` : '#'}
+                href={`/players/${session.user.playerId}`}
                 className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ml-2"
               >
                 {session.user.profilePicture ? (
                   <img
                     src={session.user.profilePicture}
-                    alt={session.user.playerName || session.user.name || 'User'}
+                    alt={session.user.minecraftUsername}
                     className="w-8 h-8 rounded-lg object-cover border-2 border-gray-300 dark:border-gray-600"
                   />
                 ) : (
@@ -91,10 +91,10 @@ export default function Navigation() {
                   </div>
                 )}
                 <span className="font-minecraft text-xs text-gray-900 dark:text-white max-w-[150px] truncate">
-                  {session.user.minecraftUsername || session.user.playerName || session.user.name || 'User'}
+                  {session.user.minecraftUsername}
                 </span>
               </Link>
-            ) : (
+            ) : status !== "authenticated" ? (
               <button
                 onClick={() => signIn("discord", { callbackUrl: '/' })}
                 disabled={status === "loading"}
@@ -103,7 +103,7 @@ export default function Navigation() {
                 <User className="w-4 h-4" />
                 <span className="whitespace-nowrap">Log In</span>
               </button>
-            )}
+            ) : null}
             
             <button
               onClick={toggleTheme}
