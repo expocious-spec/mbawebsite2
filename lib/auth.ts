@@ -193,7 +193,7 @@ export const authOptions: NextAuthOptions = {
         try {
           const { data: userData } = await supabaseAdmin
             .from("users")
-            .select("id, username, team_id, avatar_url, minecraft_username")
+            .select("id, username, team_id, avatar_url, minecraft_username, minecraft_user_id")
             .eq("id", userId)
             .single();
           
@@ -202,8 +202,8 @@ export const authOptions: NextAuthOptions = {
             token.teamId = userData.team_id;
             token.playerName = userData.username;
             token.minecraftUsername = userData.minecraft_username;
-            // Use Minecraft headshot instead of Discord avatar
-            token.profilePicture = getMinecraftHeadshot(userData.minecraft_username, 128);
+            // Use Minecraft headshot with UUID instead of username
+            token.profilePicture = getMinecraftHeadshot(userData.minecraft_user_id || userData.minecraft_username, 128);
           }
         } catch (error) {
           console.error("Error fetching user data:", error);
