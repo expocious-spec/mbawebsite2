@@ -5,6 +5,11 @@ import { NextResponse } from 'next/server';
 // New code should use /api/users instead
 export async function GET() {
   try {
+    // Debug: Log environment to verify correct Supabase project
+    console.log('SUPABASE_URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
+    console.log('SERVICE_KEY exists:', !!process.env.SUPABASE_SERVICE_ROLE_KEY);
+    console.log('SERVICE_KEY first 20 chars:', process.env.SUPABASE_SERVICE_ROLE_KEY?.substring(0, 20));
+    
     const { data: users, error } = await supabaseAdmin
       .from('users')
       .select('*, player_season_stats(*)')
