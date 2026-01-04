@@ -12,9 +12,12 @@ export async function GET() {
 
     if (error) {
       console.error('Error fetching users:', error);
+      console.error('Error details:', JSON.stringify(error, null, 2));
       // Return empty array instead of error to prevent frontend crashes
       return NextResponse.json([]);
     }
+
+    console.log(`Fetched ${users?.length || 0} users from database`);
 
     // Format users to match expected player format
     const formattedPlayers = (users || []).map((user: any) => {
