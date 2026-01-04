@@ -169,8 +169,8 @@ export const authOptions: NextAuthOptions = {
         session.user.isAdmin = ADMIN_DISCORD_IDS.includes(token.discordId as string);
       }
       
-      // Add player/team data to session
-      if (token.playerId) {
+      // Add player/team data to session - only if user has minecraft_username
+      if (token.playerId && token.minecraftUsername) {
         session.user.playerId = token.playerId as string;
         session.user.teamId = token.teamId as string | null;
         session.user.playerName = token.playerName as string;
