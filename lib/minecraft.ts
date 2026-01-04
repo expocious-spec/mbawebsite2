@@ -14,7 +14,8 @@ export function getMinecraftHeadshot(minecraftUuidOrUsername: string | null | un
   const uuid = minecraftUuidOrUsername.replace(/-/g, '');
   
   // Size options: 8-512 pixels
-  return `https://crafatar.com/avatars/${uuid}?size=${size}&overlay`;
+  // Use default.png fallback for CORS issues
+  return `https://crafatar.com/avatars/${uuid}?size=${size}&default=MHF_Steve&overlay`;
 }
 
 /**
