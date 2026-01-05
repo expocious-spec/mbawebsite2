@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
+import { getMinecraftHeadshot } from '@/lib/minecraft';
 
 // GET - Get wall posts for a team
 export async function GET(
@@ -11,20 +12,7 @@ export async function GET(
   try {
     const { data: posts, error } = await supabaseAdmin
       .from('team_wall_posts')
-      .select(`
-        id,
-        content,
-        is_pinned,
-        created_at,
-        player_id,
-        players:player_id (
-          id,
-          display_name,
-          minecraft_username,
-          profile_picture,
-          roles
-        )
-      `)
+      .select('id, content, is_pinned, created_at, player_id')
       .eq('team_id', params.id)
       .order('is_pinned', { ascending: false })
       .order('created_at', { ascending: false });
@@ -34,7 +22,32 @@ export async function GET(
       return NextResponse.json({ error: 'Failed to fetch wall posts' }, { status: 500 });
     }
 
-    return NextResponse.json({ posts });
+    // Fetch player data for each post
+    const playerIds = Array.from(new Set(posts?.map(p => p.player_id) || []));
+    const { data: players } = await supabaseAdmin
+      .from('users')
+      .select('id, username, minecraft_username, minecraft_user_id, avatar_url, roles')
+      .in('id', playerIds);
+
+    // Map player data to posts
+    const playersMap = new Map(players?.map(p => [p.id, p]) || []);
+    const postsWithPlayers = posts?.map(post => {
+      const player = playersMap.get(post.player_id);
+      return {
+        ...post,
+        players: player ? {
+          id: player.id,
+          display_name: player.username,
+          minecraft_username: player.minecraft_username,
+          profile_picture: player.minecraft_user_id 
+            ? getMinecraftHeadshot(player.minecraft_user_id, 128)
+            : player.avatar_url || getMinecraftHeadshot(null, 128),
+          roles: player.roles || ['Player'],
+        } : null
+      };
+    }) || [];
+
+    return NextResponse.json({ posts: postsWithPlayers });
   } catch (error) {
     console.error('Error in GET /api/teams/[id]/wall:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -75,7 +88,7 @@ export async function POST(
       return NextResponse.json({ error: 'Post is too long (max 500 characters)' }, { status: 400 });
     }
 
-    const { data, error } = await supabaseAdmin
+    const { data: post, error } = await supabaseAdmin
       .from('team_wall_posts')
       .insert({
         team_id: params.id,
@@ -83,20 +96,7 @@ export async function POST(
         content: content.trim(),
         is_pinned: false,
       })
-      .select(`
-        id,
-        content,
-        is_pinned,
-        created_at,
-        player_id,
-        players:player_id (
-          id,
-          display_name,
-          minecraft_username,
-          profile_picture,
-          roles
-        )
-      `)
+      .select('id, content, is_pinned, created_at, player_id')
       .single();
 
     if (error) {
@@ -104,7 +104,27 @@ export async function POST(
       return NextResponse.json({ error: 'Failed to create post' }, { status: 500 });
     }
 
-    return NextResponse.json(data);
+    // Fetch player data
+    const { data: player } = await supabaseAdmin
+      .from('users')
+      .select('id, username, minecraft_username, minecraft_user_id, avatar_url, roles')
+      .eq('id', session.user.playerId)
+      .single();
+
+    const postWithPlayer = {
+      ...post,
+      players: player ? {
+        id: player.id,
+        display_name: player.username,
+        minecraft_username: player.minecraft_username,
+        profile_picture: player.minecraft_user_id 
+          ? getMinecraftHeadshot(player.minecraft_user_id, 128)
+          : player.avatar_url || getMinecraftHeadshot(null, 128),
+        roles: player.roles || ['Player'],
+      } : null
+    };
+
+    return NextResponse.json(postWithPlayer);
   } catch (error) {
     console.error('Error in POST /api/teams/[id]/wall:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
+import { getMinecraftHeadshot } from '@/lib/minecraft';
 
 // GET - Get comments for an article
 export async function GET(
@@ -25,7 +26,7 @@ export async function GET(
     const playerIds = Array.from(new Set(comments?.map(c => c.player_id) || []));
     const { data: players, error: playersError } = await supabaseAdmin
       .from('users')
-      .select('id, username, minecraft_username, avatar_url')
+      .select('id, username, minecraft_username, minecraft_user_id, avatar_url')
       .in('id', playerIds);
 
     if (playersError) {
@@ -42,7 +43,9 @@ export async function GET(
           id: player.id,
           display_name: player.username,
           minecraft_username: player.minecraft_username,
-          profile_picture: player.avatar_url,
+          profile_picture: player.minecraft_user_id 
+            ? getMinecraftHeadshot(player.minecraft_user_id, 128)
+            : player.avatar_url || getMinecraftHeadshot(null, 128),
         } : null
       };
     }) || [];
@@ -96,7 +99,7 @@ export async function POST(
     // Fetch player data
     const { data: player } = await supabaseAdmin
       .from('users')
-      .select('id, username, minecraft_username, avatar_url')
+      .select('id, username, minecraft_username, minecraft_user_id, avatar_url')
       .eq('id', session.user.playerId)
       .single();
 
@@ -106,7 +109,9 @@ export async function POST(
         id: player.id,
         display_name: player.username,
         minecraft_username: player.minecraft_username,
-        profile_picture: player.avatar_url,
+        profile_picture: player.minecraft_user_id 
+          ? getMinecraftHeadshot(player.minecraft_user_id, 128)
+          : player.avatar_url || getMinecraftHeadshot(null, 128),
       } : null
     };
 
