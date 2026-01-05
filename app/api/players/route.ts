@@ -17,6 +17,7 @@ export async function GET() {
     let { data: users, error } = await supabaseAdmin
       .from('users')
       .select('*, player_season_stats(*)')
+      .not('minecraft_username', 'is', null)
       .order('username');
 
     // If that fails, try without season stats
@@ -27,6 +28,7 @@ export async function GET() {
       const fallback = await supabaseAdmin
         .from('users')
         .select('*')
+        .not('minecraft_username', 'is', null)
         .order('username');
       
       users = fallback.data;
