@@ -10,7 +10,7 @@ export async function GET(
 ) {
   try {
     const { data: likes, error } = await supabaseAdmin
-      .from('article_comment_likes')
+      .from('comment_likes')
       .select('*')
       .eq('comment_id', params.commentId);
 
@@ -37,7 +37,7 @@ export async function POST(
     }
 
     const { data, error } = await supabaseAdmin
-      .from('article_comment_likes')
+      .from('comment_likes')
       .insert({
         comment_id: params.commentId,
         player_id: session.user.playerId,
@@ -71,7 +71,7 @@ export async function DELETE(
     }
 
     const { error } = await supabaseAdmin
-      .from('article_comment_likes')
+      .from('comment_likes')
       .delete()
       .eq('comment_id', params.commentId)
       .eq('player_id', session.user.playerId);
