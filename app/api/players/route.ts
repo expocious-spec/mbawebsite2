@@ -1,6 +1,8 @@
 import { supabaseAdmin } from '@/lib/supabase';
 import { NextResponse } from 'next/server';
 import { getMinecraftHeadshot } from '@/lib/minecraft';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 // This endpoint is kept for backward compatibility
 // New code should use /api/users instead
@@ -88,5 +90,89 @@ export async function GET() {
     console.error('Error in players API:', error);
     // Return empty array on any error
     return NextResponse.json([]);
+  }
+}
+
+// POST - Import player from Minecraft (admin only)
+export async function POST(request: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user?.isAdmin) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const { minecraftUsername, discordUsername, teamId, roles } = body;
+
+    if (!minecraftUsername) {
+      return NextResponse.json({ error: 'Minecraft username is required' }, { status: 400 });
+    }
+
+    // Fetch Minecraft UUID from Mojang API
+    let minecraftUserId = null;
+    let displayName = minecraftUsername;
+    
+    try {
+      const mojangResponse = await fetch(`https://api.mojang.com/users/profiles/minecraft/${minecraftUsername}`);
+      if (mojangResponse.ok) {
+        const mojangData = await mojangResponse.json();
+        minecraftUserId = mojangData.id;
+        displayName = mojangData.name; // Use exact capitalization from Mojang
+      }
+    } catch (error) {
+      console.warn('Failed to fetch Minecraft UUID:', error);
+    }
+
+    // Generate a temporary user ID (will be replaced when they log in with Discord)
+    const tempUserId = `minecraft-${minecraftUsername.toLowerCase()}`;
+
+    // Check if user already exists
+    const { data: existingUser } = await supabaseAdmin
+      .from('users')
+      .select('id')
+      .eq('minecraft_username', minecraftUsername)
+      .single();
+
+    if (existingUser) {
+      return NextResponse.json({ 
+        error: 'A player with this Minecraft username already exists' 
+      }, { status: 409 });
+    }
+
+    // Create user
+    const { data: newUser, error: createError } = await supabaseAdmin
+      .from('users')
+      .insert({
+        id: tempUserId,
+        username: displayName,
+        minecraft_username: minecraftUsername,
+        minecraft_user_id: minecraftUserId,
+        discord_username: discordUsername || null,
+        team_id: teamId || null,
+        roles: roles || ['Player']
+      })
+      .select()
+      .single();
+
+    if (createError) {
+      console.error('Error creating user:', createError);
+      return NextResponse.json({ 
+        error: 'Failed to import player',
+        details: createError.message 
+      }, { status: 500 });
+    }
+
+    return NextResponse.json({ 
+      success: true, 
+      data: newUser,
+      message: 'Player imported successfully' 
+    });
+
+  } catch (error) {
+    console.error('Error in POST /api/players:', error);
+    return NextResponse.json({ 
+      error: 'Failed to import player' 
+    }, { status: 500 });
   }
 }
