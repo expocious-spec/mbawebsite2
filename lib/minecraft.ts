@@ -9,13 +9,12 @@ export function getMinecraftHeadshot(minecraftUuidOrUsername: string | null | un
     return `https://ui-avatars.com/api/?name=Player&size=${size}&background=0A0E27&color=00A8E8&bold=true`;
   }
   
-  // Using crafatar.com for Minecraft heads - requires UUID without dashes
+  // Using mc-heads.net which handles CORS better than crafatar
   // If it looks like a UUID (has dashes), remove them
   const uuid = minecraftUuidOrUsername.replace(/-/g, '');
   
-  // Size options: 8-512 pixels
-  // Use default.png fallback for CORS issues
-  return `https://crafatar.com/avatars/${uuid}?size=${size}&default=MHF_Steve&overlay`;
+  // mc-heads.net provides better CORS support and fallback
+  return `https://mc-heads.net/avatar/${uuid}/${size}`;
 }
 
 /**
@@ -29,6 +28,6 @@ export function getMinecraftSkinRender(minecraftUuidOrUsername: string | null | 
   // Remove dashes from UUID
   const uuid = minecraftUuidOrUsername.replace(/-/g, '');
   
-  // Full body render
-  return `https://crafatar.com/renders/body/${uuid}?size=${size}&overlay`;
+  // mc-heads.net body render
+  return `https://mc-heads.net/body/${uuid}/${size}`;
 }

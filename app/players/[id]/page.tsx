@@ -188,7 +188,22 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
           {/* Player Info */}
           <div className="flex-1 text-center md:text-left">
             <h1 className="text-3xl font-minecraft mb-3 text-gray-900 dark:text-white leading-relaxed">{player.displayName}</h1>
-            <p className="text-sm font-minecraft text-gray-600 dark:text-gray-400 mb-3">@{player.minecraftUsername}</p>
+            
+            {/* Usernames */}
+            <div className="space-y-1 mb-4">
+              {player.minecraftUsername && (
+                <div className="flex items-center justify-center md:justify-start gap-2">
+                  <span className="text-xs font-semibold text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded">MINECRAFT</span>
+                  <p className="text-sm font-minecraft text-gray-700 dark:text-gray-300">{player.minecraftUsername}</p>
+                </div>
+              )}
+              {player.discordUsername && (
+                <div className="flex items-center justify-center md:justify-start gap-2">
+                  <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-100 dark:bg-indigo-900/30 px-2 py-1 rounded">DISCORD</span>
+                  <p className="text-sm font-minecraft text-gray-700 dark:text-gray-300">{player.discordUsername}</p>
+                </div>
+              )}
+            </div>
             
             {player.description && (
               <p className="text-gray-700 dark:text-gray-300 mb-4">{player.description}</p>

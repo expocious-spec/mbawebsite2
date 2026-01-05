@@ -1,5 +1,6 @@
 import { supabaseAdmin } from '@/lib/supabase';
 import { NextResponse } from 'next/server';
+import { getMinecraftHeadshot } from '@/lib/minecraft';
 
 // This endpoint is kept for backward compatibility
 // New code should use /api/users instead
@@ -49,7 +50,9 @@ export async function GET() {
         displayName: user.username || '',
         minecraftUsername: user.minecraft_username || '',
         minecraftUserId: user.minecraft_user_id || '',
-        profilePicture: user.avatar_url || '',
+        profilePicture: user.minecraft_user_id 
+          ? getMinecraftHeadshot(user.minecraft_user_id, 256)
+          : user.avatar_url || getMinecraftHeadshot(null, 256),
         description: user.description || '',
         discordUsername: user.discord_username || '',
         teamId: user.team_id || null,

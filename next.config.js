@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ['aehtarohptmtrgksxhll.supabase.co', 'crafatar.com'],
+    domains: ['aehtarohptmtrgksxhll.supabase.co', 'crafatar.com', 'mc-heads.net', 'ui-avatars.com'],
     remotePatterns: [
       {
         protocol: 'https',
@@ -35,6 +35,14 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'crafatar.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'mc-heads.net',
+      },
+      {
+        protocol: 'https',
+        hostname: 'ui-avatars.com',
+      },
     ],
   },
   async headers() {
@@ -48,7 +56,7 @@ const nextConfig = {
               default-src 'self';
               script-src 'self' 'unsafe-eval' 'unsafe-inline' *.vercel-scripts.com;
               style-src 'self' 'unsafe-inline';
-              img-src 'self' data: blob: https: *.roblox.com *.rbxcdn.com *.supabase.co cdn.discordapp.com;
+              img-src 'self' data: blob: https: *.roblox.com *.rbxcdn.com *.supabase.co cdn.discordapp.com mc-heads.net ui-avatars.com crafatar.com;
               font-src 'self' data:;
               connect-src 'self' https://*.supabase.co https://apis.roblox.com wss://*.supabase.co;
               frame-src 'self';
