@@ -199,27 +199,35 @@ export const authOptions: NextAuthOptions = {
           
           // If user doesn't exist, create them
           if (error && error.code === 'PGRST116') {
-            console.log(`Creating new user for Discord ID: ${discordId}`);
+            console.log(`[AUTH] User not found, creating new user for Discord ID: ${discordId}`);
             const discordUser = user as any;
+            
+            const newUserData = {
+              id: userId,
+              username: discordUser?.name || `User-${discordId}`,
+              discord_username: discordUser?.name || null,
+              email: discordUser?.email || null,
+              avatar_url: discordUser?.image || null,
+              roles: ['Player']
+            };
+            
+            console.log('[AUTH] Attempting to insert user:', newUserData);
             
             const { data: newUser, error: createError } = await supabaseAdmin
               .from("users")
-              .insert({
-                id: userId,
-                username: discordUser?.name || `User-${discordId}`,
-                discord_username: discordUser?.name || null,
-                email: discordUser?.email || null,
-                avatar_url: discordUser?.image || null,
-                roles: ['Player']
-              })
+              .insert(newUserData)
               .select("id, username, team_id, avatar_url, minecraft_username, minecraft_user_id")
               .single();
             
             if (createError) {
-              console.error("Error creating user:", createError);
+              console.error("[AUTH] Error creating user:", createError);
+              console.error("[AUTH] Error details:", JSON.stringify(createError, null, 2));
             } else {
+              console.log("[AUTH] Successfully created user:", newUser);
               userData = newUser;
             }
+          } else if (error) {
+            console.error("[AUTH] Error fetching user (not PGRST116):", error);
           }
           
           if (userData) {
