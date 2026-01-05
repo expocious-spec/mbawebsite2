@@ -195,3 +195,36 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: 'Failed to update user' }, { status: 500 });
   }
 }
+
+// DELETE user (admin only)
+export async function DELETE(request: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user?.isAdmin) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get('id');
+    
+    if (!userId) {
+      return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
+    }
+
+    const { error } = await supabaseAdmin
+      .from('users')
+      .delete()
+      .eq('id', userId);
+
+    if (error) {
+      console.error('User deletion error:', error);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true, message: 'User deleted successfully' });
+  } catch (error) {
+    console.error('DELETE users error:', error);
+    return NextResponse.json({ error: 'Failed to delete user' }, { status: 500 });
+  }
+}

@@ -153,7 +153,7 @@ export default function PlayersAdmin() {
 
     setLoading(true);
     try {
-      const response = await fetch(`/api/players?id=${playerId}`, {
+      const response = await fetch(`/api/users?id=${playerId}`, {
         method: 'DELETE',
       });
 
