@@ -10,10 +10,25 @@ export async function GET() {
     console.log('SERVICE_KEY exists:', !!process.env.SUPABASE_SERVICE_ROLE_KEY);
     console.log('SERVICE_KEY first 20 chars:', process.env.SUPABASE_SERVICE_ROLE_KEY?.substring(0, 20));
     
-    const { data: users, error } = await supabaseAdmin
+    // Try to fetch with season stats first
+    let { data: users, error } = await supabaseAdmin
       .from('users')
       .select('*, player_season_stats(*)')
       .order('username');
+
+    // If that fails, try without season stats
+    if (error) {
+      console.warn('Error fetching users with season stats:', error);
+      console.log('Retrying without season stats...');
+      
+      const fallback = await supabaseAdmin
+        .from('users')
+        .select('*')
+        .order('username');
+      
+      users = fallback.data;
+      error = fallback.error;
+    }
 
     if (error) {
       console.error('Error fetching users:', error);
