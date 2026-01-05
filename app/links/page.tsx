@@ -11,7 +11,7 @@ const links = [
   {
     title: 'Website',
     description: 'You are here!',
-    url: typeof window !== 'undefined' ? window.location.origin : 'https://www.mbaassociation.com',
+    url: typeof window !== 'undefined' ? window.location.origin : 'https://www.minecraftbasketball.com',
     icon: Globe,
     color: 'bg-mba-blue hover:bg-blue-600',
   },

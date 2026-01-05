@@ -171,7 +171,7 @@ export default function LiveStreamAdmin() {
                     type="text"
                     value={twitchChannel}
                     onChange={(e) => setTwitchChannel(e.target.value)}
-                    placeholder="e.g., mbaassociation"
+                    placeholder="e.g., minecraftbasketball"
                     className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white font-mono"
                   />
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
