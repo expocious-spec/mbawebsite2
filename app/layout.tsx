@@ -19,17 +19,17 @@ export const metadata: Metadata = {
   icons: {
     icon: '/logo.png',
   },
-  metadataBase: new URL('https://mbaassociation.com'),
+  metadataBase: new URL('https://minecraftbasketball.com'),
   openGraph: {
     title: "Minecraft Basketball Association",
     description: "Official website of the Minecraft Basketball Association - The Most Competitive Minecraft basketball league",
-    url: 'https://mbaassociation.com',
+    url: 'https://minecraftbasketball.com',
     siteName: 'Minecraft Basketball Association',
     images: [
       {
         url: '/logo.png',
-        width: 512,
-        height: 512,
+        width: 1200,
+        height: 1200,
         alt: 'MBA Logo',
       },
     ],
@@ -37,12 +37,12 @@ export const metadata: Metadata = {
     type: 'website',
   },
   twitter: {
-    card: 'summary',
+    card: 'summary_large_image',
     title: "Minecraft Basketball Association",
     description: "Official website of the Minecraft Basketball Association - Premier Minecraft basketball league",
     images: ['/logo.png'],
   },
-  themeColor: '#3B82F6',
+  themeColor: '#2563EB',
 };
 
 export default function RootLayout({
