@@ -119,25 +119,15 @@ export default function PlayersAdmin() {
 
     setLoading(true);
     try {
-      const response = await fetch('/api/players', {
+      const response = await fetch('/api/users', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           id: selectedPlayer.id,
-          // minecraftUsername cannot be updated after creation
-          displayName,
+          username: displayName,
           discordUsername,
           teamId,
           roles,
-          stats: {
-            gamesPlayed: parseInt(gamesPlayed) || 0,
-            points: parseFloat(points) || 0,
-            rebounds: parseFloat(rebounds) || 0,
-            assists: parseFloat(assists) || 0,
-            steals: parseFloat(steals) || 0,
-            blocks: parseFloat(blocks) || 0,
-            turnovers: parseFloat(turnovers) || 0,
-          },
         }),
       });
 
@@ -300,6 +290,31 @@ export default function PlayersAdmin() {
                   <option key={team.id} value={team.id}>{team.name}</option>
                 ))}
               </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                Roles
+              </label>
+              <div className="space-y-2">
+                {['Player', 'Franchise Owner', 'General Manager', 'Head Coach', 'Assistant Coach'].map((role) => (
+                  <label key={role} className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={roles.includes(role)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setRoles([...roles, role]);
+                        } else {
+                          setRoles(roles.filter(r => r !== role));
+                        }
+                      }}
+                      className="w-4 h-4 text-mba-blue bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 rounded focus:ring-mba-blue"
+                    />
+                    <span className="text-sm text-gray-700 dark:text-gray-300">{role}</span>
+                  </label>
+                ))}
+              </div>
             </div>
           </div>
 

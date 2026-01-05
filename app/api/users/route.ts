@@ -153,3 +153,45 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Failed to create user' }, { status: 500 });
   }
 }
+
+// PUT update user (admin only)
+export async function PUT(request: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user?.isAdmin) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const body = await request.json();
+    
+    if (!body.id) {
+      return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
+    }
+
+    // Build update object with only provided fields
+    const updates: any = {};
+    if (body.username !== undefined) updates.username = body.username;
+    if (body.teamId !== undefined) updates.team_id = body.teamId;
+    if (body.roles !== undefined) updates.roles = body.roles;
+    if (body.description !== undefined) updates.description = body.description;
+    if (body.discordUsername !== undefined) updates.discord_username = body.discordUsername;
+
+    const { data, error } = await supabaseAdmin
+      .from('users')
+      .update(updates)
+      .eq('id', body.id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('User update error:', error);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true, data });
+  } catch (error) {
+    console.error('PUT users error:', error);
+    return NextResponse.json({ error: 'Failed to update user' }, { status: 500 });
+  }
+}
