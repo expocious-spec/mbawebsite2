@@ -22,7 +22,7 @@ export async function GET(
     }
 
     // Fetch player data for each comment
-    const playerIds = [...new Set(comments?.map(c => c.player_id) || [])];
+    const playerIds = Array.from(new Set(comments?.map(c => c.player_id) || []));
     const { data: players, error: playersError } = await supabaseAdmin
       .from('users')
       .select('id, username, minecraft_username, avatar_url')
