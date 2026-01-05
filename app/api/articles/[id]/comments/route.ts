@@ -9,29 +9,45 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { data: comments, error } = await supabaseAdmin
+    // Fetch comments
+    const { data: comments, error: commentsError } = await supabaseAdmin
       .from('article_comments')
-      .select(`
-        id,
-        content,
-        created_at,
-        player_id,
-        players:player_id (
-          id,
-          display_name,
-          minecraft_username,
-          profile_picture
-        )
-      `)
+      .select('id, content, created_at, player_id')
       .eq('article_id', params.id)
       .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('Error fetching comments:', error);
+    if (commentsError) {
+      console.error('Error fetching comments:', commentsError);
       return NextResponse.json({ error: 'Failed to fetch comments' }, { status: 500 });
     }
 
-    return NextResponse.json({ comments });
+    // Fetch player data for each comment
+    const playerIds = [...new Set(comments?.map(c => c.player_id) || [])];
+    const { data: players, error: playersError } = await supabaseAdmin
+      .from('users')
+      .select('id, username, minecraft_username, avatar_url')
+      .in('id', playerIds);
+
+    if (playersError) {
+      console.error('Error fetching players:', playersError);
+    }
+
+    // Map player data to comments
+    const playersMap = new Map(players?.map(p => [p.id, p]) || []);
+    const commentsWithPlayers = comments?.map(comment => {
+      const player = playersMap.get(comment.player_id);
+      return {
+        ...comment,
+        players: player ? {
+          id: player.id,
+          display_name: player.username,
+          minecraft_username: player.minecraft_username,
+          profile_picture: player.avatar_url,
+        } : null
+      };
+    }) || [];
+
+    return NextResponse.json({ comments: commentsWithPlayers });
   } catch (error) {
     console.error('Error in GET /api/articles/[id]/comments:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -61,33 +77,40 @@ export async function POST(
       return NextResponse.json({ error: 'Comment is too long (max 1000 characters)' }, { status: 400 });
     }
 
-    const { data, error } = await supabaseAdmin
+    // Insert comment
+    const { data: comment, error: commentError } = await supabaseAdmin
       .from('article_comments')
       .insert({
         article_id: params.id,
         player_id: session.user.playerId,
         content: content.trim(),
       })
-      .select(`
-        id,
-        content,
-        created_at,
-        player_id,
-        players:player_id (
-          id,
-          display_name,
-          minecraft_username,
-          profile_picture
-        )
-      `)
+      .select('id, content, created_at, player_id')
       .single();
 
-    if (error) {
-      console.error('Error creating comment:', error);
+    if (commentError) {
+      console.error('Error creating comment:', commentError);
       return NextResponse.json({ error: 'Failed to post comment' }, { status: 500 });
     }
 
-    return NextResponse.json(data);
+    // Fetch player data
+    const { data: player } = await supabaseAdmin
+      .from('users')
+      .select('id, username, minecraft_username, avatar_url')
+      .eq('id', session.user.playerId)
+      .single();
+
+    const commentWithPlayer = {
+      ...comment,
+      players: player ? {
+        id: player.id,
+        display_name: player.username,
+        minecraft_username: player.minecraft_username,
+        profile_picture: player.avatar_url,
+      } : null
+    };
+
+    return NextResponse.json(commentWithPlayer);
   } catch (error) {
     console.error('Error in POST /api/articles/[id]/comments:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

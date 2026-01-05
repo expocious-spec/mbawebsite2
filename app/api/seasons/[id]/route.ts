@@ -3,6 +3,8 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
 
+const GUILD_ID = process.env.DISCORD_GUILD_ID;
+
 // PATCH - Update season
 export async function PATCH(
   request: Request,
@@ -15,36 +17,58 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    const { name, displayOrder, isCurrent, startDate, endDate } = body;
+    const { name, isCurrent, startDate, endDate } = body;
+
+    if (!GUILD_ID) {
+      return NextResponse.json({ error: 'Discord Guild ID not configured' }, { status: 500 });
+    }
 
     // If setting as current, unset all other current seasons
     if (isCurrent) {
       await supabaseAdmin
         .from('seasons')
-        .update({ isCurrent: false })
-        .neq('id', params.id)
-        .eq('isCurrent', true);
+        .update({ is_active: false })
+        .eq('guild_id', GUILD_ID)
+        .eq('is_active', true)
+        .neq('id', params.id);
     }
+
+    const updates: any = {};
+    if (name !== undefined) updates.season_name = name;
+    if (isCurrent !== undefined) updates.is_active = isCurrent;
+    if (startDate !== undefined) updates.start_date = startDate || null;
+    if (endDate !== undefined) updates.end_date = endDate || null;
 
     const { data, error } = await supabaseAdmin
       .from('seasons')
-      .update({
-        name,
-        displayOrder,
-        isCurrent: isCurrent || false,
-        startDate: startDate || null,
-        endDate: endDate || null,
-      })
+      .update(updates)
       .eq('id', params.id)
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('Database error updating season:', error);
+      throw error;
+    }
 
-    return NextResponse.json(data);
-  } catch (error) {
+    // Map response back to frontend format
+    const mappedData = {
+      id: data.id,
+      name: data.season_name,
+      displayOrder: 0,
+      isCurrent: data.is_active,
+      startDate: data.start_date,
+      endDate: data.end_date,
+      createdAt: data.created_at,
+      guildId: data.guild_id,
+    };
+
+    return NextResponse.json(mappedData);
+  } catch (error: any) {
     console.error('Error updating season:', error);
-    return NextResponse.json({ error: 'Failed to update season' }, { status: 500 });
+    return NextResponse.json({ 
+      error: error.message || 'Failed to update season' 
+    }, { status: 500 });
   }
 }
 
