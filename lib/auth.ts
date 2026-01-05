@@ -102,7 +102,7 @@ export const authOptions: NextAuthOptions = {
         console.log("Discord sign in attempt:", { discordId, userId, isAdmin });
 
         try {
-          // Check if user exists in database
+          // Check if user exists with this Discord ID
           const { data: existingUser } = await supabaseAdmin
             .from("users")
             .select("*")
@@ -115,7 +115,6 @@ export const authOptions: NextAuthOptions = {
             
             if (!existingUser) {
               // For new admin users, create with Discord info only
-              // They should verify via Discord bot to get minecraft_username
               await supabaseAdmin.from("users").insert({
                 id: userId,
                 username: user.name || "Unknown",
@@ -123,22 +122,24 @@ export const authOptions: NextAuthOptions = {
                 avatar_url: user.image,
                 discord_username: user.name,
               });
-              console.log("Created new admin user - needs Discord verification for Minecraft username");
+              console.log("Created new admin user");
             }
             // Allow admin to sign in regardless of minecraft_username status
             return true;
           }
 
-          // For non-admin players: Check if they have verified their Minecraft username
+          // For non-admin players: Must be verified via Discord bot
+          // The bot calls /api/bot/link-account to create/link user accounts
+          // That endpoint handles checking for existing Minecraft usernames
+          
           if (!existingUser) {
-            // User doesn't exist - they need to verify on Discord first
-            console.log("User not found in database - must verify on Discord:", userId);
+            // User doesn't exist with this Discord ID - must verify on Discord
+            console.log("User not found - must verify Minecraft on Discord:", userId);
             throw new Error("MINECRAFT_NOT_VERIFIED");
           }
 
-          // Check if user has minecraft_username (indicates Discord verification)
+          // Check if user has minecraft_username (indicates Discord bot verification)
           if (!existingUser.minecraft_username) {
-            // User exists but hasn't verified Minecraft username
             console.log("User exists but no minecraft_username - must verify:", userId);
             throw new Error("MINECRAFT_NOT_VERIFIED");
           }
