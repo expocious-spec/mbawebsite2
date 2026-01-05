@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
-export async function POST() {
+async function createUser() {
   try {
     const session = await getServerSession(authOptions);
     
@@ -66,4 +66,12 @@ export async function POST() {
       details: error 
     }, { status: 500 });
   }
+}
+
+export async function GET() {
+  return createUser();
+}
+
+export async function POST() {
+  return createUser();
 }
