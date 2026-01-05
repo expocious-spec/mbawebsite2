@@ -17,24 +17,20 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    const { name, isCurrent, startDate, endDate } = body;
-
-    if (!GUILD_ID) {
-      return NextResponse.json({ error: 'Discord Guild ID not configured' }, { status: 500 });
-    }
+    const { name, displayOrder, isCurrent, startDate, endDate } = body;
 
     // If setting as current, unset all other current seasons
     if (isCurrent) {
       await supabaseAdmin
         .from('seasons')
         .update({ is_active: false })
-        .eq('guild_id', GUILD_ID)
         .eq('is_active', true)
         .neq('id', params.id);
     }
 
     const updates: any = {};
     if (name !== undefined) updates.season_name = name;
+    if (displayOrder !== undefined) updates.display_order = displayOrder;
     if (isCurrent !== undefined) updates.is_active = isCurrent;
     if (startDate !== undefined) updates.start_date = startDate || null;
     if (endDate !== undefined) updates.end_date = endDate || null;
@@ -54,8 +50,8 @@ export async function PATCH(
     // Map response back to frontend format
     const mappedData = {
       id: data.id,
-      name: data.season_name,
-      displayOrder: 0,
+      name: data.name,
+      displayOrder: data.display_order || 0,
       isCurrent: data.is_active,
       startDate: data.start_date,
       endDate: data.end_date,

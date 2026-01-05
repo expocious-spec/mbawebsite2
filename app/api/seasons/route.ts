@@ -11,7 +11,7 @@ export async function GET() {
     const { data, error } = await supabaseAdmin
       .from('seasons')
       .select('*')
-      .order('created_at', { ascending: false });
+      .order('display_order', { ascending: true });
 
     if (error) {
       console.error('Error fetching seasons:', error);
@@ -23,7 +23,7 @@ export async function GET() {
     const mappedData = data?.map(season => ({
       id: season.id,
       name: season.season_name,
-      displayOrder: 0, // Not stored in DB, can add if needed
+      displayOrder: season.display_order || 0,
       isCurrent: season.is_active,
       startDate: season.start_date,
       endDate: season.end_date,
@@ -47,9 +47,9 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { name, isCurrent, startDate, endDate } = body;
+    const { name, displayOrder, isCurrent, startDate, endDate } = body;
 
-    console.log('[SEASONS API] POST request:', { name, isCurrent, startDate, endDate });
+    console.log('[SEASONS API] POST request:', { name, displayOrder, isCurrent, startDate, endDate });
 
     if (!name) {
       return NextResponse.json({ error: 'Season name is required' }, { status: 400 });
@@ -79,6 +79,7 @@ export async function POST(request: Request) {
     const insertData = {
       guild_id: GUILD_ID,
       season_name: name,
+      display_order: displayOrder !== undefined ? displayOrder : 0,
       is_active: isCurrent || false,
       start_date: startDate || null,
       end_date: endDate || null,
@@ -106,7 +107,7 @@ export async function POST(request: Request) {
     const mappedData = {
       id: data.id,
       name: data.season_name,
-      displayOrder: 0,
+      displayOrder: data.display_order || 0,
       isCurrent: data.is_active,
       startDate: data.start_date,
       endDate: data.end_date,
