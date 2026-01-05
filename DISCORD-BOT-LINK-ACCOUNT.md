@@ -1,257 +1,307 @@
-# Discord Bot - Account Linking Integration
+# Discord Bot - Account Linking Logic
 
-## Overview
+## What You Need to Tell Your Bot Developer
 
-The website now supports linking Discord accounts to existing Minecraft players. When a user verifies their Minecraft username through the Discord bot, the bot should use this API endpoint to either:
-1. **Link** their Discord account to an existing player (if manually created in admin panel)
-2. **Update** their existing Discord account info (if already verified)
-3. **Create** a new player account (if neither exists)
-
-This prevents duplicate accounts and allows admins to pre-create player profiles.
+When a user verifies their Minecraft username on Discord, the bot needs to check if an account with that Minecraft username already exists in the database **before** creating a new one.
 
 ---
 
-## API Endpoint
+## Required Bot Logic Changes
 
-### POST `/api/bot/link-account`
-
-Links a Discord account to a Minecraft username, intelligently handling existing accounts.
-
-**Request Body:**
-```json
-{
-  "discord_id": "123456789",
-  "discord_username": "PlayerName#1234",
-  "minecraft_username": "NotchPlayer",
-  "minecraft_user_id": "069a79f4-44e9-4726-a5be-fca90e38aaf5",
-  "avatar_url": "https://cdn.discordapp.com/avatars/...",
-  "team_id": "team-uuid-here" // Optional
-}
+### Current Behavior (❌ Creates Duplicates)
+```
+User verifies Minecraft username → Bot creates new user with discord-{id}
 ```
 
-**Response Scenarios:**
-
-#### 1. Linked Existing Account
-User already existed with this Minecraft username (e.g., manually created by admin).
-```json
-{
-  "success": true,
-  "action": "linked",
-  "message": "Linked Discord account to existing Minecraft player: NotchPlayer",
-  "old_user_id": "manually-created-id",
-  "user": {
-    "id": "discord-123456789",
-    "username": "PlayerName",
-    "minecraft_username": "NotchPlayer",
-    "minecraft_user_id": "069a79f4-44e9-4726-a5be-fca90e38aaf5",
-    "discord_username": "PlayerName#1234",
-    "team_id": "team-uuid",
-    ...
-  }
-}
+### New Behavior (✅ Links to Existing Accounts)
 ```
-
-#### 2. Updated Existing Discord Account
-User already verified before, just updating info.
-```json
-{
-  "success": true,
-  "action": "updated",
-  "message": "Updated existing Discord account with Minecraft info",
-  "user": {
-    "id": "discord-123456789",
-    ...
-  }
-}
-```
-
-#### 3. Created New Account
-First time verification, no existing account found.
-```json
-{
-  "success": true,
-  "action": "created",
-  "message": "Created new user account",
-  "user": {
-    "id": "discord-123456789",
-    ...
-  }
-}
+User verifies Minecraft username
+  ↓
+Bot checks: Does a user with this minecraft_username already exist?
+  ↓
+YES → Update that user's Discord info (link the accounts)
+  ↓
+NO → Create new user with discord-{id}
 ```
 
 ---
 
-## GET `/api/bot/link-account?minecraft_username=NotchPlayer`
+## Step-by-Step Implementation
 
-Check if a Minecraft username is already taken.
+### 1. When User Runs Verification Command
 
-**Response:**
-```json
-{
-  "exists": true,
-  "user": {
-    "id": "some-id",
-    "username": "Player Name",
-    "minecraft_username": "NotchPlayer",
-    "discord_username": "PlayerName#1234",
-    "team_id": "team-uuid"
-  }
-}
-```
+Example: `/verify NotchPlayer`
 
-Or if not found:
-```json
-{
-  "exists": false
-}
-```
+### 2. Validate Minecraft Username
+(Bot already does this - get UUID from Mojang API)
 
----
-
-## Bot Implementation Guide
-
-### When User Verifies Minecraft Account
-
-1. **User runs verification command** (e.g., `/verify NotchPlayer`)
-
-2. **Bot validates Minecraft username** via Mojang API
-
-3. **Bot calls the link-account endpoint:**
+### 3. Check if User Already Exists with Discord ID
 
 ```javascript
-const response = await fetch('https://your-website.com/api/bot/link-account', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  body: JSON.stringify({
-    discord_id: interaction.user.id,
+// Check if this Discord user already has an account
+const { data: existingDiscordUser } = await supabase
+  .from('users')
+  .select('*')
+  .eq('id', `discord-${interaction.user.id}`)
+  .single();
+```
+
+**If found:** Update their Minecraft info and you're done ✅
+
+```javascript
+if (existingDiscordUser) {
+  await supabase
+    .from('users')
+    .update({
+      minecraft_username: minecraftUsername,
+      minecraft_user_id: minecraftUuid,
+      discord_username: interaction.user.tag,
+      avatar_url: interaction.user.displayAvatarURL(),
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', `discord-${interaction.user.id}`);
+  
+  return interaction.reply('✅ Updated your verification info!');
+}
+```
+
+### 4. Check if User Exists with This Minecraft Username
+
+```javascript
+// Check if someone else has this Minecraft username (manually created account)
+const { data: existingMinecraftUser } = await supabase
+  .from('users')
+  .select('*')
+  .eq('minecraft_username', minecraftUsername)
+  .single();
+```
+
+### 5A. If Existing Minecraft User Found (LINK ACCOUNTS)
+
+This means an admin manually created a player with this Minecraft username.
+We need to link it to this Discord user.
+
+```javascript
+if (existingMinecraftUser) {
+  const oldUserId = existingMinecraftUser.id;
+  const newUserId = `discord-${interaction.user.id}`;
+  
+  // Create new user with Discord ID, preserving all existing data
+  const { data: linkedUser } = await supabase
+    .from('users')
+    .insert({
+      id: newUserId,  // New ID format
+      username: existingMinecraftUser.username,
+      email: existingMinecraftUser.email,
+      avatar_url: interaction.user.displayAvatarURL() || existingMinecraftUser.avatar_url,
+      minecraft_username: minecraftUsername,
+      minecraft_user_id: minecraftUuid,
+      team_id: existingMinecraftUser.team_id,
+      description: existingMinecraftUser.description,
+      discord_username: interaction.user.tag,
+      roles: existingMinecraftUser.roles || ['Player'],
+      created_at: existingMinecraftUser.created_at  // Preserve original date
+    })
+    .select()
+    .single();
+  
+  // Delete the old user record
+  await supabase
+    .from('users')
+    .delete()
+    .eq('id', oldUserId);
+  
+  return interaction.reply(
+    `✅ Successfully linked your Discord account to existing player: ${minecraftUsername}\n` +
+    `You can now sign in to the website!`
+  );
+}
+```
+
+### 5B. If No Existing User Found (CREATE NEW)
+
+```javascript
+// No existing account found - create a new one
+const { data: newUser } = await supabase
+  .from('users')
+  .insert({
+    id: `discord-${interaction.user.id}`,
+    username: interaction.user.username,
+    minecraft_username: minecraftUsername,
+    minecraft_user_id: minecraftUuid,
     discord_username: interaction.user.tag,
-    minecraft_username: 'NotchPlayer',
-    minecraft_user_id: 'minecraft-uuid-from-mojang',
     avatar_url: interaction.user.displayAvatarURL(),
-    team_id: null // or assigned team ID if you have team assignment logic
+    roles: ['Player']
   })
-});
+  .select()
+  .single();
 
-const data = await response.json();
+return interaction.reply(
+  `✅ Account created! You can now sign in to the website with Discord.`
+);
+```
 
-if (data.success) {
-  // Check what action was taken
-  switch (data.action) {
-    case 'linked':
-      await interaction.reply(`✅ Successfully linked your Discord account to existing player: ${data.user.minecraft_username}`);
-      break;
-    case 'updated':
-      await interaction.reply(`✅ Updated your verification info!`);
-      break;
-    case 'created':
-      await interaction.reply(`✅ Account created! You can now sign in to the website.`);
-      break;
+---
+
+## Complete Verification Function Example
+
+```javascript
+async function handleMinecraftVerification(interaction, minecraftUsername) {
+  try {
+    // 1. Get Minecraft UUID from Mojang API
+    const mojangResponse = await fetch(
+      `https://api.mojang.com/users/profiles/minecraft/${minecraftUsername}`
+    );
+    
+    if (!mojangResponse.ok) {
+      return interaction.reply('❌ Invalid Minecraft username');
+    }
+    
+    const { id: minecraftUuid, name: verifiedUsername } = await mojangResponse.json();
+    const userId = `discord-${interaction.user.id}`;
+    
+    // 2. Check if user already exists with this Discord ID
+    const { data: existingDiscordUser } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', userId)
+      .single();
+    
+    if (existingDiscordUser) {
+      // Update existing Discord user
+      await supabase
+        .from('users')
+        .update({
+          minecraft_username: verifiedUsername,
+          minecraft_user_id: minecraftUuid,
+          discord_username: interaction.user.tag,
+          avatar_url: interaction.user.displayAvatarURL(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', userId);
+      
+      return interaction.reply('✅ Updated your verification info!');
+    }
+    
+    // 3. Check if user exists with this Minecraft username
+    const { data: existingMinecraftUser } = await supabase
+      .from('users')
+      .select('*')
+      .eq('minecraft_username', verifiedUsername)
+      .single();
+    
+    if (existingMinecraftUser) {
+      // LINK: Account exists with this Minecraft username
+      const oldUserId = existingMinecraftUser.id;
+      
+      // Create new user with Discord ID format
+      await supabase
+        .from('users')
+        .insert({
+          id: userId,
+          username: existingMinecraftUser.username,
+          email: existingMinecraftUser.email,
+          avatar_url: interaction.user.displayAvatarURL() || existingMinecraftUser.avatar_url,
+          minecraft_username: verifiedUsername,
+          minecraft_user_id: minecraftUuid,
+          team_id: existingMinecraftUser.team_id,
+          description: existingMinecraftUser.description,
+          discord_username: interaction.user.tag,
+          roles: existingMinecraftUser.roles || ['Player'],
+          created_at: existingMinecraftUser.created_at
+        });
+      
+      // Delete old user record
+      await supabase
+        .from('users')
+        .delete()
+        .eq('id', oldUserId);
+      
+      return interaction.reply(
+        `✅ Successfully linked Discord to existing player: ${verifiedUsername}\n` +
+        `You can now sign in to the website!`
+      );
+    }
+    
+    // 4. CREATE: No existing user found
+    await supabase
+      .from('users')
+      .insert({
+        id: userId,
+        username: interaction.user.username,
+        minecraft_username: verifiedUsername,
+        minecraft_user_id: minecraftUuid,
+        discord_username: interaction.user.tag,
+        avatar_url: interaction.user.displayAvatarURL(),
+        roles: ['Player']
+      });
+    
+    return interaction.reply(
+      `✅ Verification complete! Account created.\n` +
+      `You can now sign in to the website with Discord.`
+    );
+    
+  } catch (error) {
+    console.error('Verification error:', error);
+    return interaction.reply('❌ An error occurred during verification. Please try again.');
   }
-} else {
-  await interaction.reply(`❌ Error: ${data.error}`);
 }
 ```
 
 ---
 
-## Authentication Flow
+## What This Achieves
 
-### For Admins (Manual Player Creation):
-1. Admin creates player in admin panel with Minecraft username
-2. Player runs `/verify` on Discord with same Minecraft username
-3. Bot calls `/api/bot/link-account`
-4. API **links** the Discord account to existing player
-5. Player can now sign in with Discord OAuth ✅
+### Scenario 1: Admin Creates Player Manually
+1. Admin creates player in admin panel: `minecraft_username: "NotchPlayer"`
+2. Player verifies on Discord: `/verify NotchPlayer`
+3. Bot finds existing user with that Minecraft username
+4. Bot **links** Discord account to that player (preserves team, stats, etc.)
+5. Player logs in with Discord ✅
 
-### For New Players:
-1. Player runs `/verify` on Discord
-2. Bot calls `/api/bot/link-account`
-3. API **creates** new player account
-4. Player can now sign in with Discord OAuth ✅
+### Scenario 2: New Player Verification
+1. Player verifies on Discord: `/verify NewPlayer`
+2. Bot finds no existing user
+3. Bot **creates** new account with `discord-{id}`
+4. Player logs in with Discord ✅
 
-### For Re-verification:
+### Scenario 3: Re-verification
 1. Player already verified, runs `/verify` again
-2. Bot calls `/api/bot/link-account`
-3. API **updates** existing info
-4. No duplicate accounts created ✅
+2. Bot finds existing Discord user
+3. Bot **updates** their info
+4. No duplicate created ✅
 
 ---
 
-## Database Changes
+## Database Table Structure Reference
 
-The endpoint automatically:
-- ✅ Preserves existing user data (team, description, etc.)
-- ✅ Updates Discord info (id, username, avatar)
-- ✅ Adds Minecraft verification (username, UUID)
-- ✅ Maintains user ID format as `discord-{discord_id}`
-- ✅ Deletes old manually-created accounts when linking
+The `users` table your bot interacts with:
 
----
-
-## Security Notes
-
-- This endpoint uses `supabaseAdmin` to bypass RLS policies
-- Only the Discord bot should call this endpoint
-- Consider adding API key authentication in production:
-
-```typescript
-const BOT_API_KEY = process.env.BOT_API_KEY;
-const authHeader = request.headers.get('authorization');
-
-if (authHeader !== `Bearer ${BOT_API_KEY}`) {
-  return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-}
+```sql
+CREATE TABLE users (
+  id TEXT PRIMARY KEY,              -- Format: 'discord-{discord_id}'
+  username TEXT NOT NULL,
+  email TEXT,
+  avatar_url TEXT,
+  minecraft_username TEXT,          -- Verified Minecraft username
+  minecraft_user_id TEXT,           -- Minecraft UUID
+  team_id TEXT,                     -- Foreign key to teams table
+  description TEXT,
+  discord_username TEXT,            -- Discord tag (e.g., "User#1234")
+  roles TEXT[] DEFAULT ['Player'],
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
 ```
 
 ---
 
-## Testing
+## Summary for Bot Developer
 
-Test all three scenarios:
+**Add this logic to your verification command:**
 
-### Test 1: Link Existing Account
-```bash
-# 1. Manually create player in admin panel with minecraft_username "TestPlayer"
-# 2. Call API:
-curl -X POST http://localhost:3000/api/bot/link-account \
-  -H "Content-Type: application/json" \
-  -d '{
-    "discord_id": "111111111",
-    "discord_username": "TestUser#1111",
-    "minecraft_username": "TestPlayer",
-    "minecraft_user_id": "test-uuid-1234"
-  }'
-# Expected: action = "linked"
-```
+1. ✅ Check if `discord-{user.id}` exists → Update if found
+2. ✅ Check if `minecraft_username` exists → Link if found (create new with Discord ID, delete old)
+3. ✅ Create new user if neither exists
 
-### Test 2: Create New Account
-```bash
-curl -X POST http://localhost:3000/api/bot/link-account \
-  -H "Content-Type: application/json" \
-  -d '{
-    "discord_id": "222222222",
-    "discord_username": "NewUser#2222",
-    "minecraft_username": "BrandNewPlayer",
-    "minecraft_user_id": "new-uuid-5678"
-  }'
-# Expected: action = "created"
-```
-
-### Test 3: Update Existing
-```bash
-# Run Test 2 again with same data
-# Expected: action = "updated"
-```
-
----
-
-## Conclusion
-
-Your Discord bot should now call `/api/bot/link-account` whenever a user verifies their Minecraft account. The endpoint will automatically handle:
-- Linking to manually created accounts
-- Creating new accounts
-- Updating existing verifications
-
-This ensures players can log in regardless of whether they were created manually or via bot verification.
+This prevents duplicate accounts when admins pre-create players!
