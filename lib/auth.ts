@@ -189,13 +189,38 @@ export const authOptions: NextAuthOptions = {
         token.discordId = discordId;
         token.userId = userId;
         
-        // Fetch user data from database
+        // Fetch or create user data in database
         try {
-          const { data: userData } = await supabaseAdmin
+          let { data: userData, error } = await supabaseAdmin
             .from("users")
             .select("id, username, team_id, avatar_url, minecraft_username, minecraft_user_id")
             .eq("id", userId)
             .single();
+          
+          // If user doesn't exist, create them
+          if (error && error.code === 'PGRST116') {
+            console.log(`Creating new user for Discord ID: ${discordId}`);
+            const discordUser = user as any;
+            
+            const { data: newUser, error: createError } = await supabaseAdmin
+              .from("users")
+              .insert({
+                id: userId,
+                username: discordUser?.name || `User-${discordId}`,
+                discord_username: discordUser?.name || null,
+                email: discordUser?.email || null,
+                avatar_url: discordUser?.image || null,
+                roles: ['Player']
+              })
+              .select("id, username, team_id, avatar_url, minecraft_username, minecraft_user_id")
+              .single();
+            
+            if (createError) {
+              console.error("Error creating user:", createError);
+            } else {
+              userData = newUser;
+            }
+          }
           
           if (userData) {
             token.playerId = userData.id;

@@ -29,8 +29,13 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
         teamsRes.json()
       ]);
       
+      console.log('[PLAYER PAGE] Looking for player ID:', params.id);
+      console.log('[PLAYER PAGE] Available players:', playersData.map((p: any) => ({ id: p.id, name: p.displayName })));
+      
       const currentPlayer = playersData.find((p: any) => p.id === params.id);
       if (!currentPlayer) {
+        console.error('[PLAYER PAGE] Player not found! ID:', params.id);
+        console.error('[PLAYER PAGE] Total players in DB:', playersData.length);
         notFound();
       }
       
