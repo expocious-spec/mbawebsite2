@@ -67,10 +67,17 @@ export default function GameStatsAdmin() {
   const fetchGameStats = async () => {
     try {
       const response = await fetch('/api/players/game-stats');
+      if (!response.ok) {
+        console.error('Failed to fetch game stats:', response.status);
+        setGameStats([]);
+        return;
+      }
       const data = await response.json();
-      setGameStats(data || []);
+      // Ensure data is an array
+      setGameStats(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching game stats:', error);
+      setGameStats([]);
     }
   };
 
@@ -266,7 +273,7 @@ export default function GameStatsAdmin() {
   };
 
   // Group stats by game
-  const statsByGame = gameStats.reduce((acc, stat) => {
+  const statsByGame = (Array.isArray(gameStats) ? gameStats : []).reduce((acc, stat) => {
     const gameId = stat.gameId || 'no-game';
     if (!acc[gameId]) {
       acc[gameId] = [];

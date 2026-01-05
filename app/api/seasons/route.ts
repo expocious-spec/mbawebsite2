@@ -49,41 +49,58 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { name, isCurrent, startDate, endDate } = body;
 
+    console.log('[SEASONS API] POST request:', { name, isCurrent, startDate, endDate });
+
     if (!name) {
       return NextResponse.json({ error: 'Season name is required' }, { status: 400 });
     }
 
     if (!GUILD_ID) {
-      return NextResponse.json({ error: 'Discord Guild ID not configured' }, { status: 500 });
+      console.error('[SEASONS API] DISCORD_GUILD_ID not configured in environment');
+      return NextResponse.json({ error: 'Discord Guild ID not configured in .env.local' }, { status: 500 });
     }
+
+    console.log('[SEASONS API] Using GUILD_ID:', GUILD_ID);
 
     // If setting as current, unset all other current seasons
     if (isCurrent) {
-      await supabaseAdmin
+      console.log('[SEASONS API] Unsetting other active seasons');
+      const { error: updateError } = await supabaseAdmin
         .from('seasons')
         .update({ is_active: false })
         .eq('guild_id', GUILD_ID)
         .eq('is_active', true);
+      
+      if (updateError) {
+        console.error('[SEASONS API] Error unsetting active seasons:', updateError);
+      }
     }
+
+    const insertData = {
+      guild_id: GUILD_ID,
+      season_name: name,
+      is_active: isCurrent || false,
+      start_date: startDate || null,
+      end_date: endDate || null,
+    };
+
+    console.log('[SEASONS API] Inserting season:', insertData);
 
     const { data, error } = await supabaseAdmin
       .from('seasons')
-      .insert([
-        {
-          guild_id: GUILD_ID,
-          season_name: name,
-          is_active: isCurrent || false,
-          start_date: startDate || null,
-          end_date: endDate || null,
-        },
-      ])
+      .insert([insertData])
       .select()
       .single();
 
     if (error) {
-      console.error('Database error creating season:', error);
+      console.error('[SEASONS API] Database error creating season:', error);
+      console.error('[SEASONS API] Error code:', error.code);
+      console.error('[SEASONS API] Error message:', error.message);
+      console.error('[SEASONS API] Error details:', JSON.stringify(error, null, 2));
       throw error;
     }
+
+    console.log('[SEASONS API] Successfully created season:', data);
 
     // Map response back to frontend format
     const mappedData = {
@@ -99,9 +116,10 @@ export async function POST(request: Request) {
 
     return NextResponse.json(mappedData, { status: 201 });
   } catch (error: any) {
-    console.error('Error creating season:', error);
+    console.error('[SEASONS API] Error creating season:', error);
     return NextResponse.json({ 
-      error: error.message || 'Failed to create season' 
+      error: error.message || 'Failed to create season',
+      details: error.details || error.hint || 'Check server logs for more information'
     }, { status: 500 });
   }
 }

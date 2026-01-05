@@ -10,10 +10,9 @@ export async function GET(request: NextRequest) {
       .order('date', { ascending: false });
 
     if (error) {
-      return NextResponse.json(
-        { success: false, message: error.message },
-        { status: 500 }
-      );
+      console.error('Error fetching game stats from database:', error);
+      // Return empty array instead of error object for consistency
+      return NextResponse.json([]);
     }
 
     // Convert snake_case to camelCase
@@ -36,16 +35,15 @@ export async function GET(request: NextRequest) {
       freeThrowsMade: stat.free_throws_made,
       freeThrowsAttempted: stat.free_throws_attempted,
       fouls: stat.fouls,
+      minutesPlayed: stat.minutes_played,
       result: stat.result,
     })) || [];
 
     return NextResponse.json(formattedStats);
   } catch (error) {
     console.error('Error fetching game stats:', error);
-    return NextResponse.json(
-      { success: false, error: 'Failed to fetch game stats' },
-      { status: 500 }
-    );
+    // Return empty array instead of error object
+    return NextResponse.json([]);
   }
 }
 
