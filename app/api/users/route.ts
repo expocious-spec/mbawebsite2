@@ -1,5 +1,7 @@
 import { supabaseAdmin } from '@/lib/supabase';
 import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 const GUILD_ID = process.env.DISCORD_GUILD_ID;
 
