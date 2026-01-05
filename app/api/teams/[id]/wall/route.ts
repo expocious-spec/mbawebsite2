@@ -67,13 +67,13 @@ export async function POST(
     }
 
     // Check if user is on this team
-    const { data: player } = await supabaseAdmin
-      .from('players')
+    const { data: userTeam } = await supabaseAdmin
+      .from('users')
       .select('team_id')
       .eq('id', session.user.playerId)
       .single();
 
-    if (!player || player.team_id !== params.id) {
+    if (!userTeam || userTeam.team_id !== params.id) {
       return NextResponse.json({ error: 'Forbidden - You must be on this team to post' }, { status: 403 });
     }
 
