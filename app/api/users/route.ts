@@ -174,7 +174,10 @@ export async function PUT(request: Request) {
     // Build update object with only provided fields
     const updates: any = {};
     if (body.username !== undefined) updates.username = body.username;
-    if (body.teamId !== undefined) updates.team_id = body.teamId;
+    if (body.teamId !== undefined) {
+      // Only set team_id if it's a valid non-empty value, otherwise set to null
+      updates.team_id = body.teamId && body.teamId.trim() !== '' ? body.teamId : null;
+    }
     if (body.roles !== undefined) updates.roles = body.roles;
     if (body.description !== undefined) updates.description = body.description;
     if (body.discordUsername !== undefined) updates.discord_username = body.discordUsername;
