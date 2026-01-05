@@ -114,7 +114,8 @@ export const authOptions: NextAuthOptions = {
             console.log("Admin user signing in:", userId);
             
             if (!existingUser) {
-              // Create admin user
+              // For new admin users, create with Discord info only
+              // They should verify via Discord bot to get minecraft_username
               await supabaseAdmin.from("users").insert({
                 id: userId,
                 username: user.name || "Unknown",
@@ -122,7 +123,9 @@ export const authOptions: NextAuthOptions = {
                 avatar_url: user.image,
                 discord_username: user.name,
               });
+              console.log("Created new admin user - needs Discord verification for Minecraft username");
             }
+            // Allow admin to sign in regardless of minecraft_username status
             return true;
           }
 
@@ -185,11 +188,12 @@ export const authOptions: NextAuthOptions = {
       if (account?.provider === "discord") {
         const discordId = account.providerAccountId;
         const userId = `discord-${discordId}`;
+        const isAdmin = ADMIN_DISCORD_IDS.includes(discordId);
         
         token.discordId = discordId;
         token.userId = userId;
         
-        // Fetch or create user data in database
+        // Fetch user data from database
         try {
           let { data: userData, error } = await supabaseAdmin
             .from("users")
@@ -197,34 +201,39 @@ export const authOptions: NextAuthOptions = {
             .eq("id", userId)
             .single();
           
-          // If user doesn't exist, create them
+          // Only create user if they're an admin
+          // Regular players must be created by Discord bot verification
           if (error && error.code === 'PGRST116') {
-            console.log(`[AUTH] User not found, creating new user for Discord ID: ${discordId}`);
-            const discordUser = user as any;
-            
-            const newUserData = {
-              id: userId,
-              username: discordUser?.name || `User-${discordId}`,
-              discord_username: discordUser?.name || null,
-              email: discordUser?.email || null,
-              avatar_url: discordUser?.image || null,
-              roles: ['Player']
-            };
-            
-            console.log('[AUTH] Attempting to insert user:', newUserData);
-            
-            const { data: newUser, error: createError } = await supabaseAdmin
-              .from("users")
-              .insert(newUserData)
-              .select("id, username, team_id, avatar_url, minecraft_username, minecraft_user_id")
-              .single();
-            
-            if (createError) {
-              console.error("[AUTH] Error creating user:", createError);
-              console.error("[AUTH] Error details:", JSON.stringify(createError, null, 2));
+            if (isAdmin) {
+              console.log(`[AUTH] Admin user not found, creating for Discord ID: ${discordId}`);
+              const discordUser = user as any;
+              
+              const newUserData = {
+                id: userId,
+                username: discordUser?.name || `User-${discordId}`,
+                discord_username: discordUser?.name || null,
+                email: discordUser?.email || null,
+                avatar_url: discordUser?.image || null,
+                roles: ['Player']
+              };
+              
+              console.log('[AUTH] Attempting to insert admin user:', newUserData);
+              
+              const { data: newUser, error: createError } = await supabaseAdmin
+                .from("users")
+                .insert(newUserData)
+                .select("id, username, team_id, avatar_url, minecraft_username, minecraft_user_id")
+                .single();
+              
+              if (createError) {
+                console.error("[AUTH] Error creating admin user:", createError);
+                console.error("[AUTH] Error details:", JSON.stringify(createError, null, 2));
+              } else {
+                console.log("[AUTH] Successfully created admin user:", newUser);
+                userData = newUser;
+              }
             } else {
-              console.log("[AUTH] Successfully created user:", newUser);
-              userData = newUser;
+              console.log(`[AUTH] Non-admin user not found - they must verify via Discord bot: ${discordId}`);
             }
           } else if (error) {
             console.error("[AUTH] Error fetching user (not PGRST116):", error);
