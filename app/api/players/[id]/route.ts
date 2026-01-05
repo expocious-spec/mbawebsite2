@@ -53,16 +53,17 @@ export async function PATCH(
       return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 });
     }
 
+    // Update the user's profile in the users table
     const { data, error } = await supabaseAdmin
-      .from('players')
+      .from('users')
       .update(updates)
       .eq('id', params.id)
       .select()
       .single();
 
     if (error) {
-      console.error('Error updating player:', error);
-      return NextResponse.json({ error: 'Failed to update player' }, { status: 500 });
+      console.error('Error updating user profile:', error);
+      return NextResponse.json({ error: 'Failed to update profile', details: error.message }, { status: 500 });
     }
 
     return NextResponse.json(data);

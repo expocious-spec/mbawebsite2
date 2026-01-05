@@ -235,8 +235,13 @@ export const authOptions: NextAuthOptions = {
             token.teamId = userData.team_id;
             token.playerName = userData.username;
             token.minecraftUsername = userData.minecraft_username;
-            // Use Minecraft headshot with UUID instead of username
-            token.profilePicture = getMinecraftHeadshot(userData.minecraft_user_id || userData.minecraft_username, 128);
+            // Use Minecraft headshot with UUID - mc-heads.net for better compatibility
+            if (userData.minecraft_user_id) {
+              const uuid = userData.minecraft_user_id.replace(/-/g, '');
+              token.profilePicture = `https://mc-heads.net/avatar/${uuid}/128`;
+            } else {
+              token.profilePicture = userData.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.username)}&size=128&background=0A0E27&color=00A8E8&bold=true`;
+            }
           }
         } catch (error) {
           console.error("Error fetching user data:", error);
