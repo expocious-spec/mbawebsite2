@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     siteName: 'Minecraft Basketball Association',
     images: [
       {
-        url: '/logo.png',
+        url: 'https://minecraftbasketball.com/logo.png',
         width: 1200,
         height: 1200,
         alt: 'MBA Logo',
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: "Minecraft Basketball Association",
     description: "Official website of the Minecraft Basketball Association - Premier Minecraft basketball league",
-    images: ['/logo.png'],
+    images: ['https://minecraftbasketball.com/logo.png'],
   },
   themeColor: '#2563EB',
 };
