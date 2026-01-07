@@ -9,7 +9,7 @@ export const teams: Team[] = [
     generalManager: 'TBD',
     headCoach: 'TBD',
     assistantCoaches: [],
-    conference: 'Desert',
+    conference: 'Western',
     colors: {
       primary: '#C8102E',
       secondary: '#000000',
@@ -22,7 +22,7 @@ export const teams: Team[] = [
     generalManager: 'GM Name',
     headCoach: 'Coach Name',
     assistantCoaches: ['Assistant 1'],
-    conference: 'Plains',
+    conference: 'Eastern',
     colors: {
       primary: '#1D428A',
       secondary: '#FFC72C',

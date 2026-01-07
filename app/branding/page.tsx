@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 
-type ConferenceFilter = 'all' | 'Desert' | 'Plains';
+type ConferenceFilter = 'all' | 'Western' | 'Eastern';
 
 export default function BrandingPage() {
   const [teams, setTeams] = useState<any[]>([]);
@@ -61,24 +61,24 @@ export default function BrandingPage() {
           All Teams
         </button>
         <button
-          onClick={() => setConferenceFilter('Desert')}
+          onClick={() => setConferenceFilter('Western')}
           className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-            conferenceFilter === 'Desert'
+            conferenceFilter === 'Western'
               ? 'bg-amber-600 text-white'
               : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-amber-50 dark:hover:bg-gray-700 border border-amber-300 dark:border-gray-600'
           }`}
         >
-          Desert Conference
+          Western Conference
         </button>
         <button
-          onClick={() => setConferenceFilter('Plains')}
+          onClick={() => setConferenceFilter('Eastern')}
           className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-            conferenceFilter === 'Plains'
+            conferenceFilter === 'Eastern'
               ? 'bg-green-600 text-white'
               : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-gray-700 border border-green-300 dark:border-gray-600'
           }`}
         >
-          Plains Conference
+          Eastern Conference
         </button>
       </div>
 
@@ -115,7 +115,7 @@ export default function BrandingPage() {
                 <div className="flex items-center space-x-2 mt-1">
                   {/* Conference Badge */}
                   <span className={`px-2 py-0.5 text-xs font-semibold rounded-full text-white ${
-                    team.conference === 'Plains' ? 'bg-green-600' : 'bg-amber-600'
+                    team.conference === 'Eastern' ? 'bg-green-600' : 'bg-amber-600'
                   }`}>
                     {team.conference} Conference
                   </span>

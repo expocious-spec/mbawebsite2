@@ -63,7 +63,7 @@ export async function POST(request: Request) {
         general_manager: body.generalManager || '',
         head_coach: body.headCoach || '',
         assistant_coaches: body.assistantCoaches || [],
-        conference: body.conference || 'Desert',
+        conference: body.conference || 'Western',
         primary_color: body.primaryColor || '#00A8E8',
         secondary_color: body.secondaryColor || '#0A0E27',
         guild_id: '1450671860520976559',

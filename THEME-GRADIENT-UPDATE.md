@@ -55,8 +55,8 @@ Updated the MBA website theme from light blue to NBA-style red/blue gradient mat
 
 ### 7. **app/standings/page.tsx**
 - "Overall" tab uses gradient when active
-- "Desert" conference tab uses gradient when active
-- "Plains" conference tab uses gradient when active
+- "Western" conference tab uses gradient when active
+- "Eastern" conference tab uses gradient when active
 
 ---
 
