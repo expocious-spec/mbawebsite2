@@ -1,4 +1,4 @@
-import { ExternalLink, MessageCircle, Globe } from 'lucide-react';
+import { ExternalLink, MessageCircle, Globe, ShoppingBag } from 'lucide-react';
 
 const links = [
   {
@@ -6,6 +6,13 @@ const links = [
     description: 'Join our Discord community',
     url: 'https://discord.gg/C3pETBx98T',
     icon: MessageCircle,
+    color: 'bg-gradient-to-r from-mba-blue to-mba-red hover:from-blue-700 hover:to-red-700',
+  },
+  {
+    title: 'Store',
+    description: 'Get exclusive MBA merchandise',
+    url: 'https://minecraftbasketball.tebex.io/',
+    icon: ShoppingBag,
     color: 'bg-gradient-to-r from-mba-blue to-mba-red hover:from-blue-700 hover:to-red-700',
   },
   {
