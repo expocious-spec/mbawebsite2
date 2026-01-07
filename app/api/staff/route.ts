@@ -42,6 +42,31 @@ export async function POST(request: Request) {
   }
 }
 
+// Update staff member
+export async function PUT(request: Request) {
+  try {
+    const body = await request.json();
+    const { id, role } = body;
+
+    if (!id || !role) {
+      return NextResponse.json({ error: 'Staff ID and role are required' }, { status: 400 });
+    }
+
+    const { data, error } = await supabaseAdmin
+      .from('staff')
+      .update({ role })
+      .eq('id', id)
+      .select();
+
+    if (error) throw error;
+
+    return NextResponse.json({ success: true, data });
+  } catch (error) {
+    console.error('Error updating staff:', error);
+    return NextResponse.json({ error: 'Failed to update staff member' }, { status: 500 });
+  }
+}
+
 // Remove staff member
 export async function DELETE(request: Request) {
   try {

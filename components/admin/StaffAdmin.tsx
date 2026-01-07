@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Search, Users } from 'lucide-react';
+import { Plus, Trash2, Search, Users, Pencil, Save, X } from 'lucide-react';
 
 interface StaffMember {
   id: string;
@@ -45,6 +45,8 @@ export default function StaffAdmin() {
   const [selectedRole, setSelectedRole] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingRole, setEditingRole] = useState('');
 
   useEffect(() => {
     fetchData();
@@ -127,6 +129,52 @@ export default function StaffAdmin() {
     } catch (error) {
       console.error('Error removing staff:', error);
       alert('Failed to remove staff member');
+    }
+  };
+
+  const handleEditStaff = (member: StaffMember) => {
+    setEditingId(member.id);
+    setEditingRole(member.role);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setEditingRole('');
+  };
+
+  const handleUpdateStaff = async (id: string) => {
+    if (!editingRole) {
+      alert('Please select a role');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await fetch('/api/staff', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id,
+          role: editingRole
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        alert('Staff member updated successfully!');
+        setEditingId(null);
+        setEditingRole('');
+        fetchData();
+      } else {
+        alert('Failed to update staff member');
+      }
+    } catch (error) {
+      console.error('Error updating staff:', error);
+      alert('Failed to update staff member');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -282,13 +330,14 @@ export default function StaffAdmin() {
               {members.map((member: StaffMember) => {
                 const player = getPlayerById(member.player_id);
                 if (!player) return null;
+                const isEditing = editingId === member.id;
 
                 return (
                   <div
                     key={member.id}
                     className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
                   >
-                    <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-3 flex-1">
                       {player.profilePicture ? (
                         <img
                           src={player.profilePicture}
@@ -300,17 +349,64 @@ export default function StaffAdmin() {
                           {player.displayName?.charAt(0) || '?'}
                         </div>
                       )}
-                      <span className="text-gray-900 dark:text-white font-medium">
-                        {player.displayName}
-                      </span>
+                      <div className="flex-1">
+                        <span className="text-gray-900 dark:text-white font-medium">
+                          {player.displayName}
+                        </span>
+                        {isEditing && (
+                          <div className="mt-2">
+                            <select
+                              value={editingRole}
+                              onChange={(e) => setEditingRole(e.target.value)}
+                              className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 dark:bg-gray-600 dark:text-white text-sm"
+                            >
+                              <option value="">Choose a role...</option>
+                              {ALL_ROLES.map(r => (
+                                <option key={r} value={r}>{r}</option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    <button
-                      onClick={() => handleRemoveStaff(member.id)}
-                      className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition-colors flex items-center"
-                    >
-                      <Trash2 className="w-4 h-4 mr-1" />
-                      Remove
-                    </button>
+                    <div className="flex space-x-2">
+                      {isEditing ? (
+                        <>
+                          <button
+                            onClick={() => handleUpdateStaff(member.id)}
+                            disabled={loading}
+                            className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-gray-400 transition-colors flex items-center"
+                          >
+                            <Save className="w-4 h-4 mr-1" />
+                            Save
+                          </button>
+                          <button
+                            onClick={handleCancelEdit}
+                            className="px-3 py-1 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors flex items-center"
+                          >
+                            <X className="w-4 h-4 mr-1" />
+                            Cancel
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => handleEditStaff(member)}
+                            className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors flex items-center"
+                          >
+                            <Pencil className="w-4 h-4 mr-1" />
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleRemoveStaff(member.id)}
+                            className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition-colors flex items-center"
+                          >
+                            <Trash2 className="w-4 h-4 mr-1" />
+                            Remove
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </div>
                 );
               })}
