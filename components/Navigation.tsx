@@ -73,50 +73,6 @@ export default function Navigation() {
               })}
             </div>
             
-            {/* User Profile/Login Section - DISABLED FOR REGULAR USERS */}
-            {/* Profile login only available for admin panel */}
-            {/* {status === "authenticated" && session?.user?.playerId ? (
-              <>
-                <Link
-                  href={`/players/${session.user.playerId}`}
-                  className="flex items-center gap-2 px-3 py-2 minecraft-button border-2 bg-gray-100 dark:bg-gray-800 border-gray-400 dark:border-gray-600 ml-2"
-                >
-                  {session.user.profilePicture ? (
-                    <Image
-                      src={session.user.profilePicture}
-                      alt={session.user.minecraftUsername || session.user.playerName || 'Player'}
-                      width={32}
-                      height={32}
-                      className="w-8 h-8 border-2 border-gray-300 dark:border-gray-600"
-                      unoptimized
-                    />
-                  ) : (
-                    <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
-                      <User className="w-5 h-5 text-gray-600 dark:text-gray-300" />
-                    </div>
-                  )}
-                  <span className="font-minecraft text-xs text-gray-900 dark:text-white max-w-[150px] truncate">
-                    {session.user.minecraftUsername || session.user.playerName || 'Profile'}
-                  </span>
-                </Link>
-                <button
-                  onClick={() => signOut({ callbackUrl: '/' })}
-                  className="px-3 py-2 minecraft-button border-2 text-sm font-medium bg-red-600 text-white border-red-700"
-                >
-                  Sign Out
-                </button>
-              </>
-            ) : status !== "authenticated" ? (
-              <button
-                onClick={() => signIn("discord", { callbackUrl: '/' })}
-                disabled={status === "loading"}
-                className="flex items-center gap-2 px-4 py-2 minecraft-button border-3 text-sm font-medium bg-mba-blue text-white border-blue-700 ml-2 disabled:opacity-50"
-              >
-                <User className="w-4 h-4" />
-                <span className="whitespace-nowrap">Log In</span>
-              </button>
-            ) : null} */
-            
             <button
               onClick={toggleTheme}
               className="ml-2 p-2 minecraft-button border-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 border-gray-400 dark:border-gray-600"
