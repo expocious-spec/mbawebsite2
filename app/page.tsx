@@ -64,7 +64,7 @@ export default function Home() {
         <div className="lg:col-span-2 space-y-6">
           <div>
             <h1 className="text-4xl font-bold mb-2 text-gray-900 dark:text-white">Minecraft Basketball Association</h1>
-            <p className="text-gray-600 dark:text-gray-400">Your home for the most competitive Roblox basketball experience</p>
+            <p className="text-gray-600 dark:text-gray-400">Your home for the most competitive Minecraft basketball experience</p>
           </div>
 
           {/* Live Stream Section */}
