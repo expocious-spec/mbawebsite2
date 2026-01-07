@@ -15,10 +15,10 @@ export default function SignInPage() {
           {/* Logo/Header */}
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-              Welcome to MBA
+              MBA Admin Panel
             </h1>
             <p className="text-gray-600 dark:text-gray-400">
-              Sign in with Discord to access your player profile
+              Sign in with Discord to access the admin panel
             </p>
           </div>
 
@@ -39,10 +39,9 @@ export default function SignInPage() {
 
           {/* Info Text */}
           <div className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
-            <p className="mb-3 font-semibold">⚠️ Important:</p>
-            <p className="text-xs bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
-              You must verify your Minecraft username on the MBA Discord server before signing in to the website.
-              Join Discord and use the verification bot to link your Minecraft account.
+            <p className="mb-3 font-semibold">🔐 Admin Access Only</p>
+            <p className="text-xs bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+              Only authorized administrators can sign in. Regular users can view player profiles and stats without signing in.
             </p>
           </div>
         </div>

@@ -46,7 +46,7 @@ export default function Navigation() {
                   priority
                 />
               </div>
-              <span className="font-minecraft text-sm text-gray-900 dark:text-white hidden sm:block">MBA</span>
+              <span className="font-minecraft text-sm text-gray-900 dark:text-white hidden sm:block">Minecraft Basketball Association</span>
             </Link>
           </div>
           
@@ -62,7 +62,7 @@ export default function Navigation() {
                     href={item.href}
                     className={`flex items-center gap-1 px-2 py-2 minecraft-button border-2 text-sm font-medium ${
                       isActive
-                        ? 'bg-mba-blue text-white border-blue-700'
+                        ? 'bg-gradient-to-r from-mba-blue to-mba-red text-white border-blue-800'
                         : 'text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 border-gray-400 dark:border-gray-600'
                     }`}
                   >
@@ -73,8 +73,9 @@ export default function Navigation() {
               })}
             </div>
             
-            {/* User Profile/Login Section */}
-            {status === "authenticated" && session?.user?.playerId ? (
+            {/* User Profile/Login Section - DISABLED FOR REGULAR USERS */}
+            {/* Profile login only available for admin panel */}
+            {/* {status === "authenticated" && session?.user?.playerId ? (
               <>
                 <Link
                   href={`/players/${session.user.playerId}`}
@@ -114,7 +115,7 @@ export default function Navigation() {
                 <User className="w-4 h-4" />
                 <span className="whitespace-nowrap">Log In</span>
               </button>
-            ) : null}
+            ) : null} */
             
             <button
               onClick={toggleTheme}

@@ -128,6 +128,13 @@ export const authOptions: NextAuthOptions = {
             return true;
           }
 
+          // PROFILE SYSTEM DISABLED - Block non-admin users from signing in
+          // Regular user authentication has been disabled
+          // Only admins can sign in for admin panel access
+          console.log("Non-admin user blocked from signing in:", userId);
+          return false;
+
+          /* // ORIGINAL CODE - Non-admin player authentication (DISABLED)
           // For non-admin players: Must be verified via Discord bot
           // The bot calls /api/bot/link-account to create/link user accounts
           // That endpoint handles checking for existing Minecraft usernames
@@ -147,6 +154,7 @@ export const authOptions: NextAuthOptions = {
           // User is verified and has minecraft_username - allow sign in
           console.log("Verified user signing in:", userId, "Minecraft:", existingUser.minecraft_username);
           return true;
+          */
 
         } catch (error: any) {
           console.error("Error in Discord signIn callback:", error);
@@ -173,6 +181,9 @@ export const authOptions: NextAuthOptions = {
         session.user.isAdmin = ADMIN_DISCORD_IDS.includes(token.discordId as string);
       }
       
+      // PROFILE SYSTEM DISABLED - Do not add player data to session for regular users
+      // Only admin data is preserved in session
+      /* // ORIGINAL CODE (DISABLED)
       // Add player/team data to session - only if user has minecraft_username
       if (token.playerId && token.minecraftUsername) {
         session.user.playerId = token.playerId as string;
@@ -181,6 +192,7 @@ export const authOptions: NextAuthOptions = {
         session.user.profilePicture = token.profilePicture as string;
         session.user.minecraftUsername = token.minecraftUsername as string;
       }
+      */
       
       return session;
     },
@@ -240,6 +252,8 @@ export const authOptions: NextAuthOptions = {
             console.error("[AUTH] Error fetching user (not PGRST116):", error);
           }
           
+          // PROFILE SYSTEM DISABLED - Do not fetch/store player data for regular users
+          /* // ORIGINAL CODE (DISABLED)
           // If user exists, update discord_username if it's missing
           if (userData && !userData.discord_username && user) {
             const discordUser = user as any;
@@ -273,6 +287,7 @@ export const authOptions: NextAuthOptions = {
               token.profilePicture = userData.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.username)}&size=128&background=0A0E27&color=00A8E8&bold=true`;
             }
           }
+          */
         } catch (error) {
           console.error("Error fetching user data:", error);
         }

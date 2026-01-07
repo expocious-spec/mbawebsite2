@@ -6,14 +6,14 @@ const links = [
     description: 'Join our Discord community',
     url: 'https://discord.gg/yra3gjNRpD',
     icon: MessageCircle,
-    color: 'bg-mba-blue hover:bg-blue-600',
+    color: 'bg-gradient-to-r from-mba-blue to-mba-red hover:from-blue-700 hover:to-red-700',
   },
   {
     title: 'Website',
     description: 'You are here!',
     url: typeof window !== 'undefined' ? window.location.origin : 'https://www.minecraftbasketball.com',
     icon: Globe,
-    color: 'bg-mba-blue hover:bg-blue-600',
+    color: 'bg-gradient-to-r from-mba-blue to-mba-red hover:from-blue-700 hover:to-red-700',
   },
 ];
 

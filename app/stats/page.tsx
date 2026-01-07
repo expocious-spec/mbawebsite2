@@ -245,7 +245,7 @@ export default function StatsPage() {
             onClick={() => setStatMode('averages')}
             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
               statMode === 'averages'
-                ? 'bg-mba-blue text-white'
+                ? 'bg-gradient-to-r from-mba-blue to-mba-red text-white'
                 : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600'
             }`}
           >
@@ -255,7 +255,7 @@ export default function StatsPage() {
             onClick={() => setStatMode('totals')}
             className={`px-4 py-2 rounded-lg font-medium transition-colors ${
               statMode === 'totals'
-                ? 'bg-mba-blue text-white'
+                ? 'bg-gradient-to-r from-mba-blue to-mba-red text-white'
                 : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600'
             }`}
           >

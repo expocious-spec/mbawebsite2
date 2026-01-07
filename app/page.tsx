@@ -116,8 +116,8 @@ export default function Home() {
           <div>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Latest News</h2>
-              <Link href="/news" className="text-mba-blue hover:text-blue-600 flex items-center text-sm">
-                View All <ChevronRight className="w-4 h-4" />
+              <Link href="/news" className="text-transparent bg-clip-text bg-gradient-to-r from-mba-blue to-mba-red hover:from-blue-700 hover:to-red-700 flex items-center text-sm font-semibold">
+                View All <ChevronRight className="w-4 h-4 text-mba-red" />
               </Link>
             </div>
             
@@ -148,7 +148,7 @@ export default function Home() {
                     <p className="text-gray-700 dark:text-gray-300">{article.excerpt || article.content.slice(0, 150)}...</p>
                     <Link
                       href={`/news/${article.id}`}
-                      className="inline-block mt-4 text-mba-blue hover:text-blue-600 font-medium"
+                      className="inline-block mt-4 text-transparent bg-clip-text bg-gradient-to-r from-mba-blue to-mba-red hover:from-blue-700 hover:to-red-700 font-semibold"
                     >
                       Read More →
                     </Link>
@@ -205,7 +205,7 @@ export default function Home() {
               
               <Link
                 href="/games"
-                className="block text-center py-3 px-4 bg-mba-blue hover:bg-blue-600 text-white rounded-lg font-medium transition-colors shadow-sm"
+                className="block text-center py-3 px-4 bg-gradient-to-r from-mba-blue to-mba-red hover:from-blue-700 hover:to-red-700 text-white rounded-lg font-medium transition-all shadow-sm"
               >
                 View Full Schedule
               </Link>

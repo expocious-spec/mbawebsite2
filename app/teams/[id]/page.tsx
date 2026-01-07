@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowLeft, Users, Trophy, TrendingUp } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import TeamWall from '@/components/TeamWall';
+// import TeamWall from '@/components/TeamWall'; // DISABLED - Team wall removed
 
 export default function TeamPage({ params }: { params: { id: string } }) {
   const [team, setTeam] = useState<any>(null);
@@ -582,10 +582,10 @@ export default function TeamPage({ params }: { params: { id: string } }) {
           </div>
         </div>
 
-        {/* Team Wall Section */}
-        <div className="mt-8">
+        {/* Team Wall Section - DISABLED */}
+        {/* <div className="mt-8">
           <TeamWall teamId={team.id} />
-        </div>
+        </div> */}
       </div>
     </main>
   );

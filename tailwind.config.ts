@@ -13,8 +13,9 @@ const config: Config = {
         'minecraft': ['var(--font-minecraft)', 'monospace'],
       },
       colors: {
-        // MBA Brand Colors (from logo)
-        'mba-blue': '#00A8E8',
+        // MBA Brand Colors (NBA-style red/blue)
+        'mba-blue': '#1D428A',    // NBA blue
+        'mba-red': '#C8102E',     // NBA red
         'mba-dark': '#0A0E27',
         'mba-light': '#F5F5F5',
         // Minecraft-inspired colors

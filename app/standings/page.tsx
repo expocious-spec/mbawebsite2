@@ -258,7 +258,7 @@ export default function StandingsPage() {
               onClick={() => setViewMode('overall')}
               className={`px-6 py-2 rounded-md font-medium transition-colors ${
                 viewMode === 'overall'
-                  ? 'bg-mba-blue text-white'
+                  ? 'bg-gradient-to-r from-mba-blue to-mba-red text-white'
                   : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
@@ -268,7 +268,7 @@ export default function StandingsPage() {
               onClick={() => setViewMode('desert')}
               className={`px-6 py-2 rounded-md font-medium transition-colors ${
                 viewMode === 'desert'
-                  ? 'bg-mba-blue text-white'
+                  ? 'bg-gradient-to-r from-mba-blue to-mba-red text-white'
                   : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
@@ -278,7 +278,7 @@ export default function StandingsPage() {
               onClick={() => setViewMode('plains')}
               className={`px-6 py-2 rounded-md font-medium transition-colors ${
                 viewMode === 'plains'
-                  ? 'bg-mba-blue text-white'
+                  ? 'bg-gradient-to-r from-mba-blue to-mba-red text-white'
                   : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
               }`}
             >

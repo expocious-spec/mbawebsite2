@@ -104,5 +104,22 @@ body {
   .text-balance {
     text-wrap: balance;
   }
+  
+  /* NBA-style red/blue gradient utilities */
+  .mba-gradient {
+    background: linear-gradient(to right, #1D428A, #C8102E);
+  }
+  
+  .mba-gradient-hover:hover {
+    background: linear-gradient(to right, #152F61, #9C0D24);
+  }
+  
+  .mba-text-gradient {
+    background: linear-gradient(to right, #1D428A, #C8102E);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
 }
+
 

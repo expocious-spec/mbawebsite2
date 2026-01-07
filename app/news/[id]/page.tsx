@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { notFound, useRouter } from 'next/navigation';
 import { ArrowLeft, Calendar, User } from 'lucide-react';
 import Link from 'next/link';
-import ArticleSocial from '@/components/ArticleSocial';
+// import ArticleSocial from '@/components/ArticleSocial'; // DISABLED - Article comments/likes removed
 
 export default function ArticlePage({ params }: { params: { id: string } }) {
   const [article, setArticle] = useState<any>(null);
@@ -104,8 +104,8 @@ export default function ArticlePage({ params }: { params: { id: string } }) {
           </div>
         </div>
 
-        {/* Social Features (Likes & Comments) */}
-        <ArticleSocial articleId={article.id} />
+        {/* Social Features (Likes & Comments) - DISABLED */}
+        {/* <ArticleSocial articleId={article.id} /> */}
       </article>
     </div>
   );
