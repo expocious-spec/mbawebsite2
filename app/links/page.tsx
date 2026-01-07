@@ -4,7 +4,7 @@ const links = [
   {
     title: 'Discord Server',
     description: 'Join our Discord community',
-    url: 'https://discord.gg/yra3gjNRpD',
+    url: 'https://discord.gg/C3pETBx98T',
     icon: MessageCircle,
     color: 'bg-gradient-to-r from-mba-blue to-mba-red hover:from-blue-700 hover:to-red-700',
   },
