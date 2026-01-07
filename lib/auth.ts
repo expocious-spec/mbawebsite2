@@ -8,7 +8,8 @@ const ADMIN_DISCORD_IDS = [
   "1038456492166217748",
   "1116798128901865582",
   "809898072208310272",
-  "692814756695900191"
+  "692814756695900191",
+  "1000876598045720706"
 ];
 
 // Debug: Log environment variables (remove this after debugging)

@@ -10,7 +10,7 @@ const links = [
   },
   {
     title: 'Store',
-    description: 'Get exclusive MBA merchandise',
+    description: 'Shop at our store',
     url: 'https://minecraftbasketball.tebex.io/',
     icon: ShoppingBag,
     color: 'bg-gradient-to-r from-mba-blue to-mba-red hover:from-blue-700 hover:to-red-700',
