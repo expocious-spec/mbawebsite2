@@ -268,7 +268,7 @@ export default function StandingsPage() {
               onClick={() => setViewMode('western')}
               className={`px-6 py-2 rounded-md font-medium transition-colors ${
                 viewMode === 'western'
-                  ? 'bg-gradient-to-r from-mba-blue to-mba-red text-white'
+                  ? 'bg-red-600 text-white'
                   : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
@@ -278,7 +278,7 @@ export default function StandingsPage() {
               onClick={() => setViewMode('eastern')}
               className={`px-6 py-2 rounded-md font-medium transition-colors ${
                 viewMode === 'eastern'
-                  ? 'bg-gradient-to-r from-mba-blue to-mba-red text-white'
+                  ? 'bg-blue-600 text-white'
                   : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
