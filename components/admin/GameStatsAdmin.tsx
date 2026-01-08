@@ -15,6 +15,7 @@ export default function GameStatsAdmin() {
   const [expandedGames, setExpandedGames] = useState<Set<string>>(new Set());
   const [gameSearchInput, setGameSearchInput] = useState('');
   const [gameSearch, setGameSearch] = useState('');
+  const [pasteText, setPasteText] = useState('');
   const [formData, setFormData] = useState({
     playerId: '',
     gameId: '',
@@ -74,6 +75,49 @@ export default function GameStatsAdmin() {
     } catch (error) {
       console.error('Error fetching game stats:', error);
       setGameStats([]);
+    }
+  };
+
+  const handlePasteStats = () => {
+    if (!pasteText.trim()) return;
+
+    try {
+      // Parse the pasted text
+      // Format: ElfFoxy | Points: 12 | Assists: 3 | Rebounds: 14 | Steals: 0 | Turnovers: 3 | Possession: 120 sec | FG: 5/10 | 3FG: 2/5
+      const extractValue = (text: string, key: string) => {
+        const regex = new RegExp(`${key}:\\s*([\\d.]+)`, 'i');
+        const match = text.match(regex);
+        return match ? match[1] : '';
+      };
+
+      const extractFraction = (text: string, key: string) => {
+        const regex = new RegExp(`${key}:\\s*(\\d+)/(\\d+)`, 'i');
+        const match = text.match(regex);
+        return match ? { attempted: match[1], made: match[2] } : { attempted: '', made: '' };
+      };
+
+      const fg = extractFraction(pasteText, 'FG');
+      const threeFg = extractFraction(pasteText, '3FG');
+
+      setFormData(prev => ({
+        ...prev,
+        points: extractValue(pasteText, 'Points'),
+        assists: extractValue(pasteText, 'Assists'),
+        rebounds: extractValue(pasteText, 'Rebounds'),
+        steals: extractValue(pasteText, 'Steals'),
+        turnovers: extractValue(pasteText, 'Turnovers'),
+        possessionTime: extractValue(pasteText, 'Possession'),
+        fieldGoalsAttempted: fg.attempted,
+        fieldGoalsMade: fg.made,
+        threePointersAttempted: threeFg.attempted,
+        threePointersMade: threeFg.made,
+      }));
+
+      setPasteText('');
+      alert('Stats imported successfully!');
+    } catch (error) {
+      console.error('Error parsing stats:', error);
+      alert('Failed to parse stats. Please check the format.');
     }
   };
 
@@ -472,6 +516,35 @@ export default function GameStatsAdmin() {
               </select>
             </div>
           </div>
+
+          {/* Paste Stats Section */}
+          {formData.playerId && formData.gameId && (
+            <div className="border-t border-gray-300 dark:border-gray-600 pt-6">
+              <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Quick Import</h3>
+              <div className="space-y-3">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Paste Stats
+                </label>
+                <textarea
+                  value={pasteText}
+                  onChange={(e) => setPasteText(e.target.value)}
+                  placeholder="ElfFoxy | Points: 12 | Assists: 3 | Rebounds: 14 | Steals: 0 | Turnovers: 3 | Possession: 120 sec | FG: 5/10 | 3FG: 2/5"
+                  rows={3}
+                  className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
+                />
+                <button
+                  type="button"
+                  onClick={handlePasteStats}
+                  className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"
+                >
+                  Import Stats from Paste
+                </button>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Paste stats in format: Points: X | Assists: X | Rebounds: X | Steals: X | Turnovers: X | Possession: X sec | FG: X/X | 3FG: X/X
+                </p>
+              </div>
+            </div>
+          )}
 
           <div className="border-t border-gray-300 dark:border-gray-600 pt-6">
             <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Statistics</h3>
