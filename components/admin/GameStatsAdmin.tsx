@@ -546,34 +546,6 @@ export default function GameStatsAdmin() {
                   className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
                 />
               </div>
-              {/* FT Made */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  FT Made
-                </label>
-                <input
-                  type="number"
-                  name="freeThrowsMade"
-                  value={formData.freeThrowsMade}
-                  onChange={handleChange}
-                  min="0"
-                  className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
-                />
-              </div>
-              {/* FT Attempted */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  FT Attempted
-                </label>
-                <input
-                  type="number"
-                  name="freeThrowsAttempted"
-                  value={formData.freeThrowsAttempted}
-                  onChange={handleChange}
-                  min="0"
-                  className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
-                />
-              </div>
               {/* Assists */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -980,7 +952,7 @@ export default function GameStatsAdmin() {
         <ul className="list-disc list-inside space-y-1">
           <li>Select a player and enter their stats for a specific game</li>
           <li>The system will automatically calculate and update their season averages</li>
-          <li>All percentages (FG%, 3PT%, FT%) are calculated automatically</li>
+          <li>All percentages (FG%, 3PT%) are calculated automatically</li>
           <li>Player stats on the stats page will update immediately</li>
         </ul>
       </div>
