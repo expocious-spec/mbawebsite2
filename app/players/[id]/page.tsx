@@ -152,11 +152,17 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
     fouls: 0,
     minutesPlayed: 0,
   };
+  
+  // Use gameStats length for games played if available, otherwise fall back to stats.gamesPlayed
+  const actualGamesPlayed = player.gameStats && player.gameStats.length > 0 
+    ? player.gameStats.length 
+    : stats.gamesPlayed;
+  
   // Calculate efficiency: (PTS + REB + AST + STL + BLK - Missed FG - Missed FT - TOV) / GP
   const missedFG = totals.fieldGoalsAttempted - totals.fieldGoalsMade;
   const missedFT = totals.freeThrowsAttempted - totals.freeThrowsMade;
-  const efficiency = stats.gamesPlayed > 0 
-    ? (totals.points + totals.rebounds + totals.assists + totals.steals + totals.blocks - missedFG - missedFT - totals.turnovers) / stats.gamesPlayed
+  const efficiency = actualGamesPlayed > 0 
+    ? (totals.points + totals.rebounds + totals.assists + totals.steals + totals.blocks - missedFG - missedFT - totals.turnovers) / actualGamesPlayed
     : 0;
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
