@@ -66,14 +66,14 @@ export async function GET(request: Request) {
         totalRebounds: stat.total_rebounds,
         totalAssists: stat.total_assists,
         totalSteals: stat.total_steals,
-        totalBlocks: stat.total_blocks,
         totalTurnovers: stat.total_turnovers,
+        totalPossessionTime: stat.total_possession_time,
         ppg: parseFloat((stat.total_points / stat.games_played).toFixed(1)),
         rpg: parseFloat((stat.total_rebounds / stat.games_played).toFixed(1)),
         apg: parseFloat((stat.total_assists / stat.games_played).toFixed(1)),
         spg: parseFloat((stat.total_steals / stat.games_played).toFixed(1)),
-        bpg: parseFloat((stat.total_blocks / stat.games_played).toFixed(1)),
         tpg: parseFloat((stat.total_turnovers / stat.games_played).toFixed(1)),
+        ptpg: parseFloat((stat.total_possession_time / stat.games_played).toFixed(1)),
       };
     });
 
@@ -83,8 +83,8 @@ export async function GET(request: Request) {
       rpg: 'rpg',
       apg: 'apg',
       spg: 'spg',
-      bpg: 'bpg',
       tpg: 'tpg',
+      ptpg: 'ptpg',
     };
 
     const sortKey = statMap[stat] || 'ppg';

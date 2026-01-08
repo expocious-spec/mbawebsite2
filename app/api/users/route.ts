@@ -38,7 +38,6 @@ export async function GET() {
               totalRebounds: 0,
               totalAssists: 0,
               totalSteals: 0,
-              totalBlocks: 0,
               totalTurnovers: 0,
             });
           }
@@ -48,7 +47,6 @@ export async function GET() {
           current.totalRebounds += stat.total_rebounds;
           current.totalAssists += stat.total_assists;
           current.totalSteals += stat.total_steals;
-          current.totalBlocks += stat.total_blocks;
           current.totalTurnovers += stat.total_turnovers;
         });
       }
@@ -62,7 +60,6 @@ export async function GET() {
         totalRebounds: 0,
         totalAssists: 0,
         totalSteals: 0,
-        totalBlocks: 0,
         totalTurnovers: 0,
       };
 
@@ -86,7 +83,6 @@ export async function GET() {
           rebounds: parseFloat((stats.totalRebounds / gp).toFixed(1)),
           assists: parseFloat((stats.totalAssists / gp).toFixed(1)),
           steals: parseFloat((stats.totalSteals / gp).toFixed(1)),
-          blocks: parseFloat((stats.totalBlocks / gp).toFixed(1)),
           turnovers: parseFloat((stats.totalTurnovers / gp).toFixed(1)),
         },
       };

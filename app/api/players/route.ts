@@ -106,7 +106,6 @@ export async function GET() {
           rebounds: parseFloat(currentStats.rebounds || 0),
           assists: parseFloat(currentStats.assists || 0),
           steals: parseFloat(currentStats.steals || 0),
-          blocks: parseFloat(currentStats.blocks || 0),
           turnovers: parseFloat(currentStats.turnovers || 0),
           fieldGoalsMade: currentStats.field_goals_made || 0,
           fieldGoalsAttempted: currentStats.field_goals_attempted || 0,
