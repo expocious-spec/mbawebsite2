@@ -24,15 +24,11 @@ export default function GameStatsAdmin() {
     rebounds: '',
     assists: '',
     steals: '',
-    blocks: '',
     turnovers: '',
     fieldGoalsMade: '',
     fieldGoalsAttempted: '',
     threePointersMade: '',
     threePointersAttempted: '',
-    freeThrowsMade: '',
-    freeThrowsAttempted: '',
-    fouls: '',
     possessionTime: '',
     result: 'W' as 'W' | 'L',
   });
@@ -92,15 +88,11 @@ export default function GameStatsAdmin() {
         rebounds: Number(formData.rebounds) || 0,
         assists: Number(formData.assists) || 0,
         steals: Number(formData.steals) || 0,
-        blocks: Number(formData.blocks) || 0,
         turnovers: Number(formData.turnovers) || 0,
         fieldGoalsMade: Number(formData.fieldGoalsMade) || 0,
         fieldGoalsAttempted: Number(formData.fieldGoalsAttempted) || 0,
         threePointersMade: Number(formData.threePointersMade) || 0,
         threePointersAttempted: Number(formData.threePointersAttempted) || 0,
-        freeThrowsMade: Number(formData.freeThrowsMade) || 0,
-        freeThrowsAttempted: Number(formData.freeThrowsAttempted) || 0,
-        fouls: Number(formData.fouls) || 0,
         possessionTime: Number(formData.possessionTime) || 0,
       };
       
@@ -164,15 +156,11 @@ export default function GameStatsAdmin() {
       rebounds: stat.rebounds,
       assists: stat.assists,
       steals: stat.steals,
-      blocks: stat.blocks,
       turnovers: stat.turnovers,
       fieldGoalsMade: stat.fieldGoalsMade,
       fieldGoalsAttempted: stat.fieldGoalsAttempted,
       threePointersMade: stat.threePointersMade,
       threePointersAttempted: stat.threePointersAttempted,
-      freeThrowsMade: stat.freeThrowsMade,
-      freeThrowsAttempted: stat.freeThrowsAttempted,
-      fouls: stat.fouls,
       possessionTime: stat.possessionTime || '',
       result: stat.result,
     });
@@ -189,15 +177,11 @@ export default function GameStatsAdmin() {
       rebounds: '',
       assists: '',
       steals: '',
-      blocks: '',
       turnovers: '',
       fieldGoalsMade: '',
       fieldGoalsAttempted: '',
       threePointersMade: '',
       threePointersAttempted: '',
-      freeThrowsMade: '',
-      freeThrowsAttempted: '',
-      fouls: '',
       possessionTime: '',
       result: 'W',
     });
@@ -237,9 +221,9 @@ export default function GameStatsAdmin() {
     
     setFormData(prev => ({
       ...prev,
-      [name]: ['points', 'rebounds', 'assists', 'steals', 'blocks', 'turnovers', 
+      [name]: ['points', 'rebounds', 'assists', 'steals', 'turnovers', 
                'fieldGoalsMade', 'fieldGoalsAttempted', 'threePointersMade', 
-               'threePointersAttempted', 'freeThrowsMade', 'freeThrowsAttempted', 'fouls', 'possessionTime'].includes(name)
+               'threePointersAttempted', 'possessionTime'].includes(name)
         ? value
         : value
     }));
@@ -618,20 +602,6 @@ export default function GameStatsAdmin() {
                   className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
                 />
               </div>
-              {/* Blocks */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Blocks
-                </label>
-                <input
-                  type="number"
-                  name="blocks"
-                  value={formData.blocks}
-                  onChange={handleChange}
-                  min="0"
-                  className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
-                />
-              </div>
               {/* Rebounds */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -655,20 +625,6 @@ export default function GameStatsAdmin() {
                   type="number"
                   name="turnovers"
                   value={formData.turnovers}
-                  onChange={handleChange}
-                  min="0"
-                  className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
-                />
-              </div>
-              {/* Fouls */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Fouls
-                </label>
-                <input
-                  type="number"
-                  name="fouls"
-                  value={formData.fouls}
                   onChange={handleChange}
                   min="0"
                   className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
@@ -843,7 +799,7 @@ export default function GameStatsAdmin() {
                                 </div>
                               </div>
                               
-                              <div className="grid grid-cols-3 sm:grid-cols-6 lg:grid-cols-9 gap-3 text-center text-sm">
+                              <div className="grid grid-cols-3 sm:grid-cols-6 lg:grid-cols-7 gap-3 text-center text-sm">
                                 <div>
                                   <div className="font-bold text-gray-900 dark:text-white">{stat.points}</div>
                                   <div className="text-xs text-gray-500">PTS</div>
@@ -861,10 +817,6 @@ export default function GameStatsAdmin() {
                                   <div className="text-xs text-gray-500">STL</div>
                                 </div>
                                 <div>
-                                  <div className="font-bold text-gray-900 dark:text-white">{stat.blocks}</div>
-                                  <div className="text-xs text-gray-500">BLK</div>
-                                </div>
-                                <div>
                                   <div className="font-bold text-gray-900 dark:text-white">{stat.turnovers}</div>
                                   <div className="text-xs text-gray-500">TOV</div>
                                 </div>
@@ -879,12 +831,6 @@ export default function GameStatsAdmin() {
                                     {stat.threePointersMade}/{stat.threePointersAttempted}
                                   </div>
                                   <div className="text-xs text-gray-500">3PT</div>
-                                </div>
-                                <div>
-                                  <div className="font-bold text-gray-900 dark:text-white">
-                                    {stat.freeThrowsMade}/{stat.freeThrowsAttempted}
-                                  </div>
-                                  <div className="text-xs text-gray-500">FT</div>
                                 </div>
                               </div>
                             </div>
@@ -976,7 +922,7 @@ export default function GameStatsAdmin() {
                             </div>
                           </div>
                           
-                          <div className="grid grid-cols-3 sm:grid-cols-6 lg:grid-cols-9 gap-3 text-center text-sm">
+                          <div className="grid grid-cols-3 sm:grid-cols-6 lg:grid-cols-7 gap-3 text-center text-sm">
                             <div>
                               <div className="font-bold text-gray-900 dark:text-white">{stat.points}</div>
                               <div className="text-xs text-gray-500">PTS</div>
@@ -994,10 +940,6 @@ export default function GameStatsAdmin() {
                               <div className="text-xs text-gray-500">STL</div>
                             </div>
                             <div>
-                              <div className="font-bold text-gray-900 dark:text-white">{stat.blocks}</div>
-                              <div className="text-xs text-gray-500">BLK</div>
-                            </div>
-                            <div>
                               <div className="font-bold text-gray-900 dark:text-white">{stat.turnovers}</div>
                               <div className="text-xs text-gray-500">TOV</div>
                             </div>
@@ -1012,12 +954,6 @@ export default function GameStatsAdmin() {
                                 {stat.threePointersMade}/{stat.threePointersAttempted}
                               </div>
                               <div className="text-xs text-gray-500">3PT</div>
-                            </div>
-                            <div>
-                              <div className="font-bold text-gray-900 dark:text-white">
-                                {stat.freeThrowsMade}/{stat.freeThrowsAttempted}
-                              </div>
-                              <div className="text-xs text-gray-500">FT</div>
                             </div>
                           </div>
                         </div>

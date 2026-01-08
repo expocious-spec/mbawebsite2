@@ -72,15 +72,11 @@ export interface GameStats {
   rebounds: number;
   assists: number;
   steals: number;
-  blocks: number;
   turnovers: number;
   fieldGoalsMade: number;
   fieldGoalsAttempted: number;
   threePointersMade: number;
   threePointersAttempted: number;
-  freeThrowsMade: number;
-  freeThrowsAttempted: number;
-  fouls: number;
   possessionTime: number;
   result: 'W' | 'L';
 }

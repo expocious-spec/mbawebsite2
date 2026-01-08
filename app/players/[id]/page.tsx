@@ -117,53 +117,40 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
     rebounds: acc.rebounds + (game.rebounds || 0),
     assists: acc.assists + (game.assists || 0),
     steals: acc.steals + (game.steals || 0),
-    blocks: acc.blocks + (game.blocks || 0),
     turnovers: acc.turnovers + (game.turnovers || 0),
     fieldGoalsMade: acc.fieldGoalsMade + (game.fieldGoalsMade || 0),
     fieldGoalsAttempted: acc.fieldGoalsAttempted + (game.fieldGoalsAttempted || 0),
     threePointersMade: acc.threePointersMade + (game.threePointersMade || 0),
     threePointersAttempted: acc.threePointersAttempted + (game.threePointersAttempted || 0),
-    freeThrowsMade: acc.freeThrowsMade + (game.freeThrowsMade || 0),
-    freeThrowsAttempted: acc.freeThrowsAttempted + (game.freeThrowsAttempted || 0),
-    fouls: acc.fouls + (game.fouls || 0),
     possessionTime: acc.possessionTime + (game.possessionTime || 0),
   }), {
     points: 0,
     rebounds: 0,
     assists: 0,
     steals: 0,
-    blocks: 0,
     turnovers: 0,
     fieldGoalsMade: 0,
     fieldGoalsAttempted: 0,
     threePointersMade: 0,
     threePointersAttempted: 0,
-    freeThrowsMade: 0,
-    freeThrowsAttempted: 0,
-    fouls: 0,
     possessionTime: 0,
   }) || {
     points: 0,
     rebounds: 0,
     assists: 0,
     steals: 0,
-    blocks: 0,
     turnovers: 0,
     fieldGoalsMade: 0,
     fieldGoalsAttempted: 0,
     threePointersMade: 0,
     threePointersAttempted: 0,
-    freeThrowsMade: 0,
-    freeThrowsAttempted: 0,
-    fouls: 0,
     possessionTime: 0,
   };
   
-  // Calculate efficiency: (PTS + REB + AST + STL + BLK - Missed FG - Missed FT - TOV) / GP
+  // Calculate efficiency: (PTS + REB + AST + STL - Missed FG - TOV) / GP
   const missedFG = totals.fieldGoalsAttempted - totals.fieldGoalsMade;
-  const missedFT = totals.freeThrowsAttempted - totals.freeThrowsMade;
   const efficiency = actualGamesPlayed > 0 
-    ? (totals.points + totals.rebounds + totals.assists + totals.steals + totals.blocks - missedFG - missedFT - totals.turnovers) / actualGamesPlayed
+    ? (totals.points + totals.rebounds + totals.assists + totals.steals - missedFG - totals.turnovers) / actualGamesPlayed
     : 0;
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -303,10 +290,6 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
             <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">STL</div>
           </div>
           <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-            <div className="text-2xl font-bold text-gray-900 dark:text-white">{stats.blocks.toFixed(1)}</div>
-            <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">BLK</div>
-          </div>
-          <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
             <div className="text-2xl font-bold text-gray-900 dark:text-white">{stats.turnovers.toFixed(1)}</div>
             <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">TOV</div>
           </div>
@@ -324,7 +307,7 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
       {/* Shooting Stats */}
       <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700 mb-6 shadow-sm">
         <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Shooting Statistics</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Field Goals */}
           <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
             <h3 className="text-lg font-semibold mb-3 text-center text-gray-900 dark:text-white">Field Goals</h3>
@@ -354,21 +337,6 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
               <div className="text-xs">3PM / 3PA</div>
             </div>
           </div>
-
-          {/* Free Throws */}
-          <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-            <h3 className="text-lg font-semibold mb-3 text-center text-gray-900 dark:text-white">Free Throws</h3>
-            <div className="text-center mb-2">
-              <div className="text-3xl font-bold text-mba-blue">
-                {stats.freeThrowPercentage.toFixed(1)}%
-              </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">FT%</div>
-            </div>
-            <div className="text-center text-sm text-gray-600 dark:text-gray-400">
-              {stats.freeThrowsMade} / {stats.freeThrowsAttempted}
-              <div className="text-xs">FTM / FTA</div>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -379,7 +347,7 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
         {/* Main Stats */}
         <div className="mb-6">
           <h3 className="text-lg font-semibold mb-3 text-gray-700 dark:text-gray-300">Main Statistics</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
             <div className="text-center p-3 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg border border-blue-200 dark:border-blue-800">
               <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{totals.points}</div>
               <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">PTS</div>
@@ -396,15 +364,12 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
               <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{totals.steals}</div>
               <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">STL</div>
             </div>
-            <div className="text-center p-3 bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 rounded-lg border border-red-200 dark:border-red-800">
-              <div className="text-2xl font-bold text-red-600 dark:text-red-400">{totals.blocks}</div>
-              <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">BLK</div>
-            </div>
             <div className="text-center p-3 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 rounded-lg border border-orange-200 dark:border-orange-800">
               <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">{totals.turnovers}</div>
               <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">TOV</div>
             </div>
-            <div className="text-center p-3 bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-indigo-900/20 dark:to-indigo-800/20 rounded-lg border border-indigo-200 dark:border-indigo-800">
+          </div>
+        </div>
               <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{totals.fouls}</div>
               <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">FLS</div>
             </div>
@@ -430,14 +395,6 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
             <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
               <div className="text-xl font-bold text-gray-900 dark:text-white">{totals.threePointersAttempted}</div>
               <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">3PA</div>
-            </div>
-            <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-              <div className="text-xl font-bold text-gray-900 dark:text-white">{totals.freeThrowsMade}</div>
-              <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">FTM</div>
-            </div>
-            <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-              <div className="text-xl font-bold text-gray-900 dark:text-white">{totals.freeThrowsAttempted}</div>
-              <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">FTA</div>
             </div>
           </div>
         </div>

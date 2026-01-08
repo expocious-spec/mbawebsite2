@@ -235,10 +235,8 @@ export default function GameDetailPage({ params }: { params: { id: string } }) {
                     <th className="text-center py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">REB</th>
                     <th className="text-center py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">AST</th>
                     <th className="text-center py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">STL</th>
-                    <th className="text-center py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">BLK</th>
                     <th className="text-center py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">FG</th>
                     <th className="text-center py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">3P</th>
-                    <th className="text-center py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">FT</th>
                     <th className="text-center py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">TOV</th>
                   </tr>
                 </thead>
@@ -255,15 +253,11 @@ export default function GameDetailPage({ params }: { params: { id: string } }) {
                       <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{stat.rebounds || 0}</td>
                       <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{stat.assists || 0}</td>
                       <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{stat.steals || 0}</td>
-                      <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{stat.blocks || 0}</td>
                       <td className="text-center py-3 px-2 text-gray-900 dark:text-white text-sm">
                         {stat.fieldGoalsMade || 0}/{stat.fieldGoalsAttempted || 0}
                       </td>
                       <td className="text-center py-3 px-2 text-gray-900 dark:text-white text-sm">
                         {stat.threePointersMade || 0}/{stat.threePointersAttempted || 0}
-                      </td>
-                      <td className="text-center py-3 px-2 text-gray-900 dark:text-white text-sm">
-                        {stat.freeThrowsMade || 0}/{stat.freeThrowsAttempted || 0}
                       </td>
                       <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{stat.turnovers || 0}</td>
                     </tr>
@@ -275,15 +269,11 @@ export default function GameDetailPage({ params }: { params: { id: string } }) {
                     <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{awayTotals.rebounds}</td>
                     <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{awayTotals.assists}</td>
                     <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{awayTotals.steals}</td>
-                    <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{awayTotals.blocks}</td>
                     <td className="text-center py-3 px-2 text-gray-900 dark:text-white text-sm">
                       {awayTotals.fieldGoalsMade}/{awayTotals.fieldGoalsAttempted}
                     </td>
                     <td className="text-center py-3 px-2 text-gray-900 dark:text-white text-sm">
                       {awayTotals.threePointersMade}/{awayTotals.threePointersAttempted}
-                    </td>
-                    <td className="text-center py-3 px-2 text-gray-900 dark:text-white text-sm">
-                      {awayTotals.freeThrowsMade}/{awayTotals.freeThrowsAttempted}
                     </td>
                     <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{awayTotals.turnovers}</td>
                   </tr>
@@ -308,10 +298,8 @@ export default function GameDetailPage({ params }: { params: { id: string } }) {
                     <th className="text-center py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">REB</th>
                     <th className="text-center py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">AST</th>
                     <th className="text-center py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">STL</th>
-                    <th className="text-center py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">BLK</th>
                     <th className="text-center py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">FG</th>
                     <th className="text-center py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">3P</th>
-                    <th className="text-center py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">FT</th>
                     <th className="text-center py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">TOV</th>
                   </tr>
                 </thead>
@@ -328,15 +316,11 @@ export default function GameDetailPage({ params }: { params: { id: string } }) {
                       <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{stat.rebounds || 0}</td>
                       <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{stat.assists || 0}</td>
                       <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{stat.steals || 0}</td>
-                      <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{stat.blocks || 0}</td>
                       <td className="text-center py-3 px-2 text-gray-900 dark:text-white text-sm">
                         {stat.fieldGoalsMade || 0}/{stat.fieldGoalsAttempted || 0}
                       </td>
                       <td className="text-center py-3 px-2 text-gray-900 dark:text-white text-sm">
                         {stat.threePointersMade || 0}/{stat.threePointersAttempted || 0}
-                      </td>
-                      <td className="text-center py-3 px-2 text-gray-900 dark:text-white text-sm">
-                        {stat.freeThrowsMade || 0}/{stat.freeThrowsAttempted || 0}
                       </td>
                       <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{stat.turnovers || 0}</td>
                     </tr>
@@ -348,15 +332,11 @@ export default function GameDetailPage({ params }: { params: { id: string } }) {
                     <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{homeTotals.rebounds}</td>
                     <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{homeTotals.assists}</td>
                     <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{homeTotals.steals}</td>
-                    <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{homeTotals.blocks}</td>
                     <td className="text-center py-3 px-2 text-gray-900 dark:text-white text-sm">
                       {homeTotals.fieldGoalsMade}/{homeTotals.fieldGoalsAttempted}
                     </td>
                     <td className="text-center py-3 px-2 text-gray-900 dark:text-white text-sm">
                       {homeTotals.threePointersMade}/{homeTotals.threePointersAttempted}
-                    </td>
-                    <td className="text-center py-3 px-2 text-gray-900 dark:text-white text-sm">
-                      {homeTotals.freeThrowsMade}/{homeTotals.freeThrowsAttempted}
                     </td>
                     <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{homeTotals.turnovers}</td>
                   </tr>

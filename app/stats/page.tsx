@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
 
-type StatCategory = 'points' | 'rebounds' | 'assists' | 'steals' | 'blocks' | 'turnovers' | 'possessionTime' | 'efficiency';
+type StatCategory = 'points' | 'rebounds' | 'assists' | 'steals' | 'turnovers' | 'possessionTime' | 'efficiency';
 type StatMode = 'averages' | 'totals';
 
 const statCategories = [
@@ -13,7 +13,6 @@ const statCategories = [
   { key: 'rebounds' as StatCategory, label: 'Rebounds', abbr: 'REB' },
   { key: 'assists' as StatCategory, label: 'Assists', abbr: 'AST' },
   { key: 'steals' as StatCategory, label: 'Steals', abbr: 'STL' },
-  { key: 'blocks' as StatCategory, label: 'Blocks', abbr: 'BLK' },
   { key: 'turnovers' as StatCategory, label: 'Turnovers', abbr: 'TOV' },
   { key: 'possessionTime' as StatCategory, label: 'Possession Time', abbr: 'PT' },
   { key: 'efficiency' as StatCategory, label: 'Efficiency', abbr: 'EFF' },
@@ -128,7 +127,6 @@ export default function StatsPage() {
         rebounds: 0,
         assists: 0,
         steals: 0,
-        blocks: 0,
         turnovers: 0,
         possessionTime: 0,
         efficiency: 0,
@@ -143,19 +141,15 @@ export default function StatsPage() {
       rebounds: acc.rebounds + (gs.rebounds || 0),
       assists: acc.assists + (gs.assists || 0),
       steals: acc.steals + (gs.steals || 0),
-      blocks: acc.blocks + (gs.blocks || 0),
       turnovers: acc.turnovers + (gs.turnovers || 0),
       possessionTime: acc.possessionTime + (gs.possessionTime || 0),
       fieldGoalsMade: acc.fieldGoalsMade + (gs.fieldGoalsMade || 0),
       fieldGoalsAttempted: acc.fieldGoalsAttempted + (gs.fieldGoalsAttempted || 0),
-      freeThrowsMade: acc.freeThrowsMade + (gs.freeThrowsMade || 0),
-      freeThrowsAttempted: acc.freeThrowsAttempted + (gs.freeThrowsAttempted || 0),
-    }), { points: 0, rebounds: 0, assists: 0, steals: 0, blocks: 0, turnovers: 0, possessionTime: 0, fieldGoalsMade: 0, fieldGoalsAttempted: 0, freeThrowsMade: 0, freeThrowsAttempted: 0 });
+    }), { points: 0, rebounds: 0, assists: 0, steals: 0, turnovers: 0, possessionTime: 0, fieldGoalsMade: 0, fieldGoalsAttempted: 0 });
 
-    // Calculate efficiency: (PTS + REB + AST + STL + BLK - Missed FG - Missed FT - TOV) / GP
+    // Calculate efficiency: (PTS + REB + AST + STL - Missed FG - TOV) / GP
     const missedFG = totals.fieldGoalsAttempted - totals.fieldGoalsMade;
-    const missedFT = totals.freeThrowsAttempted - totals.freeThrowsMade;
-    const efficiency = gamesPlayed > 0 ? (totals.points + totals.rebounds + totals.assists + totals.steals + totals.blocks - missedFG - missedFT - totals.turnovers) / gamesPlayed : 0;
+    const efficiency = gamesPlayed > 0 ? (totals.points + totals.rebounds + totals.assists + totals.steals - missedFG - totals.turnovers) / gamesPlayed : 0;
     const totalEfficiency = efficiency;
 
     return {
@@ -164,7 +158,6 @@ export default function StatsPage() {
       rebounds: gamesPlayed > 0 ? totals.rebounds / gamesPlayed : 0,
       assists: gamesPlayed > 0 ? totals.assists / gamesPlayed : 0,
       steals: gamesPlayed > 0 ? totals.steals / gamesPlayed : 0,
-      blocks: gamesPlayed > 0 ? totals.blocks / gamesPlayed : 0,
       turnovers: gamesPlayed > 0 ? totals.turnovers / gamesPlayed : 0,
       possessionTime: gamesPlayed > 0 ? totals.possessionTime / gamesPlayed : 0,
       efficiency,
@@ -347,13 +340,10 @@ export default function StatsPage() {
                   {statMode === 'totals' ? 'STL' : 'SPG'}
                 </th>
                 <th className="px-4 py-4 text-center text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-                  {statMode === 'totals' ? 'BLK' : 'BPG'}
-                </th>
-                <th className="px-4 py-4 text-center text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
                   {statMode === 'totals' ? 'TOV' : 'TPG'}
                 </th>
                 <th className="px-4 py-4 text-center text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-                  {statMode === 'totals' ? 'MIN' : 'MPG'}
+                  {statMode === 'totals' ? 'PT' : 'PTPG'}
                 </th>
                 <th className="px-4 py-4 text-center text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
                   EFF
@@ -460,13 +450,6 @@ export default function StatsPage() {
                       {(statMode === 'totals' 
                         ? (player.seasonStats.steals || 0) * (player.seasonStats.gamesPlayed || 0)
                         : (player.seasonStats.steals || 0)).toFixed(1)}
-                    </td>
-                    <td className={`px-4 py-4 whitespace-nowrap text-center ${
-                      selectedStat === 'blocks' ? 'font-bold text-mba-blue' : 'text-gray-900 dark:text-white'
-                    }`}>
-                      {(statMode === 'totals' 
-                        ? (player.seasonStats.blocks || 0) * (player.seasonStats.gamesPlayed || 0)
-                        : (player.seasonStats.blocks || 0)).toFixed(1)}
                     </td>
                     <td className={`px-4 py-4 whitespace-nowrap text-center ${
                       selectedStat === 'turnovers' ? 'font-bold text-mba-blue' : 'text-gray-900 dark:text-white'
