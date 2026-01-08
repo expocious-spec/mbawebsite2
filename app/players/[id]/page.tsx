@@ -349,8 +349,8 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
               <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">FG%</div>
             </div>
             <div className="text-center text-sm text-gray-600 dark:text-gray-400">
-              {stats.fieldGoalsAttempted} / {stats.fieldGoalsMade}
-              <div className="text-xs">FGA / FGM</div>
+              {stats.fieldGoalsMade} / {stats.fieldGoalsAttempted}
+              <div className="text-xs">FGM / FGA</div>
             </div>
           </div>
 
@@ -364,8 +364,8 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
               <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">3P%</div>
             </div>
             <div className="text-center text-sm text-gray-600 dark:text-gray-400">
-              {stats.threePointersAttempted} / {stats.threePointersMade}
-              <div className="text-xs">3PA / 3PM</div>
+              {stats.threePointersMade} / {stats.threePointersAttempted}
+              <div className="text-xs">3PM / 3PA</div>
             </div>
           </div>
         </div>
