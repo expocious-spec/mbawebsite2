@@ -82,6 +82,7 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
 
   if (!player) {
     notFound();
+    return null; // TypeScript doesn't know notFound never returns
   }
 
   const getRoleIcon = (role: string) => {
