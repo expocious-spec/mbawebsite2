@@ -44,10 +44,53 @@ export async function GET() {
 
     console.log(`Fetched ${users?.length || 0} users from database`);
 
+    // Fetch all game stats for these users
+    let gameStatsMap = new Map();
+    try {
+      const { data: allGameStats } = await supabaseAdmin
+        .from('game_stats')
+        .select('*')
+        .order('date', { ascending: false });
+      
+      if (allGameStats) {
+        // Group game stats by player_id
+        allGameStats.forEach(stat => {
+          if (!gameStatsMap.has(stat.player_id)) {
+            gameStatsMap.set(stat.player_id, []);
+          }
+          gameStatsMap.get(stat.player_id).push({
+            id: stat.id,
+            playerId: stat.player_id,
+            gameId: stat.game_id,
+            date: stat.date,
+            opponent: stat.opponent,
+            points: stat.points || 0,
+            rebounds: stat.rebounds || 0,
+            assists: stat.assists || 0,
+            steals: stat.steals || 0,
+            blocks: stat.blocks || 0,
+            turnovers: stat.turnovers || 0,
+            fieldGoalsMade: stat.field_goals_made || 0,
+            fieldGoalsAttempted: stat.field_goals_attempted || 0,
+            threePointersMade: stat.three_pointers_made || 0,
+            threePointersAttempted: stat.three_pointers_attempted || 0,
+            freeThrowsMade: stat.free_throws_made || 0,
+            freeThrowsAttempted: stat.free_throws_attempted || 0,
+            fouls: stat.fouls || 0,
+            minutesPlayed: stat.minutes_played || 0,
+            result: stat.result || 'L',
+          });
+        });
+      }
+    } catch (error) {
+      console.warn('Could not fetch game stats:', error);
+    }
+
     // Format users to match expected player format
     const formattedPlayers = (users || []).map((user: any) => {
       // Get current season stats if available
       const currentStats = user.player_season_stats?.[0] || {};
+      const userGameStats = gameStatsMap.get(user.id) || [];
       
       return {
         id: user.id,
@@ -83,7 +126,7 @@ export async function GET() {
           assistPercentage: 0,
           efficiency: 0,
         },
-        gameStats: [],
+        gameStats: userGameStats,
       };
     });
 
