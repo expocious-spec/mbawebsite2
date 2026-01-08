@@ -85,16 +85,12 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
     return null;
   }
 
-  const stats = player.stats;
-
   // Calculate wins and losses from game stats
   const wins = player.gameStats?.filter((g: any) => g.result === 'W').length || 0;
   const losses = player.gameStats?.filter((g: any) => g.result === 'L').length || 0;
   
-  // Use gameStats length for games played if available, otherwise fall back to stats.gamesPlayed
-  const actualGamesPlayed = player.gameStats && player.gameStats.length > 0 
-    ? player.gameStats.length 
-    : stats.gamesPlayed;
+  // Use gameStats length for games played
+  const actualGamesPlayed = player.gameStats?.length || 0;
     
   const winPercentage = actualGamesPlayed > 0 ? (wins / actualGamesPlayed * 100).toFixed(1) : '0.0';
 
@@ -134,6 +130,22 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
     possessionTime: 0,
   };
   
+  // Calculate averages from totals
+  const stats = {
+    points: actualGamesPlayed > 0 ? totals.points / actualGamesPlayed : 0,
+    rebounds: actualGamesPlayed > 0 ? totals.rebounds / actualGamesPlayed : 0,
+    assists: actualGamesPlayed > 0 ? totals.assists / actualGamesPlayed : 0,
+    steals: actualGamesPlayed > 0 ? totals.steals / actualGamesPlayed : 0,
+    turnovers: actualGamesPlayed > 0 ? totals.turnovers / actualGamesPlayed : 0,
+    possessionTime: actualGamesPlayed > 0 ? totals.possessionTime / actualGamesPlayed : 0,
+    fieldGoalsMade: totals.fieldGoalsMade,
+    fieldGoalsAttempted: totals.fieldGoalsAttempted,
+    threePointersMade: totals.threePointersMade,
+    threePointersAttempted: totals.threePointersAttempted,
+    fieldGoalPercentage: totals.fieldGoalsAttempted > 0 ? (totals.fieldGoalsMade / totals.fieldGoalsAttempted * 100) : 0,
+    threePointPercentage: totals.threePointersAttempted > 0 ? (totals.threePointersMade / totals.threePointersAttempted * 100) : 0,
+  };
+
   // Calculate efficiency: (PTS + REB + AST + STL - Missed FG - TOV) / GP
   const missedFG = totals.fieldGoalsAttempted - totals.fieldGoalsMade;
   const efficiency = actualGamesPlayed > 0 
@@ -415,23 +427,12 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
       {/* Advanced Stats */}
       <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
         <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Advanced Statistics</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-            <div className="text-2xl font-bold text-gray-900 dark:text-white">{stats.fouls.toFixed(1)}</div>
-            <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">FLS (Fouls)</div>
-          </div>
+        <div className="grid grid-cols-2 sm:grid-cols-2 gap-4">
           <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
             <div className="text-2xl font-bold text-gray-900 dark:text-white">
               {stats.turnovers > 0 ? (stats.assists / stats.turnovers).toFixed(1) : stats.assists.toFixed(1)}
             </div>
-            <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">ATOr</div>
-          </div>
-          <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-            <div className="text-2xl font-bold text-gray-900 dark:text-white">
-              {/* AST% = Assists / (Team FGM - Player FGM) - requires team data */}
-              {stats.assistPercentage.toFixed(1)}%
-            </div>
-            <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">AST%</div>
+            <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">AST/TO Ratio</div>
           </div>
           <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
             <div className="text-2xl font-bold text-gray-900 dark:text-white">
