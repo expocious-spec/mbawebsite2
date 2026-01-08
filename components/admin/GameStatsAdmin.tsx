@@ -490,62 +490,6 @@ export default function GameStatsAdmin() {
                   className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
                 />
               </div>
-              {/* FG Made */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  FG Made
-                </label>
-                <input
-                  type="number"
-                  name="fieldGoalsMade"
-                  value={formData.fieldGoalsMade}
-                  onChange={handleChange}
-                  min="0"
-                  className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
-                />
-              </div>
-              {/* FG Attempted */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  FG Attempted
-                </label>
-                <input
-                  type="number"
-                  name="fieldGoalsAttempted"
-                  value={formData.fieldGoalsAttempted}
-                  onChange={handleChange}
-                  min="0"
-                  className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
-                />
-              </div>
-              {/* 3PT Made */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  3PT Made
-                </label>
-                <input
-                  type="number"
-                  name="threePointersMade"
-                  value={formData.threePointersMade}
-                  onChange={handleChange}
-                  min="0"
-                  className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
-                />
-              </div>
-              {/* 3PT Attempted */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  3PT Attempted
-                </label>
-                <input
-                  type="number"
-                  name="threePointersAttempted"
-                  value={formData.threePointersAttempted}
-                  onChange={handleChange}
-                  min="0"
-                  className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
-                />
-              </div>
               {/* Assists */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -560,20 +504,6 @@ export default function GameStatsAdmin() {
                   className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
                 />
               </div>
-              {/* Steals */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Steals
-                </label>
-                <input
-                  type="number"
-                  name="steals"
-                  value={formData.steals}
-                  onChange={handleChange}
-                  min="0"
-                  className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
-                />
-              </div>
               {/* Rebounds */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -583,6 +513,20 @@ export default function GameStatsAdmin() {
                   type="number"
                   name="rebounds"
                   value={formData.rebounds}
+                  onChange={handleChange}
+                  min="0"
+                  className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
+                />
+              </div>
+              {/* Steals */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Steals
+                </label>
+                <input
+                  type="number"
+                  name="steals"
+                  value={formData.steals}
                   onChange={handleChange}
                   min="0"
                   className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
@@ -611,6 +555,62 @@ export default function GameStatsAdmin() {
                   type="number"
                   name="possessionTime"
                   value={formData.possessionTime}
+                  onChange={handleChange}
+                  min="0"
+                  className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
+                />
+              </div>
+              {/* FG Attempted */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  FG Attempted
+                </label>
+                <input
+                  type="number"
+                  name="fieldGoalsAttempted"
+                  value={formData.fieldGoalsAttempted}
+                  onChange={handleChange}
+                  min="0"
+                  className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
+                />
+              </div>
+              {/* FG Made */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  FG Made
+                </label>
+                <input
+                  type="number"
+                  name="fieldGoalsMade"
+                  value={formData.fieldGoalsMade}
+                  onChange={handleChange}
+                  min="0"
+                  className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
+                />
+              </div>
+              {/* 3PT Attempted */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  3PT Attempted
+                </label>
+                <input
+                  type="number"
+                  name="threePointersAttempted"
+                  value={formData.threePointersAttempted}
+                  onChange={handleChange}
+                  min="0"
+                  className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
+                />
+              </div>
+              {/* 3PT Made */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  3PT Made
+                </label>
+                <input
+                  type="number"
+                  name="threePointersMade"
+                  value={formData.threePointersMade}
                   onChange={handleChange}
                   min="0"
                   className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
