@@ -20,8 +20,8 @@ export async function GET() {
     scheduledDate: game.scheduled_date,
     status: game.status,
     season: game.season,
-    isForfeit: game.is_forfeit || false,
-    forfeitWinner: game.forfeit_winner,
+    isForfeit: game.is_forfeit ?? false,
+    forfeitWinner: game.forfeit_winner ?? null,
   })) || [];
 
   return NextResponse.json(formattedGames);
@@ -38,19 +38,24 @@ export async function POST(request: Request) {
       );
     }
 
+    // Build insert object - only include forfeit fields if they exist in schema
+    const insertData: any = {
+      home_team_id: body.homeTeamId,
+      away_team_id: body.awayTeamId,
+      scheduled_date: body.scheduledDate,
+      status: body.status || 'scheduled',
+      season: body.season || 'Preseason 1',
+      home_score: body.homeScore,
+      away_score: body.awayScore,
+    };
+
+    // Only add forfeit fields if they're provided (for completed games)
+    if (body.isForfeit !== undefined) insertData.is_forfeit = body.isForfeit;
+    if (body.forfeitWinner !== undefined) insertData.forfeit_winner = body.forfeitWinner;
+
     const { data, error } = await supabaseAdmin
       .from('games')
-      .insert({
-        home_team_id: body.homeTeamId,
-        away_team_id: body.awayTeamId,
-        scheduled_date: body.scheduledDate,
-        status: body.status || 'scheduled',
-        season: body.season || 'Preseason 1',
-        home_score: body.homeScore,
-        away_score: body.awayScore,
-        is_forfeit: body.isForfeit || false,
-        forfeit_winner: body.forfeitWinner,
-      })
+      .insert(insertData)
       .select()
       .single();
 

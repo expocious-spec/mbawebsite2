@@ -12,7 +12,7 @@ const navItems = [
   { href: '/branding', label: 'Branding', icon: Users },
   { href: '/links', label: 'Links', icon: Link2 },
   { href: '/standings', label: 'Standings', icon: Trophy },
-  { href: '/rankings', label: 'Rankings', icon: Award },
+  // { href: '/rankings', label: 'Rankings', icon: Award },
   { href: '/stats', label: 'Stats', icon: TrendingUp },
   { href: '/games', label: 'Games', icon: Calendar },
   { href: '/players', label: 'Players', icon: Search },

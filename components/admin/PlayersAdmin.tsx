@@ -125,6 +125,7 @@ export default function PlayersAdmin() {
         body: JSON.stringify({
           id: selectedPlayer.id,
           username: displayName,
+          minecraftUsername,
           discordUsername,
           teamId,
           roles,
@@ -253,14 +254,26 @@ export default function PlayersAdmin() {
                 value={minecraftUsername}
                 onChange={(e) => setMinecraftUsername(e.target.value)}
                 placeholder="Enter Minecraft username"
-                disabled={showEditForm}
-                className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white disabled:opacity-50"
+                className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
               />
               {!showEditForm && (
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                   Display name and profile will be fetched automatically
                 </p>
               )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                Display Name
+              </label>
+              <input
+                type="text"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                placeholder="Player display name"
+                className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
+              />
             </div>
 
             <div>
