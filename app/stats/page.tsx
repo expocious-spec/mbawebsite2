@@ -89,28 +89,61 @@ export default function StatsPage() {
 
   // Calculate per-season stats from gameStats
   const getPlayerSeasonStats = (player: any) => {
-    if (selectedSeason === 'All-Time' || !player.gameStats || player.gameStats.length === 0) {
-      // Return cumulative stats for All-Time
-      // Calculate efficiency from stats if not present
-      const stats = player.stats || {};
-      const missedFG = (stats.fieldGoalsAttempted || 0) - (stats.fieldGoalsMade || 0);
-      const missedFT = (stats.freeThrowsAttempted || 0) - (stats.freeThrowsMade || 0);
-      const efficiency = stats.gamesPlayed > 0 
-        ? ((stats.points || 0) + (stats.rebounds || 0) + (stats.assists || 0) + (stats.steals || 0) + (stats.blocks || 0) - missedFG - missedFT - (stats.turnovers || 0)) / stats.gamesPlayed
-        : 0;
-      const totalEfficiency = efficiency;
-      
+    if (selectedSeason === 'All-Time') {
+      // For All-Time, aggregate ALL game stats across all seasons
+      if (!player.gameStats || player.gameStats.length === 0) {
+        return {
+          gamesPlayed: 0,
+          points: 0,
+          rebounds: 0,
+          assists: 0,
+          steals: 0,
+          turnovers: 0,
+          possessionTime: 0,
+          efficiency: 0,
+          totalEfficiency: 0
+        };
+      }
+
+      const gamesPlayed = player.gameStats.length;
+      const totals = player.gameStats.reduce((acc: any, gs: any) => ({
+        points: acc.points + (gs.points || 0),
+        rebounds: acc.rebounds + (gs.rebounds || 0),
+        assists: acc.assists + (gs.assists || 0),
+        steals: acc.steals + (gs.steals || 0),
+        turnovers: acc.turnovers + (gs.turnovers || 0),
+        possessionTime: acc.possessionTime + (gs.possessionTime || 0),
+        fieldGoalsMade: acc.fieldGoalsMade + (gs.fieldGoalsMade || 0),
+        fieldGoalsAttempted: acc.fieldGoalsAttempted + (gs.fieldGoalsAttempted || 0),
+      }), { points: 0, rebounds: 0, assists: 0, steals: 0, turnovers: 0, possessionTime: 0, fieldGoalsMade: 0, fieldGoalsAttempted: 0 });
+
+      const missedFG = totals.fieldGoalsAttempted - totals.fieldGoalsMade;
+      const efficiency = gamesPlayed > 0 ? (totals.points + totals.rebounds + totals.assists + totals.steals - missedFG - totals.turnovers) / gamesPlayed : 0;
+
       return {
-        gamesPlayed: stats.gamesPlayed || 0,
-        points: stats.points || 0,
-        rebounds: stats.rebounds || 0,
-        assists: stats.assists || 0,
-        steals: stats.steals || 0,
-        blocks: stats.blocks || 0,
-        turnovers: stats.turnovers || 0,
-        possessionTime: stats.possessionTime || 0,
-        efficiency: stats.efficiency || efficiency,
-        totalEfficiency
+        gamesPlayed,
+        points: gamesPlayed > 0 ? totals.points / gamesPlayed : 0,
+        rebounds: gamesPlayed > 0 ? totals.rebounds / gamesPlayed : 0,
+        assists: gamesPlayed > 0 ? totals.assists / gamesPlayed : 0,
+        steals: gamesPlayed > 0 ? totals.steals / gamesPlayed : 0,
+        turnovers: gamesPlayed > 0 ? totals.turnovers / gamesPlayed : 0,
+        possessionTime: gamesPlayed > 0 ? totals.possessionTime / gamesPlayed : 0,
+        efficiency,
+        totalEfficiency: efficiency,
+      };
+    }
+
+    if (!player.gameStats || player.gameStats.length === 0) {
+      return {
+        gamesPlayed: 0,
+        points: 0,
+        rebounds: 0,
+        assists: 0,
+        steals: 0,
+        turnovers: 0,
+        possessionTime: 0,
+        efficiency: 0,
+        totalEfficiency: 0
       };
     }
 
