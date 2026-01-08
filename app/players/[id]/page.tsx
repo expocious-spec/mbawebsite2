@@ -94,6 +94,12 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
     
   const winPercentage = actualGamesPlayed > 0 ? (wins / actualGamesPlayed * 100).toFixed(1) : '0.0';
 
+  // Debug: Log first game stat to see what fields are available
+  if (player.gameStats && player.gameStats.length > 0) {
+    console.log('[PLAYER PROFILE] First game stat:', player.gameStats[0]);
+    console.log('[PLAYER PROFILE] Available keys:', Object.keys(player.gameStats[0]));
+  }
+
   // Calculate totals from game stats
   const totals = player.gameStats?.reduce((acc: any, game: any) => ({
     points: acc.points + (game.points || 0),
@@ -332,8 +338,8 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
               <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">FG%</div>
             </div>
             <div className="text-center text-sm text-gray-600 dark:text-gray-400">
-              {stats.fieldGoalsMade} / {stats.fieldGoalsAttempted}
-              <div className="text-xs">FGM / FGA</div>
+              {stats.fieldGoalsAttempted} / {stats.fieldGoalsMade}
+              <div className="text-xs">FGA / FGM</div>
             </div>
           </div>
 
@@ -347,8 +353,8 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
               <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">3P%</div>
             </div>
             <div className="text-center text-sm text-gray-600 dark:text-gray-400">
-              {stats.threePointersMade} / {stats.threePointersAttempted}
-              <div className="text-xs">3PM / 3PA</div>
+              {stats.threePointersAttempted} / {stats.threePointersMade}
+              <div className="text-xs">3PA / 3PM</div>
             </div>
           </div>
         </div>
@@ -470,7 +476,7 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
                       </div>
                     </div>
                   </div>
-                  <div className="grid grid-cols-6 gap-3 text-center">
+                  <div className="grid grid-cols-5 gap-3 text-center">
                     <div>
                       <div className="text-lg font-bold text-gray-900 dark:text-white">{game.points}</div>
                       <div className="text-xs text-gray-500">PTS</div>
@@ -488,12 +494,8 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
                       <div className="text-xs text-gray-500">STL</div>
                     </div>
                     <div>
-                      <div className="text-lg font-bold text-gray-900 dark:text-white">{game.blocks}</div>
-                      <div className="text-xs text-gray-500">BLK</div>
-                    </div>
-                    <div>
                       <div className="text-lg font-bold text-gray-900 dark:text-white">
-                        {game.fieldGoalsMade}/{game.fieldGoalsAttempted}
+                        {game.fieldGoalsAttempted}/{game.fieldGoalsMade}
                       </div>
                       <div className="text-xs text-gray-500">FG</div>
                     </div>
