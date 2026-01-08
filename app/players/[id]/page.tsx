@@ -82,22 +82,8 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
 
   if (!player) {
     notFound();
-    return null; // TypeScript doesn't know notFound never returns
+    return null;
   }
-
-  const getRoleIcon = (role: string) => {
-    switch (role) {
-      case 'Franchise Owner':
-        return <Shield className="w-4 h-4 text-mba-blue" />;
-      case 'General Manager':
-        return <Award className="w-4 h-4 text-mba-blue" />;
-      case 'Head Coach':
-      case 'Assistant Coach':
-        return <UsersIcon className="w-4 h-4 text-mba-blue" />;
-      default:
-        return <User className="w-4 h-4 text-gray-500" />;
-    }
-  };
 
   const stats = player.stats;
 
@@ -153,6 +139,20 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
   const efficiency = actualGamesPlayed > 0 
     ? (totals.points + totals.rebounds + totals.assists + totals.steals - missedFG - totals.turnovers) / actualGamesPlayed
     : 0;
+
+  const getRoleIcon = (role: string) => {
+    switch (role) {
+      case 'Franchise Owner':
+        return <Shield className="w-4 h-4 text-mba-blue" />;
+      case 'General Manager':
+        return <Award className="w-4 h-4 text-mba-blue" />;
+      case 'Head Coach':
+      case 'Assistant Coach':
+        return <UsersIcon className="w-4 h-4 text-mba-blue" />;
+      default:
+        return <User className="w-4 h-4 text-gray-500" />;
+    }
+  };
   
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
