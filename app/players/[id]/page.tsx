@@ -107,11 +107,11 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
     assists: acc.assists + (game.assists || 0),
     steals: acc.steals + (game.steals || 0),
     turnovers: acc.turnovers + (game.turnovers || 0),
-    fieldGoalsMade: acc.fieldGoalsMade + (game.fieldGoalsMade || 0),
-    fieldGoalsAttempted: acc.fieldGoalsAttempted + (game.fieldGoalsAttempted || 0),
-    threePointersMade: acc.threePointersMade + (game.threePointersMade || 0),
-    threePointersAttempted: acc.threePointersAttempted + (game.threePointersAttempted || 0),
-    possessionTime: acc.possessionTime + (game.possessionTime || 0),
+    fieldGoalsMade: acc.fieldGoalsMade + (game.field_goals_made || 0),
+    fieldGoalsAttempted: acc.fieldGoalsAttempted + (game.field_goals_attempted || 0),
+    threePointersMade: acc.threePointersMade + (game.three_pointers_made || 0),
+    threePointersAttempted: acc.threePointersAttempted + (game.three_pointers_attempted || 0),
+    possessionTime: acc.possessionTime + (game.possession_time || 0),
   }), {
     points: 0,
     rebounds: 0,
@@ -495,7 +495,7 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
                     </div>
                     <div>
                       <div className="text-lg font-bold text-gray-900 dark:text-white">
-                        {game.fieldGoalsAttempted}/{game.fieldGoalsMade}
+                        {game.field_goals_attempted}/{game.field_goals_made}
                       </div>
                       <div className="text-xs text-gray-500">FG</div>
                     </div>
