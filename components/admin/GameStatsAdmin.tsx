@@ -93,7 +93,7 @@ export default function GameStatsAdmin() {
       const extractFraction = (text: string, key: string) => {
         const regex = new RegExp(`${key}:\\s*(\\d+)/(\\d+)`, 'i');
         const match = text.match(regex);
-        return match ? { attempted: match[1], made: match[2] } : { attempted: '', made: '' };
+        return match ? { made: match[1], attempted: match[2] } : { attempted: '', made: '' };
       };
 
       const fg = extractFraction(pasteText, 'FG');

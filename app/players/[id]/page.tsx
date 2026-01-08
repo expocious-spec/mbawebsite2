@@ -506,7 +506,7 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
                     </div>
                     <div>
                       <div className="text-lg font-bold text-gray-900 dark:text-white">
-                        {(game.fieldGoalsAttempted || game.field_goals_attempted || 0)}/{(game.fieldGoalsMade || game.field_goals_made || 0)}
+                        {(game.fieldGoalsMade || game.field_goals_made || 0)}/{(game.fieldGoalsAttempted || game.field_goals_attempted || 0)}
                       </div>
                       <div className="text-xs text-gray-500">FG</div>
                     </div>
