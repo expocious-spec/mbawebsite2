@@ -152,6 +152,7 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
   const efficiency = actualGamesPlayed > 0 
     ? (totals.points + totals.rebounds + totals.assists + totals.steals - missedFG - totals.turnovers) / actualGamesPlayed
     : 0;
+  
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Team-colored Banner */}
