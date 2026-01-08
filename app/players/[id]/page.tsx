@@ -81,7 +81,7 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
   }
 
   if (!player) {
-    return notFound();
+    notFound();
   }
 
   const getRoleIcon = (role: string) => {
