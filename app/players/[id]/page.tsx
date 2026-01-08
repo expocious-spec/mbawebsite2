@@ -451,7 +451,7 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
               <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">Total Minutes</div>
             </div>
             <div className="text-center p-4 bg-gradient-to-br from-mba-blue/10 to-mba-blue/20 dark:from-mba-blue/20 dark:to-mba-blue/10 rounded-lg border border-mba-blue/30">
-              <div className="text-3xl font-bold text-mba-blue">{stats.gamesPlayed > 0 ? (totals.minutesPlayed / stats.gamesPlayed).toFixed(1) : '0.0'}</div>
+              <div className="text-3xl font-bold text-mba-blue">{actualGamesPlayed > 0 ? (totals.minutesPlayed / actualGamesPlayed).toFixed(1) : '0.0'}</div>
               <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">Minutes Per Game</div>
             </div>
           </div>
@@ -481,12 +481,7 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
           </div>
           <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
             <div className="text-2xl font-bold text-gray-900 dark:text-white">
-              {(() => {
-                const missedFG = stats.fieldGoalsAttempted - stats.fieldGoalsMade;
-                const missedFT = stats.freeThrowsAttempted - stats.freeThrowsMade;
-                const eff = (stats.points + stats.rebounds + stats.assists + stats.steals + stats.blocks - missedFG - missedFT - stats.turnovers) / (stats.gamesPlayed || 1);
-                return eff.toFixed(1);
-              })()}
+              {efficiency.toFixed(1)}
             </div>
             <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">EFF</div>
           </div>
