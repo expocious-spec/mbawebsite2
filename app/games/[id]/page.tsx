@@ -35,9 +35,14 @@ export default function GameDetailPage({ params }: { params: { id: string } }) {
         playersRes.json()
       ]);
 
+      console.log('[GAME PAGE] Looking for game ID:', params.id);
+      console.log('[GAME PAGE] Available games:', gamesData.map((g: any) => ({ id: g.id, date: g.date })));
+
       const currentGame = gamesData.find((g: any) => g.id === params.id);
       if (!currentGame) {
+        console.error('[GAME PAGE] Game not found! ID:', params.id);
         notFound();
+        return;
       }
 
       setGame(currentGame);
