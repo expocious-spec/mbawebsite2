@@ -372,11 +372,6 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
             </div>
           </div>
         </div>
-              <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{totals.fouls}</div>
-              <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">FLS</div>
-            </div>
-          </div>
-        </div>
 
         {/* Shooting Totals */}
         <div className="mb-6">
