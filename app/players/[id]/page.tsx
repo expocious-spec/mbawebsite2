@@ -103,7 +103,13 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
   // Calculate wins and losses from game stats
   const wins = player.gameStats?.filter((g: any) => g.result === 'W').length || 0;
   const losses = player.gameStats?.filter((g: any) => g.result === 'L').length || 0;
-  const winPercentage = stats.gamesPlayed > 0 ? (wins / stats.gamesPlayed * 100).toFixed(1) : '0.0';
+  
+  // Use gameStats length for games played if available, otherwise fall back to stats.gamesPlayed
+  const actualGamesPlayed = player.gameStats && player.gameStats.length > 0 
+    ? player.gameStats.length 
+    : stats.gamesPlayed;
+    
+  const winPercentage = actualGamesPlayed > 0 ? (wins / actualGamesPlayed * 100).toFixed(1) : '0.0';
 
   // Calculate totals from game stats
   const totals = player.gameStats?.reduce((acc: any, game: any) => ({
@@ -263,7 +269,7 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
         <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Record</h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-            <div className="text-3xl font-bold text-mba-blue">{stats.gamesPlayed}</div>
+            <div className="text-3xl font-bold text-mba-blue">{actualGamesPlayed}</div>
             <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">Games Played</div>
           </div>
           <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
@@ -310,7 +316,7 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
             <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">TOV</div>
           </div>
           <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-            <div className="text-2xl font-bold text-gray-900 dark:text-white">{stats.gamesPlayed > 0 ? (totals.minutesPlayed / stats.gamesPlayed).toFixed(1) : '0.0'}</div>
+            <div className="text-2xl font-bold text-gray-900 dark:text-white">{actualGamesPlayed > 0 ? (totals.minutesPlayed / actualGamesPlayed).toFixed(1) : '0.0'}</div>
             <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">MIN</div>
           </div>
           <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
