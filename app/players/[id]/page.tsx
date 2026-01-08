@@ -126,7 +126,7 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
     freeThrowsMade: acc.freeThrowsMade + (game.freeThrowsMade || 0),
     freeThrowsAttempted: acc.freeThrowsAttempted + (game.freeThrowsAttempted || 0),
     fouls: acc.fouls + (game.fouls || 0),
-    minutesPlayed: acc.minutesPlayed + (game.minutesPlayed || 0),
+    possessionTime: acc.possessionTime + (game.possessionTime || 0),
   }), {
     points: 0,
     rebounds: 0,
@@ -141,7 +141,7 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
     freeThrowsMade: 0,
     freeThrowsAttempted: 0,
     fouls: 0,
-    minutesPlayed: 0,
+    possessionTime: 0,
   }) || {
     points: 0,
     rebounds: 0,
@@ -156,7 +156,7 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
     freeThrowsMade: 0,
     freeThrowsAttempted: 0,
     fouls: 0,
-    minutesPlayed: 0,
+    possessionTime: 0,
   };
   
   // Calculate efficiency: (PTS + REB + AST + STL + BLK - Missed FG - Missed FT - TOV) / GP
@@ -311,8 +311,8 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
             <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">TOV</div>
           </div>
           <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-            <div className="text-2xl font-bold text-gray-900 dark:text-white">{actualGamesPlayed > 0 ? (totals.minutesPlayed / actualGamesPlayed).toFixed(1) : '0.0'}</div>
-            <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">MIN</div>
+            <div className="text-2xl font-bold text-gray-900 dark:text-white">{actualGamesPlayed > 0 ? (totals.possessionTime / actualGamesPlayed).toFixed(1) : '0.0'}</div>
+            <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">PT</div>
           </div>
           <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
             <div className="text-2xl font-bold text-gray-900 dark:text-white">{efficiency.toFixed(1)}</div>
@@ -442,17 +442,17 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
           </div>
         </div>
 
-        {/* Minutes Played */}
+        {/* Possession Time */}
         <div>
           <h3 className="text-lg font-semibold mb-3 text-gray-700 dark:text-gray-300">Playing Time</h3>
           <div className="grid grid-cols-2 gap-3">
             <div className="text-center p-4 bg-gradient-to-br from-mba-blue/10 to-mba-blue/20 dark:from-mba-blue/20 dark:to-mba-blue/10 rounded-lg border border-mba-blue/30">
-              <div className="text-3xl font-bold text-mba-blue">{totals.minutesPlayed}</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">Total Minutes</div>
+              <div className="text-3xl font-bold text-mba-blue">{totals.possessionTime}</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">Total Possession Time</div>
             </div>
             <div className="text-center p-4 bg-gradient-to-br from-mba-blue/10 to-mba-blue/20 dark:from-mba-blue/20 dark:to-mba-blue/10 rounded-lg border border-mba-blue/30">
-              <div className="text-3xl font-bold text-mba-blue">{actualGamesPlayed > 0 ? (totals.minutesPlayed / actualGamesPlayed).toFixed(1) : '0.0'}</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">Minutes Per Game</div>
+              <div className="text-3xl font-bold text-mba-blue">{actualGamesPlayed > 0 ? (totals.possessionTime / actualGamesPlayed).toFixed(1) : '0.0'}</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">Possession Time Per Game</div>
             </div>
           </div>
         </div>

@@ -77,7 +77,7 @@ export async function GET() {
             freeThrowsMade: stat.free_throws_made || 0,
             freeThrowsAttempted: stat.free_throws_attempted || 0,
             fouls: stat.fouls || 0,
-            minutesPlayed: stat.minutes_played || 0,
+            possessionTime: stat.possession_time || 0,
             result: stat.result || 'L',
           });
         });

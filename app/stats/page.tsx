@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
 
-type StatCategory = 'points' | 'rebounds' | 'assists' | 'steals' | 'blocks' | 'turnovers' | 'minutesPlayed' | 'efficiency';
+type StatCategory = 'points' | 'rebounds' | 'assists' | 'steals' | 'blocks' | 'turnovers' | 'possessionTime' | 'efficiency';
 type StatMode = 'averages' | 'totals';
 
 const statCategories = [
@@ -15,7 +15,7 @@ const statCategories = [
   { key: 'steals' as StatCategory, label: 'Steals', abbr: 'STL' },
   { key: 'blocks' as StatCategory, label: 'Blocks', abbr: 'BLK' },
   { key: 'turnovers' as StatCategory, label: 'Turnovers', abbr: 'TOV' },
-  { key: 'minutesPlayed' as StatCategory, label: 'Minutes Played', abbr: 'MIN' },
+  { key: 'possessionTime' as StatCategory, label: 'Possession Time', abbr: 'PT' },
   { key: 'efficiency' as StatCategory, label: 'Efficiency', abbr: 'EFF' },
 ];
 
@@ -109,7 +109,7 @@ export default function StatsPage() {
         steals: stats.steals || 0,
         blocks: stats.blocks || 0,
         turnovers: stats.turnovers || 0,
-        minutesPlayed: stats.minutesPlayed || 0,
+        possessionTime: stats.possessionTime || 0,
         efficiency: stats.efficiency || efficiency,
         totalEfficiency
       };
@@ -130,7 +130,7 @@ export default function StatsPage() {
         steals: 0,
         blocks: 0,
         turnovers: 0,
-        minutesPlayed: 0,
+        possessionTime: 0,
         efficiency: 0,
         totalEfficiency: 0
       };
@@ -145,12 +145,12 @@ export default function StatsPage() {
       steals: acc.steals + (gs.steals || 0),
       blocks: acc.blocks + (gs.blocks || 0),
       turnovers: acc.turnovers + (gs.turnovers || 0),
-      minutesPlayed: acc.minutesPlayed + (gs.minutesPlayed || 0),
+      possessionTime: acc.possessionTime + (gs.possessionTime || 0),
       fieldGoalsMade: acc.fieldGoalsMade + (gs.fieldGoalsMade || 0),
       fieldGoalsAttempted: acc.fieldGoalsAttempted + (gs.fieldGoalsAttempted || 0),
       freeThrowsMade: acc.freeThrowsMade + (gs.freeThrowsMade || 0),
       freeThrowsAttempted: acc.freeThrowsAttempted + (gs.freeThrowsAttempted || 0),
-    }), { points: 0, rebounds: 0, assists: 0, steals: 0, blocks: 0, turnovers: 0, minutesPlayed: 0, fieldGoalsMade: 0, fieldGoalsAttempted: 0, freeThrowsMade: 0, freeThrowsAttempted: 0 });
+    }), { points: 0, rebounds: 0, assists: 0, steals: 0, blocks: 0, turnovers: 0, possessionTime: 0, fieldGoalsMade: 0, fieldGoalsAttempted: 0, freeThrowsMade: 0, freeThrowsAttempted: 0 });
 
     // Calculate efficiency: (PTS + REB + AST + STL + BLK - Missed FG - Missed FT - TOV) / GP
     const missedFG = totals.fieldGoalsAttempted - totals.fieldGoalsMade;
@@ -166,7 +166,7 @@ export default function StatsPage() {
       steals: gamesPlayed > 0 ? totals.steals / gamesPlayed : 0,
       blocks: gamesPlayed > 0 ? totals.blocks / gamesPlayed : 0,
       turnovers: gamesPlayed > 0 ? totals.turnovers / gamesPlayed : 0,
-      minutesPlayed: gamesPlayed > 0 ? totals.minutesPlayed / gamesPlayed : 0,
+      possessionTime: gamesPlayed > 0 ? totals.possessionTime / gamesPlayed : 0,
       efficiency,
       totalEfficiency,
     };
@@ -476,11 +476,11 @@ export default function StatsPage() {
                         : (player.seasonStats.turnovers || 0)).toFixed(1)}
                     </td>
                     <td className={`px-4 py-4 whitespace-nowrap text-center ${
-                      selectedStat === 'minutesPlayed' ? 'font-bold text-mba-blue' : 'text-gray-900 dark:text-white'
+                      selectedStat === 'possessionTime' ? 'font-bold text-mba-blue' : 'text-gray-900 dark:text-white'
                     }`}>
                       {(statMode === 'totals' 
-                        ? (player.seasonStats.minutesPlayed || 0) * (player.seasonStats.gamesPlayed || 0)
-                        : (player.seasonStats.minutesPlayed || 0)).toFixed(1)}
+                        ? (player.seasonStats.possessionTime || 0) * (player.seasonStats.gamesPlayed || 0)
+                        : (player.seasonStats.possessionTime || 0)).toFixed(1)}
                     </td>
                     <td className={`px-4 py-4 whitespace-nowrap text-center ${
                       selectedStat === 'efficiency' ? 'font-bold text-mba-blue' : 'text-gray-900 dark:text-white'

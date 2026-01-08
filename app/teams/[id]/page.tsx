@@ -162,12 +162,12 @@ export default function TeamPage({ params }: { params: { id: string } }) {
     });
   };
 
-  // Get minutes played leader from game stats
+  // Get possession time leader from game stats
   const getMinutesLeader = () => {
     if (teamPlayers.length === 0) return null;
     return teamPlayers.reduce((leader, player) => {
-      const playerMinutes = player.gameStats?.reduce((total: number, game: any) => total + (game.minutesPlayed || 0), 0) || 0;
-      const leaderMinutes = leader.gameStats?.reduce((total: number, game: any) => total + (game.minutesPlayed || 0), 0) || 0;
+      const playerMinutes = player.gameStats?.reduce((total: number, game: any) => total + (game.possessionTime || 0), 0) || 0;
+      const leaderMinutes = leader.gameStats?.reduce((total: number, game: any) => total + (game.possessionTime || 0), 0) || 0;
       return playerMinutes > leaderMinutes ? player : leader;
     });
   };
@@ -436,11 +436,11 @@ export default function TeamPage({ params }: { params: { id: string } }) {
                           <div className="font-semibold text-gray-900 dark:text-white">
                             {minutesLeader.displayName}
                           </div>
-                          <div className="text-sm text-gray-600 dark:text-gray-400">Minutes Leader</div>
+                          <div className="text-sm text-gray-600 dark:text-gray-400">Possession Time Leader</div>
                         </div>
                       </div>
                       <div className="text-2xl font-bold text-mba-blue">
-                        {minutesLeader.gameStats?.reduce((total: number, game: any) => total + (game.minutesPlayed || 0), 0) || 0}
+                        {minutesLeader.gameStats?.reduce((total: number, game: any) => total + (game.possessionTime || 0), 0) || 0}
                       </div>
                     </div>
                   )}

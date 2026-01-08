@@ -33,7 +33,7 @@ export default function GameStatsAdmin() {
     freeThrowsMade: '',
     freeThrowsAttempted: '',
     fouls: '',
-    minutesPlayed: '',
+    possessionTime: '',
     result: 'W' as 'W' | 'L',
   });
 
@@ -101,7 +101,7 @@ export default function GameStatsAdmin() {
         freeThrowsMade: Number(formData.freeThrowsMade) || 0,
         freeThrowsAttempted: Number(formData.freeThrowsAttempted) || 0,
         fouls: Number(formData.fouls) || 0,
-        minutesPlayed: Number(formData.minutesPlayed) || 0,
+        possessionTime: Number(formData.possessionTime) || 0,
       };
       
       const method = editingStatId ? 'PUT' : 'POST';
@@ -173,7 +173,7 @@ export default function GameStatsAdmin() {
       freeThrowsMade: stat.freeThrowsMade,
       freeThrowsAttempted: stat.freeThrowsAttempted,
       fouls: stat.fouls,
-      minutesPlayed: stat.minutesPlayed || '',
+      possessionTime: stat.possessionTime || '',
       result: stat.result,
     });
     setShowForm(true);
@@ -198,7 +198,7 @@ export default function GameStatsAdmin() {
       freeThrowsMade: '',
       freeThrowsAttempted: '',
       fouls: '',
-      minutesPlayed: '',
+      possessionTime: '',
       result: 'W',
     });
     setPlayerSearch('');
@@ -239,7 +239,7 @@ export default function GameStatsAdmin() {
       ...prev,
       [name]: ['points', 'rebounds', 'assists', 'steals', 'blocks', 'turnovers', 
                'fieldGoalsMade', 'fieldGoalsAttempted', 'threePointersMade', 
-               'threePointersAttempted', 'freeThrowsMade', 'freeThrowsAttempted', 'fouls', 'minutesPlayed'].includes(name)
+               'threePointersAttempted', 'freeThrowsMade', 'freeThrowsAttempted', 'fouls', 'possessionTime'].includes(name)
         ? value
         : value
     }));
@@ -674,15 +674,15 @@ export default function GameStatsAdmin() {
                   className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
                 />
               </div>
-              {/* Minutes Played */}
+              {/* Possession Time */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Minutes Played
+                  Possession Time
                 </label>
                 <input
                   type="number"
-                  name="minutesPlayed"
-                  value={formData.minutesPlayed}
+                  name="possessionTime"
+                  value={formData.possessionTime}
                   onChange={handleChange}
                   min="0"
                   className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"

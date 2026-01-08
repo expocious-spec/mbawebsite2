@@ -230,7 +230,7 @@ export default function GameDetailPage({ params }: { params: { id: string } }) {
                 <thead>
                   <tr className="border-b border-gray-200 dark:border-gray-700">
                     <th className="text-left py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">Player</th>
-                    <th className="text-center py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">MIN</th>
+                    <th className="text-center py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">PT</th>
                     <th className="text-center py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">PTS</th>
                     <th className="text-center py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">REB</th>
                     <th className="text-center py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">AST</th>
@@ -250,7 +250,7 @@ export default function GameDetailPage({ params }: { params: { id: string } }) {
                           {stat.player?.displayName || 'Unknown'}
                         </Link>
                       </td>
-                      <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{stat.minutesPlayed || 0}</td>
+                      <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{stat.possessionTime || 0}</td>
                       <td className="text-center py-3 px-2 text-gray-900 dark:text-white font-semibold">{stat.points || 0}</td>
                       <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{stat.rebounds || 0}</td>
                       <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{stat.assists || 0}</td>
@@ -303,7 +303,7 @@ export default function GameDetailPage({ params }: { params: { id: string } }) {
                 <thead>
                   <tr className="border-b border-gray-200 dark:border-gray-700">
                     <th className="text-left py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">Player</th>
-                    <th className="text-center py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">MIN</th>
+                    <th className="text-center py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">PT</th>
                     <th className="text-center py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">PTS</th>
                     <th className="text-center py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">REB</th>
                     <th className="text-center py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">AST</th>
@@ -323,7 +323,7 @@ export default function GameDetailPage({ params }: { params: { id: string } }) {
                           {stat.player?.displayName || 'Unknown'}
                         </Link>
                       </td>
-                      <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{stat.minutesPlayed || 0}</td>
+                      <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{stat.possessionTime || 0}</td>
                       <td className="text-center py-3 px-2 text-gray-900 dark:text-white font-semibold">{stat.points || 0}</td>
                       <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{stat.rebounds || 0}</td>
                       <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{stat.assists || 0}</td>

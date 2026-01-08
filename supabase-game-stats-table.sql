@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS game_stats (
   free_throws_made INTEGER DEFAULT 0,
   free_throws_attempted INTEGER DEFAULT 0,
   fouls INTEGER DEFAULT 0,
-  minutes_played INTEGER DEFAULT 0,
+  possession_time INTEGER DEFAULT 0,
   result TEXT CHECK (result IN ('W', 'L')),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()

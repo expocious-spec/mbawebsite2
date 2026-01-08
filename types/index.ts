@@ -81,6 +81,7 @@ export interface GameStats {
   freeThrowsMade: number;
   freeThrowsAttempted: number;
   fouls: number;
+  possessionTime: number;
   result: 'W' | 'L';
 }
 

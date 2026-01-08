@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
       freeThrowsMade: stat.free_throws_made,
       freeThrowsAttempted: stat.free_throws_attempted,
       fouls: stat.fouls,
-      minutesPlayed: stat.minutes_played,
+      possessionTime: stat.possession_time,
       result: stat.result,
     })) || [];
 
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
         free_throws_made: gameStats.freeThrowsMade,
         free_throws_attempted: gameStats.freeThrowsAttempted,
         fouls: gameStats.fouls,
-        minutes_played: gameStats.minutesPlayed || 0,
+        possession_time: gameStats.possessionTime || 0,
         result: gameStats.result,
       })
       .select()
@@ -272,7 +272,7 @@ export async function PUT(request: NextRequest) {
         free_throws_made: gameStats.freeThrowsMade,
         free_throws_attempted: gameStats.freeThrowsAttempted,
         fouls: gameStats.fouls,
-        minutes_played: gameStats.minutesPlayed || 0,
+        possession_time: gameStats.possessionTime || 0,
         result: gameStats.result,
       })
       .eq('id', gameStats.id);
