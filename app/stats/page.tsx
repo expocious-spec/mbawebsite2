@@ -113,8 +113,8 @@ export default function StatsPage() {
         steals: acc.steals + (gs.steals || 0),
         turnovers: acc.turnovers + (gs.turnovers || 0),
         possessionTime: acc.possessionTime + (gs.possessionTime || gs.possession_time || 0),
-        fieldGoalsMade: acc.fieldGoalsMade + (gs.fieldGoalsMade || gs.field_goals_made || 0),
-        fieldGoalsAttempted: acc.fieldGoalsAttempted + (gs.fieldGoalsAttempted || gs.field_goals_attempted || 0),
+        fieldGoalsMade: acc.fieldGoalsMade + (gs.field_goals_made || 0),
+        fieldGoalsAttempted: acc.fieldGoalsAttempted + (gs.field_goals_attempted || 0),
       }), { points: 0, rebounds: 0, assists: 0, steals: 0, turnovers: 0, possessionTime: 0, fieldGoalsMade: 0, fieldGoalsAttempted: 0 });
 
       const missedFG = totals.fieldGoalsAttempted - totals.fieldGoalsMade;
@@ -176,8 +176,8 @@ export default function StatsPage() {
       steals: acc.steals + (gs.steals || 0),
       turnovers: acc.turnovers + (gs.turnovers || 0),
       possessionTime: acc.possessionTime + (gs.possessionTime || gs.possession_time || 0),
-      fieldGoalsMade: acc.fieldGoalsMade + (gs.fieldGoalsMade || gs.field_goals_made || 0),
-      fieldGoalsAttempted: acc.fieldGoalsAttempted + (gs.fieldGoalsAttempted || gs.field_goals_attempted || 0),
+      fieldGoalsMade: acc.fieldGoalsMade + (gs.field_goals_made || 0),
+      fieldGoalsAttempted: acc.fieldGoalsAttempted + (gs.field_goals_attempted || 0),
     }), { points: 0, rebounds: 0, assists: 0, steals: 0, turnovers: 0, possessionTime: 0, fieldGoalsMade: 0, fieldGoalsAttempted: 0 });
 
     // Calculate efficiency: (PTS + REB + AST + STL - Missed FG - TOV) / GP

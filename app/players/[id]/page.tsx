@@ -153,9 +153,20 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
   };
 
   // Calculate efficiency: (PTS + REB + AST + STL - Missed FG - TOV) / GP
-  const missedFG = totals.fieldGoalsAttempted - totals.fieldGoalsMade;
+  // Use snake_case directly from database for efficiency calculation
+  const efficiencyTotals = player.gameStats?.reduce((acc: any, game: any) => ({
+    points: acc.points + (game.points || 0),
+    rebounds: acc.rebounds + (game.rebounds || 0),
+    assists: acc.assists + (game.assists || 0),
+    steals: acc.steals + (game.steals || 0),
+    turnovers: acc.turnovers + (game.turnovers || 0),
+    fieldGoalsMade: acc.fieldGoalsMade + (game.field_goals_made || 0),
+    fieldGoalsAttempted: acc.fieldGoalsAttempted + (game.field_goals_attempted || 0),
+  }), { points: 0, rebounds: 0, assists: 0, steals: 0, turnovers: 0, fieldGoalsMade: 0, fieldGoalsAttempted: 0 }) || { points: 0, rebounds: 0, assists: 0, steals: 0, turnovers: 0, fieldGoalsMade: 0, fieldGoalsAttempted: 0 };
+  
+  const missedFG = efficiencyTotals.fieldGoalsAttempted - efficiencyTotals.fieldGoalsMade;
   const efficiency = actualGamesPlayed > 0 
-    ? (totals.points + totals.rebounds + totals.assists + totals.steals - missedFG - totals.turnovers) / actualGamesPlayed
+    ? (efficiencyTotals.points + efficiencyTotals.rebounds + efficiencyTotals.assists + efficiencyTotals.steals - missedFG - efficiencyTotals.turnovers) / actualGamesPlayed
     : 0;
 
   const getRoleIcon = (role: string) => {
