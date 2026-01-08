@@ -134,7 +134,18 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
     threePointersMade: 0,
     threePointersAttempted: 0,
     possessionTime: 0,
-  });
+  }) || {
+    points: 0,
+    rebounds: 0,
+    assists: 0,
+    steals: 0,
+    turnovers: 0,
+    fieldGoalsMade: 0,
+    fieldGoalsAttempted: 0,
+    threePointersMade: 0,
+    threePointersAttempted: 0,
+    possessionTime: 0,
+  };
   
   // Calculate efficiency: (PTS + REB + AST + STL - Missed FG - TOV) / GP
   const missedFG = totals.fieldGoalsAttempted - totals.fieldGoalsMade;
