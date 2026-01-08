@@ -107,11 +107,10 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
     assists: acc.assists + (game.assists || 0),
     steals: acc.steals + (game.steals || 0),
     turnovers: acc.turnovers + (game.turnovers || 0),
-    // Database has these backwards, so swap them
-    fieldGoalsMade: acc.fieldGoalsMade + (game.fieldGoalsAttempted || game.field_goals_attempted || 0),
-    fieldGoalsAttempted: acc.fieldGoalsAttempted + (game.fieldGoalsMade || game.field_goals_made || 0),
-    threePointersMade: acc.threePointersMade + (game.threePointersAttempted || game.three_pointers_attempted || 0),
-    threePointersAttempted: acc.threePointersAttempted + (game.threePointersMade || game.three_pointers_made || 0),
+    fieldGoalsMade: acc.fieldGoalsMade + (game.fieldGoalsMade || game.field_goals_made || 0),
+    fieldGoalsAttempted: acc.fieldGoalsAttempted + (game.fieldGoalsAttempted || game.field_goals_attempted || 0),
+    threePointersMade: acc.threePointersMade + (game.threePointersMade || game.three_pointers_made || 0),
+    threePointersAttempted: acc.threePointersAttempted + (game.threePointersAttempted || game.three_pointers_attempted || 0),
     possessionTime: acc.possessionTime + (game.possessionTime || game.possession_time || 0),
   }), {
     points: 0,

@@ -37,8 +37,10 @@ export default function GameDetailPage({ params }: { params: { id: string } }) {
 
       console.log('[GAME PAGE] Looking for game ID:', params.id);
       console.log('[GAME PAGE] Available games:', gamesData.map((g: any) => ({ id: g.id, date: g.date })));
+      console.log('[GAME PAGE] ID type:', typeof params.id);
+      console.log('[GAME PAGE] First game ID type:', typeof gamesData[0]?.id);
 
-      const currentGame = gamesData.find((g: any) => g.id === params.id);
+      const currentGame = gamesData.find((g: any) => g.id === params.id || String(g.id) === params.id);
       if (!currentGame) {
         console.error('[GAME PAGE] Game not found! ID:', params.id);
         notFound();

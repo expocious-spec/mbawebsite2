@@ -154,11 +154,15 @@ export default function TeamPage({ params }: { params: { id: string } }) {
   const avgPointsFor = gamesPlayed > 0 ? (totalPointsFor / gamesPlayed).toFixed(1) : '0.0';
   const avgPointsAgainst = gamesPlayed > 0 ? (totalPointsAgainst / gamesPlayed).toFixed(1) : '0.0';
 
-  // Get stat leaders
-  const getStatLeader = (stat: keyof typeof teamPlayers[0]['stats']) => {
+  // Get stat leaders from gameStats
+  const getStatLeader = (stat: 'points' | 'rebounds' | 'assists') => {
     if (teamPlayers.length === 0) return null;
     return teamPlayers.reduce((leader, player) => {
-      return player.stats[stat] > leader.stats[stat] ? player : leader;
+      const playerTotal = player.gameStats?.reduce((total: number, game: any) => total + (game[stat] || 0), 0) || 0;
+      const playerAvg = player.gameStats && player.gameStats.length > 0 ? playerTotal / player.gameStats.length : 0;
+      const leaderTotal = leader.gameStats?.reduce((total: number, game: any) => total + (game[stat] || 0), 0) || 0;
+      const leaderAvg = leader.gameStats && leader.gameStats.length > 0 ? leaderTotal / leader.gameStats.length : 0;
+      return playerAvg > leaderAvg ? player : leader;
     });
   };
 
@@ -349,7 +353,11 @@ export default function TeamPage({ params }: { params: { id: string } }) {
                         </div>
                       </div>
                       <div className="text-2xl font-bold text-mba-blue">
-                        {pointsLeader.stats.points.toFixed(1)}
+                        {(() => {
+                          const total = pointsLeader.gameStats?.reduce((sum: number, game: any) => sum + (game.points || 0), 0) || 0;
+                          const avg = pointsLeader.gameStats && pointsLeader.gameStats.length > 0 ? total / pointsLeader.gameStats.length : 0;
+                          return avg.toFixed(1);
+                        })()}
                       </div>
                     </div>
                   )}
@@ -378,7 +386,11 @@ export default function TeamPage({ params }: { params: { id: string } }) {
                         </div>
                       </div>
                       <div className="text-2xl font-bold text-mba-blue">
-                        {reboundsLeader.stats.rebounds.toFixed(1)}
+                        {(() => {
+                          const total = reboundsLeader.gameStats?.reduce((sum: number, game: any) => sum + (game.rebounds || 0), 0) || 0;
+                          const avg = reboundsLeader.gameStats && reboundsLeader.gameStats.length > 0 ? total / reboundsLeader.gameStats.length : 0;
+                          return avg.toFixed(1);
+                        })()}
                       </div>
                     </div>
                   )}
@@ -407,7 +419,11 @@ export default function TeamPage({ params }: { params: { id: string } }) {
                         </div>
                       </div>
                       <div className="text-2xl font-bold text-mba-blue">
-                        {assistsLeader.stats.assists.toFixed(1)}
+                        {(() => {
+                          const total = assistsLeader.gameStats?.reduce((sum: number, game: any) => sum + (game.assists || 0), 0) || 0;
+                          const avg = assistsLeader.gameStats && assistsLeader.gameStats.length > 0 ? total / assistsLeader.gameStats.length : 0;
+                          return avg.toFixed(1);
+                        })()}
                       </div>
                     </div>
                   )}
@@ -561,7 +577,11 @@ export default function TeamPage({ params }: { params: { id: string } }) {
                           {player.displayName}
                         </div>
                         <div className="text-sm text-gray-600 dark:text-gray-400">
-                          {player.stats.points.toFixed(1)} PPG
+                          {(() => {
+                            const total = player.gameStats?.reduce((sum: number, game: any) => sum + (game.points || 0), 0) || 0;
+                            const avg = player.gameStats && player.gameStats.length > 0 ? total / player.gameStats.length : 0;
+                            return avg.toFixed(1);
+                          })()} PPG
                         </div>
                       </div>
                     </Link>

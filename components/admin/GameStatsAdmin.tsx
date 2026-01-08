@@ -311,7 +311,7 @@ export default function GameStatsAdmin() {
   }, {} as Record<string, any[]>);
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700" style={{ fontFamily: 'Arial, sans-serif' }}>
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold flex items-center text-gray-900 dark:text-white">
           <TrendingUp className="w-6 h-6 mr-2 text-mba-blue" />
