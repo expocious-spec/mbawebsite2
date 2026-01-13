@@ -212,7 +212,7 @@ export default function PlayersAdmin() {
   };
 
   return (
-    <div style={{ fontFamily: 'Arial, sans-serif' }}>
+    <div className="admin-page">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>

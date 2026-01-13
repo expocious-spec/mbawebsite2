@@ -381,6 +381,9 @@ export default function StatsPage() {
                   {statMode === 'totals' ? 'STL' : 'SPG'}
                 </th>
                 <th className="px-4 py-4 text-center text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                  {statMode === 'totals' ? 'BLK' : 'BPG'}
+                </th>
+                <th className="px-4 py-4 text-center text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
                   {statMode === 'totals' ? 'TOV' : 'TPG'}
                 </th>
                 <th className="px-4 py-4 text-center text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
@@ -491,6 +494,13 @@ export default function StatsPage() {
                       {(statMode === 'totals' 
                         ? (player.seasonStats.steals || 0) * (player.seasonStats.gamesPlayed || 0)
                         : (player.seasonStats.steals || 0)).toFixed(1)}
+                    </td>
+                    <td className={`px-4 py-4 whitespace-nowrap text-center ${
+                      selectedStat === 'blocks' ? 'font-bold text-mba-blue' : 'text-gray-900 dark:text-white'
+                    }`}>
+                      {(statMode === 'totals' 
+                        ? (player.seasonStats.blocks || 0) * (player.seasonStats.gamesPlayed || 0)
+                        : (player.seasonStats.blocks || 0)).toFixed(1)}
                     </td>
                     <td className={`px-4 py-4 whitespace-nowrap text-center ${
                       selectedStat === 'turnovers' ? 'font-bold text-mba-blue' : 'text-gray-900 dark:text-white'

@@ -310,31 +310,31 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4">
           <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
             <div className="text-2xl font-bold text-gray-900 dark:text-white">{stats.points.toFixed(1)}</div>
-            <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">PTS</div>
+            <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">PPG</div>
           </div>
           <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
             <div className="text-2xl font-bold text-gray-900 dark:text-white">{stats.rebounds.toFixed(1)}</div>
-            <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">REB</div>
+            <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">RPG</div>
           </div>
           <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
             <div className="text-2xl font-bold text-gray-900 dark:text-white">{stats.assists.toFixed(1)}</div>
-            <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">AST</div>
+            <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">APG</div>
           </div>
           <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
             <div className="text-2xl font-bold text-gray-900 dark:text-white">{stats.steals.toFixed(1)}</div>
-            <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">STL</div>
+            <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">SPG</div>
           </div>
           <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
             <div className="text-2xl font-bold text-gray-900 dark:text-white">{stats.blocks.toFixed(1)}</div>
-            <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">BLK</div>
+            <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">BPG</div>
           </div>
           <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
             <div className="text-2xl font-bold text-gray-900 dark:text-white">{stats.turnovers.toFixed(1)}</div>
-            <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">TOV</div>
+            <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">TPG</div>
           </div>
           <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
             <div className="text-2xl font-bold text-gray-900 dark:text-white">{actualGamesPlayed > 0 ? (totals.possessionTime / actualGamesPlayed).toFixed(1) : '0.0'}</div>
-            <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">PT</div>
+            <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">PTPG</div>
           </div>
           <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
             <div className="text-2xl font-bold text-gray-900 dark:text-white">{efficiency.toFixed(1)}</div>

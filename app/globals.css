@@ -7,6 +7,12 @@
   font-family: var(--font-minecraft), monospace !important;
 }
 
+/* Override for admin pages - use Arial for better readability */
+.admin-page,
+.admin-page * {
+  font-family: Arial, sans-serif !important;
+}
+
 /* Better readability with proper spacing */
 body, p, span, div, a, button, input, textarea, select, label {
   line-height: 1.6;

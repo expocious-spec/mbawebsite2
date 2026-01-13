@@ -198,7 +198,7 @@ export default function StaffAdmin() {
   }, {});
 
   return (
-    <div className="space-y-6" style={{ fontFamily: 'Arial, sans-serif' }}>
+    <div className="space-y-6 admin-page">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
           <Users className="mr-2" />
