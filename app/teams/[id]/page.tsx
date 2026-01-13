@@ -452,7 +452,11 @@ export default function TeamPage({ params }: { params: { id: string } }) {
                         </div>
                       </div>
                       <div className="text-2xl font-bold text-mba-blue">
-                        {minutesLeader.gameStats?.reduce((total: number, game: any) => total + (game.possessionTime || 0), 0) || 0}
+                        {(() => {
+                          const total = minutesLeader.gameStats?.reduce((sum: number, game: any) => sum + (game.possessionTime || 0), 0) || 0;
+                          const avg = minutesLeader.gameStats && minutesLeader.gameStats.length > 0 ? total / minutesLeader.gameStats.length : 0;
+                          return avg.toFixed(1);
+                        })()}
                       </div>
                     </div>
                   )}
