@@ -212,7 +212,7 @@ export default function PlayersAdmin() {
   };
 
   return (
-    <div>
+    <div style={{ fontFamily: 'Arial, sans-serif' }}>
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>

@@ -99,6 +99,9 @@ export default function StandingsPage() {
         });
       }
 
+      // Sort games by date to ensure correct streak calculation (oldest to newest)
+      teamGames.sort((a, b) => new Date(a.scheduledDate).getTime() - new Date(b.scheduledDate).getTime());
+
       let wins = 0;
       let losses = 0;
       let pointsFor = 0;

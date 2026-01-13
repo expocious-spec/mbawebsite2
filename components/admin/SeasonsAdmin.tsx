@@ -126,7 +126,7 @@ export default function SeasonsAdmin() {
   }
 
   return (
-    <div>
+    <div style={{ fontFamily: 'Arial, sans-serif' }}>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Manage Seasons</h2>
         <button
