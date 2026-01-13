@@ -106,6 +106,7 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
     rebounds: acc.rebounds + (game.rebounds || 0),
     assists: acc.assists + (game.assists || 0),
     steals: acc.steals + (game.steals || 0),
+    blocks: acc.blocks + (game.blocks || 0),
     turnovers: acc.turnovers + (game.turnovers || 0),
     fieldGoalsMade: acc.fieldGoalsMade + (game.fieldGoalsMade || game.field_goals_made || 0),
     fieldGoalsAttempted: acc.fieldGoalsAttempted + (game.fieldGoalsAttempted || game.field_goals_attempted || 0),
@@ -117,6 +118,7 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
     rebounds: 0,
     assists: 0,
     steals: 0,
+    blocks: 0,
     turnovers: 0,
     fieldGoalsMade: 0,
     fieldGoalsAttempted: 0,
@@ -128,6 +130,7 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
     rebounds: 0,
     assists: 0,
     steals: 0,
+    blocks: 0,
     turnovers: 0,
     fieldGoalsMade: 0,
     fieldGoalsAttempted: 0,
@@ -142,6 +145,7 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
     rebounds: actualGamesPlayed > 0 ? totals.rebounds / actualGamesPlayed : 0,
     assists: actualGamesPlayed > 0 ? totals.assists / actualGamesPlayed : 0,
     steals: actualGamesPlayed > 0 ? totals.steals / actualGamesPlayed : 0,
+    blocks: actualGamesPlayed > 0 ? totals.blocks / actualGamesPlayed : 0,
     turnovers: actualGamesPlayed > 0 ? totals.turnovers / actualGamesPlayed : 0,
     possessionTime: actualGamesPlayed > 0 ? totals.possessionTime / actualGamesPlayed : 0,
     fieldGoalsMade: totals.fieldGoalsMade,
@@ -321,6 +325,10 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
             <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">STL</div>
           </div>
           <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+            <div className="text-2xl font-bold text-gray-900 dark:text-white">{stats.blocks.toFixed(1)}</div>
+            <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">BLK</div>
+          </div>
+          <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
             <div className="text-2xl font-bold text-gray-900 dark:text-white">{stats.turnovers.toFixed(1)}</div>
             <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">TOV</div>
           </div>
@@ -378,7 +386,7 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
         {/* Main Stats */}
         <div className="mb-6">
           <h3 className="text-lg font-semibold mb-3 text-gray-700 dark:text-gray-300">Main Statistics</h3>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
             <div className="text-center p-3 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg border border-blue-200 dark:border-blue-800">
               <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{totals.points}</div>
               <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">PTS</div>
@@ -394,6 +402,10 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
             <div className="text-center p-3 bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
               <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{totals.steals}</div>
               <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">STL</div>
+            </div>
+            <div className="text-center p-3 bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 rounded-lg border border-red-200 dark:border-red-800">
+              <div className="text-2xl font-bold text-red-600 dark:text-red-400">{totals.blocks}</div>
+              <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">BLK</div>
             </div>
             <div className="text-center p-3 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 rounded-lg border border-orange-200 dark:border-orange-800">
               <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">{totals.turnovers}</div>
@@ -487,7 +499,7 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
                       </div>
                     </div>
                   </div>
-                  <div className="grid grid-cols-5 gap-3 text-center">
+                  <div className="grid grid-cols-6 gap-3 text-center">
                     <div>
                       <div className="text-lg font-bold text-gray-900 dark:text-white">{game.points}</div>
                       <div className="text-xs text-gray-500">PTS</div>
@@ -503,6 +515,10 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
                     <div>
                       <div className="text-lg font-bold text-gray-900 dark:text-white">{game.steals}</div>
                       <div className="text-xs text-gray-500">STL</div>
+                    </div>
+                    <div>
+                      <div className="text-lg font-bold text-gray-900 dark:text-white">{game.blocks || 0}</div>
+                      <div className="text-xs text-gray-500">BLK</div>
                     </div>
                     <div>
                       <div className="text-lg font-bold text-gray-900 dark:text-white">

@@ -68,6 +68,7 @@ export async function GET() {
             rebounds: stat.rebounds || 0,
             assists: stat.assists || 0,
             steals: stat.steals || 0,
+            blocks: stat.blocks || 0,
             turnovers: stat.turnovers || 0,
             fieldGoalsMade: stat.field_goals_made || 0,
             fieldGoalsAttempted: stat.field_goals_attempted || 0,

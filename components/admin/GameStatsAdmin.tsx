@@ -25,6 +25,7 @@ export default function GameStatsAdmin() {
     rebounds: '',
     assists: '',
     steals: '',
+    blocks: '',
     turnovers: '',
     fieldGoalsMade: '',
     fieldGoalsAttempted: '',
@@ -105,6 +106,7 @@ export default function GameStatsAdmin() {
         assists: extractValue(pasteText, 'Assists'),
         rebounds: extractValue(pasteText, 'Rebounds'),
         steals: extractValue(pasteText, 'Steals'),
+        blocks: extractValue(pasteText, 'Blocks'),
         turnovers: extractValue(pasteText, 'Turnovers'),
         possessionTime: extractValue(pasteText, 'Possession'),
         fieldGoalsAttempted: fg.attempted,
@@ -132,6 +134,7 @@ export default function GameStatsAdmin() {
         rebounds: Number(formData.rebounds) || 0,
         assists: Number(formData.assists) || 0,
         steals: Number(formData.steals) || 0,
+        blocks: Number(formData.blocks) || 0,
         turnovers: Number(formData.turnovers) || 0,
         fieldGoalsMade: Number(formData.fieldGoalsMade) || 0,
         fieldGoalsAttempted: Number(formData.fieldGoalsAttempted) || 0,
@@ -200,6 +203,7 @@ export default function GameStatsAdmin() {
       rebounds: stat.rebounds,
       assists: stat.assists,
       steals: stat.steals,
+      blocks: stat.blocks || 0,
       turnovers: stat.turnovers,
       fieldGoalsMade: stat.fieldGoalsMade,
       fieldGoalsAttempted: stat.fieldGoalsAttempted,
@@ -221,6 +225,7 @@ export default function GameStatsAdmin() {
       rebounds: '',
       assists: '',
       steals: '',
+      blocks: '',
       turnovers: '',
       fieldGoalsMade: '',
       fieldGoalsAttempted: '',
@@ -265,7 +270,7 @@ export default function GameStatsAdmin() {
     
     setFormData(prev => ({
       ...prev,
-      [name]: ['points', 'rebounds', 'assists', 'steals', 'turnovers', 
+      [name]: ['points', 'rebounds', 'assists', 'steals', 'blocks', 'turnovers', 
                'fieldGoalsMade', 'fieldGoalsAttempted', 'threePointersMade', 
                'threePointersAttempted', 'possessionTime'].includes(name)
         ? value
@@ -403,6 +408,14 @@ export default function GameStatsAdmin() {
                     playerTeamId && (g.homeTeamId === playerTeamId || g.awayTeamId === playerTeamId)
                   );
                   
+                  // Filter out games where the player already has stats (unless we're editing)
+                  if (formData.playerId && !editingStatId) {
+                    const playerGameIds = gameStats
+                      .filter(stat => stat.playerId === formData.playerId)
+                      .map(stat => stat.gameId);
+                    filteredGames = filteredGames.filter(game => !playerGameIds.includes(game.id));
+                  }
+                  
                   // Apply search filter
                   if (gameSearchInput) {
                     filteredGames = filteredGames.filter(game => {
@@ -528,7 +541,7 @@ export default function GameStatsAdmin() {
                 <textarea
                   value={pasteText}
                   onChange={(e) => setPasteText(e.target.value)}
-                  placeholder="ElfFoxy | Points: 12 | Assists: 3 | Rebounds: 14 | Steals: 0 | Turnovers: 3 | Possession: 120 sec | FG: 5/10 | 3FG: 2/5"
+                  placeholder="posterizing | Points: 14 | Assists: 7 | Rebounds: 22 | Steals: 0 | Blocks: 5 | Turnovers: 5 | Possession: 246 sec | Defended By: AshtonJeanty | DR: 108  | Pass Attempts: 25 | Misses Forced: 5 | FG: 6/13 | 3FG: 2/8 | FG%: 46.2 | 3FG%: 25.0 | eFG%: 53.8 | 3PT Rate: 61.5% | Assists/Pass: 0.3 | Fantasy Points: 61"
                   rows={3}
                   className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
                 />
@@ -540,7 +553,7 @@ export default function GameStatsAdmin() {
                   Import Stats from Paste
                 </button>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Paste stats in format: Points: X | Assists: X | Rebounds: X | Steals: X | Turnovers: X | Possession: X sec | FG: X/X | 3FG: X/X
+                  Paste stats in format: Points: X | Assists: X | Rebounds: X | Steals: X | Blocks: X | Turnovers: X | Possession: X sec | FG: X/X | 3FG: X/X
                 </p>
               </div>
             </div>
@@ -600,6 +613,20 @@ export default function GameStatsAdmin() {
                   type="number"
                   name="steals"
                   value={formData.steals}
+                  onChange={handleChange}
+                  min="0"
+                  className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
+                />
+              </div>
+              {/* Blocks */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Blocks
+                </label>
+                <input
+                  type="number"
+                  name="blocks"
+                  value={formData.blocks}
                   onChange={handleChange}
                   min="0"
                   className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
@@ -844,7 +871,7 @@ export default function GameStatsAdmin() {
                                 </div>
                               </div>
                               
-                              <div className="grid grid-cols-3 sm:grid-cols-6 lg:grid-cols-7 gap-3 text-center text-sm">
+                              <div className="grid grid-cols-3 sm:grid-cols-6 lg:grid-cols-8 gap-3 text-center text-sm">
                                 <div>
                                   <div className="font-bold text-gray-900 dark:text-white">{stat.points}</div>
                                   <div className="text-xs text-gray-500">PTS</div>
@@ -860,6 +887,10 @@ export default function GameStatsAdmin() {
                                 <div>
                                   <div className="font-bold text-gray-900 dark:text-white">{stat.steals}</div>
                                   <div className="text-xs text-gray-500">STL</div>
+                                </div>
+                                <div>
+                                  <div className="font-bold text-gray-900 dark:text-white">{stat.blocks || 0}</div>
+                                  <div className="text-xs text-gray-500">BLK</div>
                                 </div>
                                 <div>
                                   <div className="font-bold text-gray-900 dark:text-white">{stat.turnovers}</div>
@@ -967,7 +998,7 @@ export default function GameStatsAdmin() {
                             </div>
                           </div>
                           
-                          <div className="grid grid-cols-3 sm:grid-cols-6 lg:grid-cols-7 gap-3 text-center text-sm">
+                          <div className="grid grid-cols-3 sm:grid-cols-6 lg:grid-cols-8 gap-3 text-center text-sm">
                             <div>
                               <div className="font-bold text-gray-900 dark:text-white">{stat.points}</div>
                               <div className="text-xs text-gray-500">PTS</div>
@@ -983,6 +1014,10 @@ export default function GameStatsAdmin() {
                             <div>
                               <div className="font-bold text-gray-900 dark:text-white">{stat.steals}</div>
                               <div className="text-xs text-gray-500">STL</div>
+                            </div>
+                            <div>
+                              <div className="font-bold text-gray-900 dark:text-white">{stat.blocks || 0}</div>
+                              <div className="text-xs text-gray-500">BLK</div>
                             </div>
                             <div>
                               <div className="font-bold text-gray-900 dark:text-white">{stat.turnovers}</div>

@@ -72,6 +72,7 @@ export interface GameStats {
   rebounds: number;
   assists: number;
   steals: number;
+  blocks: number;
   turnovers: number;
   fieldGoalsMade: number;
   fieldGoalsAttempted: number;
