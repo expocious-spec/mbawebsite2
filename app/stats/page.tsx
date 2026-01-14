@@ -156,8 +156,6 @@ export default function StatsPage() {
         efficiency: 0,
         totalEfficiency: 0,
         fgPercentage: 0,
-        threeFgPercentage: 0,
-        fgPercentage: 0,
         threeFgPercentage: 0
       };
     }
