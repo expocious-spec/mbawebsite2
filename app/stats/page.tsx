@@ -118,10 +118,14 @@ export default function StatsPage() {
         possessionTime: acc.possessionTime + (gs.possessionTime || gs.possession_time || 0),
         fieldGoalsMade: acc.fieldGoalsMade + (gs.field_goals_made || 0),
         fieldGoalsAttempted: acc.fieldGoalsAttempted + (gs.field_goals_attempted || 0),
-      }), { points: 0, rebounds: 0, assists: 0, steals: 0, blocks: 0, turnovers: 0, possessionTime: 0, fieldGoalsMade: 0, fieldGoalsAttempted: 0 });
+        threePointersMade: acc.threePointersMade + (gs.three_pointers_made || 0),
+        threePointersAttempted: acc.threePointersAttempted + (gs.three_pointers_attempted || 0),
+      }), { points: 0, rebounds: 0, assists: 0, steals: 0, blocks: 0, turnovers: 0, possessionTime: 0, fieldGoalsMade: 0, fieldGoalsAttempted: 0, threePointersMade: 0, threePointersAttempted: 0 });
 
       const missedFG = totals.fieldGoalsAttempted - totals.fieldGoalsMade;
       const efficiency = gamesPlayed > 0 ? (totals.points + totals.rebounds + totals.assists + totals.steals - missedFG - totals.turnovers) / gamesPlayed : 0;
+      const fgPercentage = totals.fieldGoalsAttempted > 0 ? (totals.fieldGoalsMade / totals.fieldGoalsAttempted) * 100 : 0;
+      const threeFgPercentage = totals.threePointersAttempted > 0 ? (totals.threePointersMade / totals.threePointersAttempted) * 100 : 0;
 
       return {
         gamesPlayed,
@@ -134,6 +138,8 @@ export default function StatsPage() {
         possessionTime: gamesPlayed > 0 ? totals.possessionTime / gamesPlayed : 0,
         efficiency,
         totalEfficiency: efficiency,
+        fgPercentage,
+        threeFgPercentage,
       };
     }
 
@@ -148,7 +154,11 @@ export default function StatsPage() {
         turnovers: 0,
         possessionTime: 0,
         efficiency: 0,
-        totalEfficiency: 0
+        totalEfficiency: 0,
+        fgPercentage: 0,
+        threeFgPercentage: 0,
+        fgPercentage: 0,
+        threeFgPercentage: 0
       };
     }
 
@@ -169,7 +179,9 @@ export default function StatsPage() {
         turnovers: 0,
         possessionTime: 0,
         efficiency: 0,
-        totalEfficiency: 0
+        totalEfficiency: 0,
+        fgPercentage: 0,
+        threeFgPercentage: 0
       };
     }
 
@@ -185,12 +197,16 @@ export default function StatsPage() {
       possessionTime: acc.possessionTime + (gs.possessionTime || gs.possession_time || 0),
       fieldGoalsMade: acc.fieldGoalsMade + (gs.field_goals_made || 0),
       fieldGoalsAttempted: acc.fieldGoalsAttempted + (gs.field_goals_attempted || 0),
-    }), { points: 0, rebounds: 0, assists: 0, steals: 0, blocks: 0, turnovers: 0, possessionTime: 0, fieldGoalsMade: 0, fieldGoalsAttempted: 0 });
+      threePointersMade: acc.threePointersMade + (gs.three_pointers_made || 0),
+      threePointersAttempted: acc.threePointersAttempted + (gs.three_pointers_attempted || 0),
+    }), { points: 0, rebounds: 0, assists: 0, steals: 0, blocks: 0, turnovers: 0, possessionTime: 0, fieldGoalsMade: 0, fieldGoalsAttempted: 0, threePointersMade: 0, threePointersAttempted: 0 });
 
     // Calculate efficiency: (PTS + REB + AST + STL - Missed FG - TOV) / GP
     const missedFG = totals.fieldGoalsAttempted - totals.fieldGoalsMade;
     const efficiency = gamesPlayed > 0 ? (totals.points + totals.rebounds + totals.assists + totals.steals - missedFG - totals.turnovers) / gamesPlayed : 0;
     const totalEfficiency = efficiency;
+    const fgPercentage = totals.fieldGoalsAttempted > 0 ? (totals.fieldGoalsMade / totals.fieldGoalsAttempted) * 100 : 0;
+    const threeFgPercentage = totals.threePointersAttempted > 0 ? (totals.threePointersMade / totals.threePointersAttempted) * 100 : 0;
 
     return {
       gamesPlayed,
@@ -203,6 +219,8 @@ export default function StatsPage() {
       possessionTime: gamesPlayed > 0 ? totals.possessionTime / gamesPlayed : 0,
       efficiency,
       totalEfficiency,
+      fgPercentage,
+      threeFgPercentage,
     };
   };
 
@@ -390,6 +408,12 @@ export default function StatsPage() {
                   {statMode === 'totals' ? 'PT' : 'PTPG'}
                 </th>
                 <th className="px-4 py-4 text-center text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                  FG%
+                </th>
+                <th className="px-4 py-4 text-center text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                  3FG%
+                </th>
+                <th className="px-4 py-4 text-center text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
                   EFF
                 </th>
               </tr>
@@ -516,6 +540,12 @@ export default function StatsPage() {
                         ? (player.seasonStats.possessionTime || 0) * (player.seasonStats.gamesPlayed || 0)
                         : (player.seasonStats.possessionTime || 0)).toFixed(1)}
                     </td>
+                    <td className="px-4 py-4 whitespace-nowrap text-center text-gray-900 dark:text-white">
+                      {(player.seasonStats.fgPercentage || 0).toFixed(1)}%
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap text-center text-gray-900 dark:text-white">
+                      {(player.seasonStats.threeFgPercentage || 0).toFixed(1)}%
+                    </td>
                     <td className={`px-4 py-4 whitespace-nowrap text-center ${
                       selectedStat === 'efficiency' ? 'font-bold text-mba-blue' : 'text-gray-900 dark:text-white'
                     }`}>
@@ -528,7 +558,7 @@ export default function StatsPage() {
                 })
               ) : (
                 <tr>
-                  <td colSpan={12} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                  <td colSpan={14} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
                     <TrendingUp className="w-12 h-12 mx-auto mb-3 opacity-50" />
                     <p>No player statistics available yet.</p>
                     <p className="text-sm mt-1">Stats will appear once games are played!</p>
