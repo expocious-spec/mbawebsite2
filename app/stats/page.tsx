@@ -118,10 +118,10 @@ export default function StatsPage() {
         blocks: acc.blocks + (gs.blocks || 0),
         turnovers: acc.turnovers + (gs.turnovers || 0),
         possessionTime: acc.possessionTime + (gs.possessionTime || gs.possession_time || 0),
-        fieldGoalsMade: acc.fieldGoalsMade + (gs.field_goals_made || 0),
-        fieldGoalsAttempted: acc.fieldGoalsAttempted + (gs.field_goals_attempted || 0),
-        threePointersMade: acc.threePointersMade + (gs.three_pointers_made || 0),
-        threePointersAttempted: acc.threePointersAttempted + (gs.three_pointers_attempted || 0),
+        fieldGoalsMade: acc.fieldGoalsMade + (gs.fieldGoalsMade || gs.field_goals_made || 0),
+        fieldGoalsAttempted: acc.fieldGoalsAttempted + (gs.fieldGoalsAttempted || gs.field_goals_attempted || 0),
+        threePointersMade: acc.threePointersMade + (gs.threePointersMade || gs.three_pointers_made || 0),
+        threePointersAttempted: acc.threePointersAttempted + (gs.threePointersAttempted || gs.three_pointers_attempted || 0),
       }), { points: 0, rebounds: 0, assists: 0, steals: 0, blocks: 0, turnovers: 0, possessionTime: 0, fieldGoalsMade: 0, fieldGoalsAttempted: 0, threePointersMade: 0, threePointersAttempted: 0 });
 
       const missedFG = totals.fieldGoalsAttempted - totals.fieldGoalsMade;
@@ -195,10 +195,10 @@ export default function StatsPage() {
       blocks: acc.blocks + (gs.blocks || 0),
       turnovers: acc.turnovers + (gs.turnovers || 0),
       possessionTime: acc.possessionTime + (gs.possessionTime || gs.possession_time || 0),
-      fieldGoalsMade: acc.fieldGoalsMade + (gs.field_goals_made || 0),
-      fieldGoalsAttempted: acc.fieldGoalsAttempted + (gs.field_goals_attempted || 0),
-      threePointersMade: acc.threePointersMade + (gs.three_pointers_made || 0),
-      threePointersAttempted: acc.threePointersAttempted + (gs.three_pointers_attempted || 0),
+      fieldGoalsMade: acc.fieldGoalsMade + (gs.fieldGoalsMade || gs.field_goals_made || 0),
+      fieldGoalsAttempted: acc.fieldGoalsAttempted + (gs.fieldGoalsAttempted || gs.field_goals_attempted || 0),
+      threePointersMade: acc.threePointersMade + (gs.threePointersMade || gs.three_pointers_made || 0),
+      threePointersAttempted: acc.threePointersAttempted + (gs.threePointersAttempted || gs.three_pointers_attempted || 0),
     }), { points: 0, rebounds: 0, assists: 0, steals: 0, blocks: 0, turnovers: 0, possessionTime: 0, fieldGoalsMade: 0, fieldGoalsAttempted: 0, threePointersMade: 0, threePointersAttempted: 0 });
 
     // Calculate efficiency: (PTS + REB + AST + STL - Missed FG - TOV) / GP
