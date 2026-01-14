@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
 
-type StatCategory = 'points' | 'rebounds' | 'assists' | 'steals' | 'blocks' | 'turnovers' | 'possessionTime' | 'efficiency';
+type StatCategory = 'points' | 'rebounds' | 'assists' | 'steals' | 'blocks' | 'turnovers' | 'possessionTime' | 'efficiency' | 'fgPercentage' | 'threeFgPercentage';
 type StatMode = 'averages' | 'totals';
 
 const statCategories = [
@@ -16,6 +16,8 @@ const statCategories = [
   { key: 'blocks' as StatCategory, label: 'Blocks', abbr: 'BLK' },
   { key: 'turnovers' as StatCategory, label: 'Turnovers', abbr: 'TOV' },
   { key: 'possessionTime' as StatCategory, label: 'Possession Time', abbr: 'PT' },
+  { key: 'fgPercentage' as StatCategory, label: 'Field Goal %', abbr: 'FG%' },
+  { key: 'threeFgPercentage' as StatCategory, label: '3-Point %', abbr: '3FG%' },
   { key: 'efficiency' as StatCategory, label: 'Efficiency', abbr: 'EFF' },
 ];
 
@@ -224,6 +226,10 @@ export default function StatsPage() {
 
   const getStatValue = (player: any, stat: StatCategory) => {
     const seasonStats = getPlayerSeasonStats(player);
+    // Percentages should not be multiplied by games played
+    if (stat === 'fgPercentage' || stat === 'threeFgPercentage') {
+      return seasonStats[stat];
+    }
     if (statMode === 'totals') {
       return seasonStats[stat] * seasonStats.gamesPlayed;
     }
@@ -238,10 +244,12 @@ export default function StatsPage() {
       }))
       .filter(p => p.seasonStats.gamesPlayed > 0)
       .sort((a, b) => {
-        const aValue = statMode === 'totals' 
+        // Percentages should not be multiplied by games played
+        const isPercentage = stat === 'fgPercentage' || stat === 'threeFgPercentage';
+        const aValue = (statMode === 'totals' && !isPercentage)
           ? a.seasonStats[stat] * a.seasonStats.gamesPlayed
           : a.seasonStats[stat];
-        const bValue = statMode === 'totals'
+        const bValue = (statMode === 'totals' && !isPercentage)
           ? b.seasonStats[stat] * b.seasonStats.gamesPlayed
           : b.seasonStats[stat];
         return bValue - aValue;
@@ -538,10 +546,14 @@ export default function StatsPage() {
                         ? (player.seasonStats.possessionTime || 0) * (player.seasonStats.gamesPlayed || 0)
                         : (player.seasonStats.possessionTime || 0)).toFixed(1)}
                     </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-center text-gray-900 dark:text-white">
+                    <td className={`px-4 py-4 whitespace-nowrap text-center ${
+                      selectedStat === 'fgPercentage' ? 'font-bold text-mba-blue' : 'text-gray-900 dark:text-white'
+                    }`}>
                       {(player.seasonStats.fgPercentage || 0).toFixed(1)}%
                     </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-center text-gray-900 dark:text-white">
+                    <td className={`px-4 py-4 whitespace-nowrap text-center ${
+                      selectedStat === 'threeFgPercentage' ? 'font-bold text-mba-blue' : 'text-gray-900 dark:text-white'
+                    }`}>
                       {(player.seasonStats.threeFgPercentage || 0).toFixed(1)}%
                     </td>
                     <td className={`px-4 py-4 whitespace-nowrap text-center ${
@@ -595,6 +607,8 @@ export default function StatsPage() {
       <div className="mt-6 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         {statCategories.map((category) => {
           const topPlayer = getLeaders(category.key)[0];
+          const isPercentage = category.key === 'fgPercentage' || category.key === 'threeFgPercentage';
+          const value = topPlayer ? (topPlayer.seasonStats[category.key] || 0).toFixed(1) : '-';
           return (
             <div
               key={category.key}
@@ -602,7 +616,7 @@ export default function StatsPage() {
             >
               <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">{category.label} Leader</div>
               <div className="font-bold text-lg text-mba-blue">
-                {topPlayer ? (topPlayer.seasonStats[category.key] || 0).toFixed(1) : '-'}
+                {value}{isPercentage && value !== '-' ? '%' : ''}
               </div>
               <div className="text-xs text-gray-600 dark:text-gray-400 truncate">
                 {topPlayer ? topPlayer.displayName : 'N/A'}
