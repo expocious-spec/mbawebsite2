@@ -12,11 +12,47 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
   const [player, setPlayer] = useState<any>(null);
   const [team, setTeam] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedSeason, setSelectedSeason] = useState<string>('All-Time');
+  const [availableSeasons, setAvailableSeasons] = useState<string[]>(['All-Time']);
+  const [games, setGames] = useState<any[]>([]);
   const { data: session } = useSession();
 
   useEffect(() => {
     fetchData();
+    fetchSeasons();
   }, [params.id]);
+
+  const fetchSeasons = async () => {
+    try {
+      const [seasonsRes, gamesRes] = await Promise.all([
+        fetch('/api/seasons'),
+        fetch('/api/games')
+      ]);
+      if (seasonsRes.ok && gamesRes.ok) {
+        const [seasons, gamesData] = await Promise.all([
+          seasonsRes.json(),
+          gamesRes.json()
+        ]);
+        setGames(gamesData);
+        const seasonNames = seasons.map((s: any) => s.name);
+        
+        // Always include All-Time
+        if (!seasonNames.includes('All-Time')) {
+          seasonNames.push('All-Time');
+        }
+        
+        setAvailableSeasons(seasonNames);
+        
+        // Set current season as default
+        const currentSeason = seasons.find((s: any) => s.isCurrent);
+        if (currentSeason) {
+          setSelectedSeason(currentSeason.name);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching seasons:', error);
+    }
+  };
 
   const fetchData = async () => {
     try {
@@ -85,23 +121,39 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
     return null;
   }
 
-  // Calculate wins and losses from game stats
-  const wins = player.gameStats?.filter((g: any) => g.result === 'W').length || 0;
-  const losses = player.gameStats?.filter((g: any) => g.result === 'L').length || 0;
+  // Get game stats for selected season (for display stats, not career totals)
+  const getSeasonGameStats = () => {
+    if (!player.gameStats) return [];
+    
+    if (selectedSeason === 'All-Time') {
+      return player.gameStats;
+    }
+    
+    // Filter by season
+    const seasonGames = games.filter(g => g.season === selectedSeason);
+    const seasonGameIds = new Set(seasonGames.map(g => g.id));
+    return player.gameStats.filter((gs: any) => seasonGameIds.has(gs.gameId));
+  };
+
+  const seasonGameStats = getSeasonGameStats();
+
+  // Calculate wins and losses from season game stats
+  const wins = seasonGameStats?.filter((g: any) => g.result === 'W').length || 0;
+  const losses = seasonGameStats?.filter((g: any) => g.result === 'L').length || 0;
   
-  // Use gameStats length for games played
-  const actualGamesPlayed = player.gameStats?.length || 0;
+  // Use season gameStats length for games played
+  const actualGamesPlayed = seasonGameStats?.length || 0;
     
   const winPercentage = actualGamesPlayed > 0 ? (wins / actualGamesPlayed * 100).toFixed(1) : '0.0';
 
   // Debug: Log first game stat to see what fields are available
-  if (player.gameStats && player.gameStats.length > 0) {
-    console.log('[PLAYER PROFILE] First game stat:', player.gameStats[0]);
-    console.log('[PLAYER PROFILE] Available keys:', Object.keys(player.gameStats[0]));
+  if (seasonGameStats && seasonGameStats.length > 0) {
+    console.log('[PLAYER PROFILE] First game stat:', seasonGameStats[0]);
+    console.log('[PLAYER PROFILE] Available keys:', Object.keys(seasonGameStats[0]));
   }
 
-  // Calculate totals from game stats
-  const totals = player.gameStats?.reduce((acc: any, game: any) => ({
+  // Calculate totals from season game stats (for averages and percentages)
+  const seasonTotals = seasonGameStats?.reduce((acc: any, game: any) => ({
     points: acc.points + (game.points || 0),
     rebounds: acc.rebounds + (game.rebounds || 0),
     assists: acc.assists + (game.assists || 0),
@@ -139,26 +191,26 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
     possessionTime: 0,
   };
   
-  // Calculate averages from totals
+  // Calculate averages from season totals
   const stats = {
-    points: actualGamesPlayed > 0 ? totals.points / actualGamesPlayed : 0,
-    rebounds: actualGamesPlayed > 0 ? totals.rebounds / actualGamesPlayed : 0,
-    assists: actualGamesPlayed > 0 ? totals.assists / actualGamesPlayed : 0,
-    steals: actualGamesPlayed > 0 ? totals.steals / actualGamesPlayed : 0,
-    blocks: actualGamesPlayed > 0 ? totals.blocks / actualGamesPlayed : 0,
-    turnovers: actualGamesPlayed > 0 ? totals.turnovers / actualGamesPlayed : 0,
-    possessionTime: actualGamesPlayed > 0 ? totals.possessionTime / actualGamesPlayed : 0,
-    fieldGoalsMade: totals.fieldGoalsMade,
-    fieldGoalsAttempted: totals.fieldGoalsAttempted,
-    threePointersMade: totals.threePointersMade,
-    threePointersAttempted: totals.threePointersAttempted,
-    fieldGoalPercentage: totals.fieldGoalsAttempted > 0 ? (totals.fieldGoalsMade / totals.fieldGoalsAttempted * 100) : 0,
-    threePointPercentage: totals.threePointersAttempted > 0 ? (totals.threePointersMade / totals.threePointersAttempted * 100) : 0,
+    points: actualGamesPlayed > 0 ? seasonTotals.points / actualGamesPlayed : 0,
+    rebounds: actualGamesPlayed > 0 ? seasonTotals.rebounds / actualGamesPlayed : 0,
+    assists: actualGamesPlayed > 0 ? seasonTotals.assists / actualGamesPlayed : 0,
+    steals: actualGamesPlayed > 0 ? seasonTotals.steals / actualGamesPlayed : 0,
+    blocks: actualGamesPlayed > 0 ? seasonTotals.blocks / actualGamesPlayed : 0,
+    turnovers: actualGamesPlayed > 0 ? seasonTotals.turnovers / actualGamesPlayed : 0,
+    possessionTime: actualGamesPlayed > 0 ? seasonTotals.possessionTime / actualGamesPlayed : 0,
+    fieldGoalsMade: seasonTotals.fieldGoalsMade,
+    fieldGoalsAttempted: seasonTotals.fieldGoalsAttempted,
+    threePointersMade: seasonTotals.threePointersMade,
+    threePointersAttempted: seasonTotals.threePointersAttempted,
+    fieldGoalPercentage: seasonTotals.fieldGoalsAttempted > 0 ? (seasonTotals.fieldGoalsMade / seasonTotals.fieldGoalsAttempted * 100) : 0,
+    threePointPercentage: seasonTotals.threePointersAttempted > 0 ? (seasonTotals.threePointersMade / seasonTotals.threePointersAttempted * 100) : 0,
   };
 
   // Calculate efficiency: (PTS + REB + AST + STL - Missed FG - TOV) / GP
   // Use snake_case directly from database for efficiency calculation
-  const efficiencyTotals = player.gameStats?.reduce((acc: any, game: any) => ({
+  const efficiencyTotals = seasonGameStats?.reduce((acc: any, game: any) => ({
     points: acc.points + (game.points || 0),
     rebounds: acc.rebounds + (game.rebounds || 0),
     assists: acc.assists + (game.assists || 0),
@@ -172,6 +224,47 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
   const efficiency = actualGamesPlayed > 0 
     ? (efficiencyTotals.points + efficiencyTotals.rebounds + efficiencyTotals.assists + efficiencyTotals.steals - missedFG - efficiencyTotals.turnovers) / actualGamesPlayed
     : 0;
+
+  // Career totals (always use ALL gameStats, never filtered by season)
+  const careerTotals = player.gameStats?.reduce((acc: any, game: any) => ({
+    points: acc.points + (game.points || 0),
+    rebounds: acc.rebounds + (game.rebounds || 0),
+    assists: acc.assists + (game.assists || 0),
+    steals: acc.steals + (game.steals || 0),
+    blocks: acc.blocks + (game.blocks || 0),
+    turnovers: acc.turnovers + (game.turnovers || 0),
+    fieldGoalsMade: acc.fieldGoalsMade + (game.fieldGoalsMade || game.field_goals_made || 0),
+    fieldGoalsAttempted: acc.fieldGoalsAttempted + (game.fieldGoalsAttempted || game.field_goals_attempted || 0),
+    threePointersMade: acc.threePointersMade + (game.threePointersMade || game.three_pointers_made || 0),
+    threePointersAttempted: acc.threePointersAttempted + (game.threePointersAttempted || game.three_pointers_attempted || 0),
+    possessionTime: acc.possessionTime + (game.possessionTime || game.possession_time || 0),
+  }), {
+    points: 0,
+    rebounds: 0,
+    assists: 0,
+    steals: 0,
+    blocks: 0,
+    turnovers: 0,
+    fieldGoalsMade: 0,
+    fieldGoalsAttempted: 0,
+    threePointersMade: 0,
+    threePointersAttempted: 0,
+    possessionTime: 0,
+  }) || {
+    points: 0,
+    rebounds: 0,
+    assists: 0,
+    steals: 0,
+    blocks: 0,
+    turnovers: 0,
+    fieldGoalsMade: 0,
+    fieldGoalsAttempted: 0,
+    threePointersMade: 0,
+    threePointersAttempted: 0,
+    possessionTime: 0,
+  };
+  
+  const careerGamesPlayed = player.gameStats?.length || 0;
 
   const getRoleIcon = (role: string) => {
     switch (role) {
@@ -198,6 +291,22 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
           }}
         />
       )}
+
+      {/* Season Selector */}
+      <div className="mb-4 flex justify-end relative z-10">
+        <div className="flex items-center space-x-2">
+          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Season:</label>
+          <select
+            value={selectedSeason}
+            onChange={(e) => setSelectedSeason(e.target.value)}
+            className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-mba-blue"
+          >
+            {availableSeasons.map(season => (
+              <option key={season} value={season}>{season}</option>
+            ))}
+          </select>
+        </div>
+      </div>
       
       {/* Header */}
       <div className="bg-white dark:bg-gray-800 rounded-lg p-8 border border-gray-200 dark:border-gray-700 mb-6 shadow-sm relative z-10">
@@ -333,7 +442,7 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
             <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">TPG</div>
           </div>
           <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-            <div className="text-2xl font-bold text-gray-900 dark:text-white">{actualGamesPlayed > 0 ? (totals.possessionTime / actualGamesPlayed).toFixed(1) : '0.0'}</div>
+            <div className="text-2xl font-bold text-gray-900 dark:text-white">{actualGamesPlayed > 0 ? (seasonTotals.possessionTime / actualGamesPlayed).toFixed(1) : '0.0'}</div>
             <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">PTPG</div>
           </div>
           <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
@@ -388,27 +497,27 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
           <h3 className="text-lg font-semibold mb-3 text-gray-700 dark:text-gray-300">Main Statistics</h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
             <div className="text-center p-3 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg border border-blue-200 dark:border-blue-800">
-              <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{totals.points}</div>
+              <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{careerTotals.points}</div>
               <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">PTS</div>
             </div>
             <div className="text-center p-3 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-lg border border-green-200 dark:border-green-800">
-              <div className="text-2xl font-bold text-green-600 dark:text-green-400">{totals.rebounds}</div>
+              <div className="text-2xl font-bold text-green-600 dark:text-green-400">{careerTotals.rebounds}</div>
               <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">REB</div>
             </div>
             <div className="text-center p-3 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-lg border border-purple-200 dark:border-purple-800">
-              <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">{totals.assists}</div>
+              <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">{careerTotals.assists}</div>
               <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">AST</div>
             </div>
             <div className="text-center p-3 bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
-              <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{totals.steals}</div>
+              <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{careerTotals.steals}</div>
               <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">STL</div>
             </div>
             <div className="text-center p-3 bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 rounded-lg border border-red-200 dark:border-red-800">
-              <div className="text-2xl font-bold text-red-600 dark:text-red-400">{totals.blocks}</div>
+              <div className="text-2xl font-bold text-red-600 dark:text-red-400">{careerTotals.blocks}</div>
               <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">BLK</div>
             </div>
             <div className="text-center p-3 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 rounded-lg border border-orange-200 dark:border-orange-800">
-              <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">{totals.turnovers}</div>
+              <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">{careerTotals.turnovers}</div>
               <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">TOV</div>
             </div>
           </div>
@@ -419,19 +528,19 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
           <h3 className="text-lg font-semibold mb-3 text-gray-700 dark:text-gray-300">Shooting Totals</h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
             <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-              <div className="text-xl font-bold text-gray-900 dark:text-white">{totals.fieldGoalsMade}</div>
+              <div className="text-xl font-bold text-gray-900 dark:text-white">{careerTotals.fieldGoalsMade}</div>
               <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">FGM</div>
             </div>
             <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-              <div className="text-xl font-bold text-gray-900 dark:text-white">{totals.fieldGoalsAttempted}</div>
+              <div className="text-xl font-bold text-gray-900 dark:text-white">{careerTotals.fieldGoalsAttempted}</div>
               <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">FGA</div>
             </div>
             <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-              <div className="text-xl font-bold text-gray-900 dark:text-white">{totals.threePointersMade}</div>
+              <div className="text-xl font-bold text-gray-900 dark:text-white">{careerTotals.threePointersMade}</div>
               <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">3PM</div>
             </div>
             <div className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-              <div className="text-xl font-bold text-gray-900 dark:text-white">{totals.threePointersAttempted}</div>
+              <div className="text-xl font-bold text-gray-900 dark:text-white">{careerTotals.threePointersAttempted}</div>
               <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">3PA</div>
             </div>
           </div>
@@ -442,11 +551,11 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
           <h3 className="text-lg font-semibold mb-3 text-gray-700 dark:text-gray-300">Playing Time</h3>
           <div className="grid grid-cols-2 gap-3">
             <div className="text-center p-4 bg-gradient-to-br from-mba-blue/10 to-mba-blue/20 dark:from-mba-blue/20 dark:to-mba-blue/10 rounded-lg border border-mba-blue/30">
-              <div className="text-3xl font-bold text-mba-blue">{totals.possessionTime}</div>
+              <div className="text-3xl font-bold text-mba-blue">{careerTotals.possessionTime}</div>
               <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">Total Possession Time</div>
             </div>
             <div className="text-center p-4 bg-gradient-to-br from-mba-blue/10 to-mba-blue/20 dark:from-mba-blue/20 dark:to-mba-blue/10 rounded-lg border border-mba-blue/30">
-              <div className="text-3xl font-bold text-mba-blue">{actualGamesPlayed > 0 ? (totals.possessionTime / actualGamesPlayed).toFixed(1) : '0.0'}</div>
+              <div className="text-3xl font-bold text-mba-blue">{careerGamesPlayed > 0 ? (careerTotals.possessionTime / careerGamesPlayed).toFixed(1) : '0.0'}</div>
               <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">Possession Time Per Game</div>
             </div>
           </div>
@@ -473,11 +582,11 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
       </div>
 
       {/* Recent Games */}
-      {player.gameStats && player.gameStats.length > 0 && (
+      {seasonGameStats && seasonGameStats.length > 0 && (
         <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
-          <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Recent Games</h2>
+          <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Recent Games{selectedSeason !== 'All-Time' && ` (${selectedSeason})`}</h2>
           <div className="space-y-3">
-            {player.gameStats
+            {seasonGameStats
               .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
               .slice(0, 10)
               .map((game: any) => (
