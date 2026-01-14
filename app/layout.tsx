@@ -1,17 +1,8 @@
 import type { Metadata } from "next";
-import { Pixelify_Sans } from 'next/font/google';
 import "./globals.css";
 import Navigation from "@/components/Navigation";
 import { AuthProvider } from "@/components/AuthProvider";
 import { ThemeProvider } from "@/components/ThemeProvider";
-
-// Using Pixelify Sans as Minecraft-style font
-const minecraftFont = Pixelify_Sans({ 
-  weight: ['400', '500', '600', '700'],
-  subsets: ['latin'],
-  variable: '--font-minecraft',
-  display: 'swap',
-});
 
 export const metadata: Metadata = {
   title: "Minecraft Basketball Association",
@@ -52,7 +43,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={minecraftFont.variable}>
+      <body>
         <ThemeProvider>
           <AuthProvider>
             <Navigation />
