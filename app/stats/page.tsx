@@ -142,6 +142,10 @@ export default function StatsPage() {
         totalEfficiency: efficiency,
         fgPercentage,
         threeFgPercentage,
+        fieldGoalsMade: totals.fieldGoalsMade,
+        fieldGoalsAttempted: totals.fieldGoalsAttempted,
+        threePointersMade: totals.threePointersMade,
+        threePointersAttempted: totals.threePointersAttempted,
       };
     }
 
@@ -221,6 +225,10 @@ export default function StatsPage() {
       totalEfficiency,
       fgPercentage,
       threeFgPercentage,
+      fieldGoalsMade: totals.fieldGoalsMade,
+      fieldGoalsAttempted: totals.fieldGoalsAttempted,
+      threePointersMade: totals.threePointersMade,
+      threePointersAttempted: totals.threePointersAttempted,
     };
   };
 

@@ -64,8 +64,8 @@ export default function BrandingPage() {
           onClick={() => setConferenceFilter('Western')}
           className={`px-6 py-3 rounded-lg font-medium transition-colors ${
             conferenceFilter === 'Western'
-              ? 'bg-amber-600 text-white'
-              : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-amber-50 dark:hover:bg-gray-700 border border-amber-300 dark:border-gray-600'
+              ? 'bg-mba-red text-white'
+              : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-gray-700 border border-red-300 dark:border-gray-600'
           }`}
         >
           Western Conference
@@ -74,8 +74,8 @@ export default function BrandingPage() {
           onClick={() => setConferenceFilter('Eastern')}
           className={`px-6 py-3 rounded-lg font-medium transition-colors ${
             conferenceFilter === 'Eastern'
-              ? 'bg-green-600 text-white'
-              : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-gray-700 border border-green-300 dark:border-gray-600'
+              ? 'bg-mba-blue text-white'
+              : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-gray-700 border border-blue-300 dark:border-gray-600'
           }`}
         >
           Eastern Conference
@@ -115,7 +115,7 @@ export default function BrandingPage() {
                 <div className="flex items-center space-x-2 mt-1">
                   {/* Conference Badge */}
                   <span className={`px-2 py-0.5 text-xs font-semibold rounded-full text-white ${
-                    team.conference === 'Eastern' ? 'bg-green-600' : 'bg-amber-600'
+                    team.conference === 'Eastern' ? 'bg-mba-blue' : 'bg-mba-red'
                   }`}>
                     {team.conference} Conference
                   </span>
