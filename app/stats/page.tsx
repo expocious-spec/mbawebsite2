@@ -242,7 +242,17 @@ export default function StatsPage() {
         ...p,
         seasonStats: getPlayerSeasonStats(p)
       }))
-      .filter(p => p.seasonStats.gamesPlayed > 0)
+      .filter(p => {
+        // Basic filter: must have played at least one game
+        if (p.seasonStats.gamesPlayed === 0) return false;
+        
+        // For shooting percentages, require minimum 40 field goal attempts
+        if (stat === 'fgPercentage' || stat === 'threeFgPercentage') {
+          return p.seasonStats.fieldGoalsAttempted >= 40;
+        }
+        
+        return true;
+      })
       .sort((a, b) => {
         // Percentages should not be multiplied by games played
         const isPercentage = stat === 'fgPercentage' || stat === 'threeFgPercentage';

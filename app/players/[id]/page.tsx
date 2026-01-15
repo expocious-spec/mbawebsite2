@@ -291,25 +291,24 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
           }}
         />
       )}
-
-      {/* Season Selector */}
-      <div className="mb-4 flex justify-end relative z-10">
-        <div className="flex items-center space-x-2">
-          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Season:</label>
-          <select
-            value={selectedSeason}
-            onChange={(e) => setSelectedSeason(e.target.value)}
-            className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-mba-blue"
-          >
-            {availableSeasons.map(season => (
-              <option key={season} value={season}>{season}</option>
-            ))}
-          </select>
-        </div>
-      </div>
       
       {/* Header */}
       <div className="bg-white dark:bg-gray-800 rounded-lg p-8 border border-gray-200 dark:border-gray-700 mb-6 shadow-sm relative z-10">
+        {/* Season Selector */}
+        <div className="absolute top-6 right-6 z-20">
+          <div className="flex items-center space-x-3">
+            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Season Stats:</label>
+            <select
+              value={selectedSeason}
+              onChange={(e) => setSelectedSeason(e.target.value)}
+              className="px-4 py-2 bg-gradient-to-r from-mba-blue to-mba-red text-white border-0 rounded-lg font-medium shadow-md hover:shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-mba-blue focus:ring-offset-2 dark:focus:ring-offset-gray-800 cursor-pointer"
+            >
+              {availableSeasons.map(season => (
+                <option key={season} value={season} className="bg-gray-800 text-white">{season}</option>
+              ))}
+            </select>
+          </div>
+        </div>
         <div className="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">
           {/* Profile Picture */}
           <div className="w-32 h-32 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center overflow-hidden flex-shrink-0 border-4 border-white dark:border-gray-800">
