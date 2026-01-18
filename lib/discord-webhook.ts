@@ -51,7 +51,7 @@ export async function sendArticleToDiscord(article: ArticleWebhookData) {
     // Discord embed payload
     const payload = {
       username: 'MBA News',
-      avatar_url: 'https://minecraftbasketball.com/logo.png',
+      avatar_url: 'https://minecraftbasketball.com/mbasports.png',
       embeds: [
         {
           title: `📰 ${article.title}`,
@@ -59,18 +59,18 @@ export async function sendArticleToDiscord(article: ArticleWebhookData) {
           url: article.articleUrl,
           color: 0xE31E24, // MBA red color
           author: {
-            name: article.author,
-            icon_url: 'https://minecraftbasketball.com/logo.png',
+            name: 'Minecraft Basketball Association',
+            icon_url: 'https://minecraftbasketball.com/mbasports.png',
           },
           thumbnail: {
-            url: 'https://minecraftbasketball.com/logo.png',
+            url: 'https://minecraftbasketball.com/mbasports.png',
           },
           image: article.image ? {
             url: article.image,
           } : undefined,
           footer: {
             text: 'Minecraft Basketball Association',
-            icon_url: 'https://minecraftbasketball.com/logo.png',
+            icon_url: 'https://minecraftbasketball.com/mbasports.png',
           },
           timestamp: publishedDate.toISOString(),
           fields: [
