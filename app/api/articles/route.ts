@@ -1,5 +1,6 @@
 import { supabaseAdmin } from '@/lib/supabase';
 import { NextResponse } from 'next/server';
+import { sendArticleToDiscord } from '@/lib/discord-webhook';
 
 export async function GET() {
   const { data: articles, error } = await supabaseAdmin
@@ -53,6 +54,17 @@ export async function POST(request: Request) {
     if (error) {
       return NextResponse.json({ success: false, message: error.message }, { status: 500 });
     }
+
+    // Send notification to Discord
+    const articleUrl = `https://minecraftbasketball.com/news/${data.id}`;
+    await sendArticleToDiscord({
+      title: data.title,
+      content: data.content,
+      author: data.author,
+      publishedDate: data.published_date,
+      image: data.cover_image,
+      articleUrl,
+    });
 
     return NextResponse.json({ 
       success: true, 
