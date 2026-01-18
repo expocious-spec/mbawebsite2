@@ -64,6 +64,7 @@ export async function POST(request: Request) {
       publishedDate: data.published_date,
       image: data.cover_image,
       articleUrl,
+      webhookChannel: body.webhookChannel,
     });
 
     return NextResponse.json({ 

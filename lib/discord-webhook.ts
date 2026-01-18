@@ -3,7 +3,11 @@
  * Sends formatted embeds to Discord webhooks
  */
 
-const WEBHOOK_URL = 'https://discord.com/api/webhooks/1462291384949014591/itFQCgf85bns2AeyCzLcTddC-6x9PIq1CivCwVoR2-hCBO5W-nzMvp9OAZDeSeJasVtG';
+const WEBHOOK_URLS: Record<string, string> = {
+  'MBA News': 'https://discord.com/api/webhooks/1462291384949014591/itFQCgf85bns2AeyCzLcTddC-6x9PIq1CivCwVoR2-hCBO5W-nzMvp9OAZDeSeJasVtG',
+  'MBA App': 'https://discord.com/api/webhooks/1462292840028569601/Llst8bQ655NOApaVoDnGAUkMKc2FCuMWK1vzyOeeH4XUUTC4FQD2ngJ0_KDzhLdUQ6OQ',
+  'Naz Takes': 'https://discord.com/api/webhooks/1462293061077045302/WF_7clcdBzXzsq7mRVqCMG178QEsIfZVemR3FWXlTUdT-eIRQUZM1p4NgIhNFghl8R5I',
+};
 
 interface ArticleWebhookData {
   title: string;
@@ -12,6 +16,7 @@ interface ArticleWebhookData {
   publishedDate: string;
   image?: string;
   articleUrl: string;
+  webhookChannel?: string;
 }
 
 /**
@@ -19,6 +24,14 @@ interface ArticleWebhookData {
  */
 export async function sendArticleToDiscord(article: ArticleWebhookData) {
   try {
+    // Get the webhook URL based on the selected channel
+    const webhookChannel = article.webhookChannel || 'MBA News';
+    const webhookUrl = WEBHOOK_URLS[webhookChannel];
+
+    if (!webhookUrl) {
+      console.error('Invalid webhook channel:', webhookChannel);
+      return { success: false, error: 'Invalid webhook channel' };
+    }
     // Create a clean excerpt from content (remove HTML if present)
     const cleanContent = article.content.replace(/<[^>]*>/g, '');
     const excerpt = cleanContent.length > 300 
@@ -76,7 +89,7 @@ export async function sendArticleToDiscord(article: ArticleWebhookData) {
       ],
     };
 
-    const response = await fetch(WEBHOOK_URL, {
+    const response = await fetch(webhookUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

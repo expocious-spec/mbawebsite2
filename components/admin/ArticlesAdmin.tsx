@@ -17,6 +17,7 @@ export default function ArticlesAdmin() {
   const [author, setAuthor] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
+  const [webhookChannel, setWebhookChannel] = useState('MBA News');
 
   // Fetch articles on mount
   useEffect(() => {
@@ -77,6 +78,7 @@ export default function ArticlesAdmin() {
           content,
           author,
           image: imageUrl,
+          webhookChannel,
         }),
       });
 
@@ -125,6 +127,7 @@ export default function ArticlesAdmin() {
     setAuthor('');
     setImageFile(null);
     setImagePreview('');
+    setWebhookChannel('MBA News');
     setShowForm(false);
     setEditingArticle(null);
   };
@@ -246,6 +249,24 @@ export default function ArticlesAdmin() {
               />
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 {content.length} characters
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                Media Channel *
+              </label>
+              <select
+                value={webhookChannel}
+                onChange={(e) => setWebhookChannel(e.target.value)}
+                className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
+              >
+                <option value="MBA News">MBA News</option>
+                <option value="MBA App">MBA App</option>
+                <option value="Naz Takes">Naz Takes</option>
+              </select>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Select which Discord channel to post the article announcement to
               </p>
             </div>
           </div>
