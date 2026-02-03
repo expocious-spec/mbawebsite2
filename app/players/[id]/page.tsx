@@ -631,7 +631,7 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
       {/* Recent Games */}
       {seasonGameStats && seasonGameStats.length > 0 && (
         <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
-          <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Recent Games{selectedSeason !== 'All-Time' && ` (${selectedSeason})`}</h2>
+          <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Recent Games{selectedSeasons.length > 0 && selectedSeasons.length < allSeasons.length && ` (${selectedSeasons.join(', ')})`}</h2>
           <div className="space-y-3">
             {seasonGameStats
               .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime())
