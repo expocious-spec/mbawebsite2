@@ -81,10 +81,20 @@ export default function BrandingPage() {
     }
   };
 
-  // Filter teams by conference
+  // Filter teams by conference and season
   const filteredTeams = teams.filter(team => {
-    if (conferenceFilter === 'all') return true;
-    return team.conference === conferenceFilter;
+    // Conference filter
+    if (conferenceFilter !== 'all' && team.conference !== conferenceFilter) {
+      return false;
+    }
+    
+    // Season filter
+    if (selectedSeasons.includes('All-Time')) {
+      return true;
+    }
+    
+    // Check if team has any of the selected seasons
+    return team.seasons && team.seasons.some(season => selectedSeasons.includes(season));
   });
 
   if (loading) {
