@@ -27,6 +27,7 @@ export async function GET() {
       primaryColor: team.primary_color,
       secondaryColor: team.secondary_color,
       salaryCap: team.salary_cap || 19000,
+      seasons: team.seasons || [],
       colors: {
         primary: team.primary_color,
         secondary: team.secondary_color,
@@ -68,6 +69,7 @@ export async function POST(request: Request) {
         primary_color: body.primaryColor || '#00A8E8',
         secondary_color: body.secondaryColor || '#0A0E27',
         salary_cap: body.salaryCap || 19000,
+        seasons: body.seasons || [],
         guild_id: '1450671860520976559',
       })
       .select()
@@ -92,6 +94,7 @@ export async function POST(request: Request) {
       assistantCoaches: data.assistant_coaches,
       conference: data.conference,
       salaryCap: data.salary_cap || 19000,
+      seasons: data.seasons || [],
       colors: {
         primary: data.primary_color,
         secondary: data.secondary_color,
@@ -139,6 +142,7 @@ export async function PUT(request: Request) {
     if (updates.primaryColor !== undefined) updateData.primary_color = updates.primaryColor;
     if (updates.secondaryColor !== undefined) updateData.secondary_color = updates.secondaryColor;
     if (updates.salaryCap !== undefined) updateData.salary_cap = updates.salaryCap;
+    if (updates.seasons !== undefined) updateData.seasons = updates.seasons;
 
     const { data, error } = await supabaseAdmin
       .from('teams')
@@ -164,6 +168,7 @@ export async function PUT(request: Request) {
       assistantCoaches: data.assistant_coaches,
       conference: data.conference,
       salaryCap: data.salary_cap || 19000,
+      seasons: data.seasons || [],
       colors: {
         primary: data.primary_color,
         secondary: data.secondary_color,

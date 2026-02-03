@@ -144,6 +144,7 @@ export interface Team {
   wins?: number; // Bot integration
   losses?: number; // Bot integration
   salaryCap?: number; // Team salary cap limit (default 19000)
+  seasons?: string[]; // Seasons this team is assigned to (e.g., ['Season 6', 'Season 7'])
   colors: {
     primary: string;
     secondary: string;

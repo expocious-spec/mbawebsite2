@@ -271,6 +271,19 @@ export default function BrandingPage() {
                   </div>
                 </div>
               )}
+
+              {/* Seasons */}
+              {team.seasons && team.seasons.length > 0 && (
+                <div className="flex items-start space-x-3">
+                  <Award className="w-5 h-5 text-mba-blue mt-0.5" />
+                  <div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">Seasons</div>
+                    <div className="font-medium text-gray-900 dark:text-white">
+                      {team.seasons.join(', ')}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </Link>
         ))}

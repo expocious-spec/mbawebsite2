@@ -11,6 +11,8 @@ export default function TeamsAdmin() {
   const [teams, setTeams] = useState<any[]>([]);
   const [players, setPlayers] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [availableSeasons, setAvailableSeasons] = useState<string[]>([]);
+  const [filterSeason, setFilterSeason] = useState<string>('all');
 
   // Form state
   const [teamName, setTeamName] = useState('');
@@ -21,13 +23,16 @@ export default function TeamsAdmin() {
   const [headCoach, setHeadCoach] = useState('');
   const [conference, setConference] = useState<'Western' | 'Eastern'>('Western');
   const [salaryCap, setSalaryCap] = useState<number>(19000);
+  const [selectedSeasons, setSelectedSeasons] = useState<string[]>([]);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string>('');
+  const [showSeasonDropdown, setShowSeasonDropdown] = useState(false);
 
   // Fetch teams on mount
   useEffect(() => {
     fetchTeams();
     fetchPlayers();
+    fetchSeasons();
   }, []);
 
   const fetchTeams = async () => {
@@ -48,6 +53,31 @@ export default function TeamsAdmin() {
     } catch (error) {
       console.error('Failed to fetch players:', error);
     }
+  };
+
+  const fetchSeasons = async () => {
+    try {
+      const res = await fetch('/api/seasons');
+      if (res.ok) {
+        const seasons = await res.json();
+        const seasonNames = seasons.map((s: any) => s.name);
+        setAvailableSeasons(seasonNames);
+      }
+    } catch (error) {
+      console.error('Error fetching seasons:', error);
+    }
+  };
+
+  const toggleSeason = (season: string) => {
+    setSelectedSeasons(prev => {
+      if (prev.includes(season)) {
+        // Don't allow deselecting if it's the last one
+        if (prev.length === 1) return prev;
+        return prev.filter(s => s !== season);
+      } else {
+        return [...prev, season];
+      }
+    });
   };
 
   // Calculate current salary usage for a team
@@ -107,6 +137,7 @@ export default function TeamsAdmin() {
           headCoach,
           conference,
           salaryCap,
+          seasons: selectedSeasons,
         }),
       });
 
@@ -160,6 +191,7 @@ export default function TeamsAdmin() {
     setHeadCoach('');
     setConference('Western');
     setSalaryCap(19000);
+    setSelectedSeasons([]);
     setLogoFile(null);
     setLogoPreview('');
     setShowForm(false);
@@ -176,6 +208,7 @@ export default function TeamsAdmin() {
     setHeadCoach(team.headCoach);
     setConference(team.conference || 'Western');
     setSalaryCap(team.salaryCap || 19000);
+    setSelectedSeasons(team.seasons || []);
     setLogoPreview(team.logo || '');
     setShowForm(true);
   };
@@ -373,6 +406,47 @@ export default function TeamsAdmin() {
                 Default: $19,000
               </p>
             </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                Seasons
+              </label>
+              <div className="season-dropdown relative">
+                <button
+                  type="button"
+                  onClick={() => setShowSeasonDropdown(!showSeasonDropdown)}
+                  className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white text-left flex justify-between items-center"
+                >
+                  {selectedSeasons.length > 0 ? `${selectedSeasons.length} season(s) selected` : 'Select seasons'}
+                  <span>▼</span>
+                </button>
+                {showSeasonDropdown && (
+                  <div className="absolute top-12 left-0 right-0 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
+                    {availableSeasons.length > 0 ? (
+                      availableSeasons.map((season: string) => (
+                        <label
+                          key={season}
+                          className="flex items-center px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedSeasons.includes(season)}
+                            onChange={() => toggleSeason(season)}
+                            className="mr-3"
+                          />
+                          {season}
+                        </label>
+                      ))
+                    ) : (
+                      <p className="px-4 py-2 text-gray-500 dark:text-gray-400">No seasons available</p>
+                    )}
+                  </div>
+                )}
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Select which seasons this team participates in
+              </p>
+            </div>
           </div>
 
           <div className="flex space-x-3 mt-6">
@@ -394,13 +468,40 @@ export default function TeamsAdmin() {
       )}
 
       {/* Teams Grid */}
+      <div className="mb-6 flex items-center space-x-4">
+        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Filter by Season:</label>
+        <select
+          value={filterSeason}
+          onChange={(e) => setFilterSeason(e.target.value)}
+          className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-mba-blue"
+        >
+          <option value="all">All Seasons</option>
+          {availableSeasons.map((season) => (
+            <option key={season} value={season}>
+              {season}
+            </option>
+          ))}
+        </select>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {teams.length === 0 ? (
+        {/* Filter and display teams */}
+        {teams
+          .filter((team) => {
+            if (filterSeason === 'all') return true;
+            return team.seasons && team.seasons.includes(filterSeason);
+          })
+          .length === 0 ? (
           <div className="col-span-2 text-center py-12 text-gray-500 dark:text-gray-400">
-            No teams yet. Create your first team!
+            {teams.length === 0 ? 'No teams yet. Create your first team!' : 'No teams for this season.'}
           </div>
         ) : (
-          teams.map((team) => (
+          teams
+            .filter((team) => {
+              if (filterSeason === 'all') return true;
+              return team.seasons && team.seasons.includes(filterSeason);
+            })
+            .map((team) => (
             <div
               key={team.id}
               className="p-6 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-mba-blue dark:hover:border-mba-blue transition-colors"
@@ -447,6 +548,22 @@ export default function TeamsAdmin() {
                 <div className="flex justify-between">
                   <span className="text-gray-600 dark:text-gray-400">Head Coach:</span>
                   <span className="font-medium text-gray-900 dark:text-white">{team.headCoach}</span>
+                </div>
+                <div className="flex justify-between items-start">
+                  <span className="text-gray-600 dark:text-gray-400">Seasons:</span>
+                  <div className="text-right">
+                    {team.seasons && team.seasons.length > 0 ? (
+                      <div className="flex flex-wrap justify-end gap-1">
+                        {team.seasons.map((season: string) => (
+                          <span key={season} className="px-2 py-1 bg-mba-blue bg-opacity-20 text-mba-blue dark:bg-mba-blue dark:bg-opacity-10 dark:text-blue-400 text-xs rounded">
+                            {season}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-gray-500 dark:text-gray-400 text-xs">No seasons assigned</span>
+                    )}
+                  </div>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600 dark:text-gray-400">Salary Cap:</span>
