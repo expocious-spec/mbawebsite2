@@ -94,7 +94,7 @@ export default function BrandingPage() {
     }
     
     // Check if team has any of the selected seasons
-    return team.seasons && team.seasons.some(season => selectedSeasons.includes(season));
+    return team.seasons && team.seasons.some((season: string) => selectedSeasons.includes(season));
   });
 
   if (loading) {
