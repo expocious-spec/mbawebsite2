@@ -12,6 +12,8 @@ export interface User {
   description?: string;
   discordUsername?: string;
   roles?: string[];
+  stars?: number; // Player star rating (1-5)
+  coinWorth?: number; // Player coin worth for salary cap
   createdAt: string;
   updatedAt: string;
 }
@@ -141,6 +143,7 @@ export interface Team {
   conference: 'Western' | 'Eastern'; // Western and Eastern conferences
   wins?: number; // Bot integration
   losses?: number; // Bot integration
+  salaryCap?: number; // Team salary cap limit (default 19000)
   colors: {
     primary: string;
     secondary: string;

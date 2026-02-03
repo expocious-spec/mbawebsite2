@@ -101,6 +101,8 @@ export async function GET() {
         discordUsername: user.discord_username || '',
         teamId: user.team_id || null,
         roles: user.roles || ['Player'],
+        stars: user.stars || 1,
+        coinWorth: user.coin_worth || 1000,
         stats: {
           gamesPlayed: currentStats.games_played || 0,
           points: parseFloat(currentStats.points || 0),
@@ -144,7 +146,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { minecraftUsername, discordUsername, teamId, roles } = body;
+    const { minecraftUsername, discordUsername, teamId, roles, stars, coinWorth } = body;
 
     if (!minecraftUsername) {
       return NextResponse.json({ error: 'Minecraft username is required' }, { status: 400 });
@@ -191,7 +193,9 @@ export async function POST(request: Request) {
         minecraft_user_id: minecraftUserId,
         discord_username: discordUsername || null,
         team_id: teamId || null,
-        roles: roles || ['Player']
+        roles: roles || ['Player'],
+        stars: stars || 1,
+        coin_worth: coinWorth || 1000
       })
       .select()
       .single();

@@ -4,13 +4,7 @@ import { supabaseAdmin } from "./supabase";
 import { getMinecraftHeadshot } from "./minecraft";
 
 // List of Discord user IDs that have admin access
-const ADMIN_DISCORD_IDS = [
-  "1038456492166217748",
-  "1116798128901865582",
-  "809898072208310272",
-  "692814756695900191",
-  "1000876598045720706"
-];
+const ADMIN_DISCORD_IDS = process.env.ADMIN_DISCORD_IDS?.split(',') || [];
 
 // Debug: Log environment variables (remove this after debugging)
 console.log("Discord Client ID:", process.env.DISCORD_CLIENT_ID);

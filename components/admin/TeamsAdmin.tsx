@@ -9,6 +9,7 @@ export default function TeamsAdmin() {
   const [showForm, setShowForm] = useState(false);
   const [editingTeam, setEditingTeam] = useState<any>(null);
   const [teams, setTeams] = useState<any[]>([]);
+  const [players, setPlayers] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
   // Form state
@@ -19,12 +20,14 @@ export default function TeamsAdmin() {
   const [owner, setOwner] = useState('');
   const [headCoach, setHeadCoach] = useState('');
   const [conference, setConference] = useState<'Western' | 'Eastern'>('Western');
+  const [salaryCap, setSalaryCap] = useState<number>(19000);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string>('');
 
   // Fetch teams on mount
   useEffect(() => {
     fetchTeams();
+    fetchPlayers();
   }, []);
 
   const fetchTeams = async () => {
@@ -35,6 +38,23 @@ export default function TeamsAdmin() {
     } catch (error) {
       console.error('Failed to fetch teams:', error);
     }
+  };
+
+  const fetchPlayers = async () => {
+    try {
+      const response = await fetch('/api/players');
+      const data = await response.json();
+      setPlayers(data);
+    } catch (error) {
+      console.error('Failed to fetch players:', error);
+    }
+  };
+
+  // Calculate current salary usage for a team
+  const calculateTeamSalary = (teamId: string): number => {
+    return players
+      .filter(p => p.teamId === teamId)
+      .reduce((total, player) => total + (player.coinWorth || 1000), 0);
   };
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -86,6 +106,7 @@ export default function TeamsAdmin() {
           owner,
           headCoach,
           conference,
+          salaryCap,
         }),
       });
 
@@ -138,6 +159,7 @@ export default function TeamsAdmin() {
     setOwner('');
     setHeadCoach('');
     setConference('Western');
+    setSalaryCap(19000);
     setLogoFile(null);
     setLogoPreview('');
     setShowForm(false);
@@ -153,6 +175,7 @@ export default function TeamsAdmin() {
     setOwner(team.owner);
     setHeadCoach(team.headCoach);
     setConference(team.conference || 'Western');
+    setSalaryCap(team.salaryCap || 19000);
     setLogoPreview(team.logo || '');
     setShowForm(true);
   };
@@ -334,6 +357,22 @@ export default function TeamsAdmin() {
                 <option value="Eastern">Eastern Conference</option>
               </select>
             </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                Salary Cap
+              </label>
+              <input
+                type="number"
+                value={salaryCap}
+                onChange={(e) => setSalaryCap(parseInt(e.target.value) || 19000)}
+                placeholder="19000"
+                className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
+              />
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Default: $19,000
+              </p>
+            </div>
           </div>
 
           <div className="flex space-x-3 mt-6">
@@ -408,6 +447,19 @@ export default function TeamsAdmin() {
                 <div className="flex justify-between">
                   <span className="text-gray-600 dark:text-gray-400">Head Coach:</span>
                   <span className="font-medium text-gray-900 dark:text-white">{team.headCoach}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600 dark:text-gray-400">Salary Cap:</span>
+                  {(() => {
+                    const currentSalary = calculateTeamSalary(team.id);
+                    const salaryCap = team.salaryCap || 19000;
+                    const isOverCap = currentSalary >= salaryCap;
+                    return (
+                      <span className={`font-medium ${isOverCap ? 'text-red-600 dark:text-red-500' : 'text-green-600 dark:text-green-500'}`}>
+                        ${(currentSalary / 1000).toFixed(1)}k / ${(salaryCap / 1000).toFixed(1)}k
+                      </span>
+                    );
+                  })()}
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600 dark:text-gray-400">Colors:</span>

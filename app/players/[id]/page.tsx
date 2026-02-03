@@ -12,9 +12,10 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
   const [player, setPlayer] = useState<any>(null);
   const [team, setTeam] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [selectedSeason, setSelectedSeason] = useState<string>('All-Time');
+  const [selectedSeasons, setSelectedSeasons] = useState<string[]>(['All-Time']);
   const [availableSeasons, setAvailableSeasons] = useState<string[]>(['All-Time']);
   const [games, setGames] = useState<any[]>([]);
+  const [showSeasonDropdown, setShowSeasonDropdown] = useState(false);
   const { data: session } = useSession();
 
   useEffect(() => {
@@ -46,13 +47,37 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
         // Set current season as default
         const currentSeason = seasons.find((s: any) => s.isCurrent);
         if (currentSeason) {
-          setSelectedSeason(currentSeason.name);
+          setSelectedSeasons([currentSeason.name]);
         }
       }
     } catch (error) {
       console.error('Error fetching seasons:', error);
     }
   };
+
+  const toggleSeason = (season: string) => {
+    setSelectedSeasons(prev => {
+      if (prev.includes(season)) {
+        // Don't allow deselecting if it's the last one
+        if (prev.length === 1) return prev;
+        return prev.filter(s => s !== season);
+      } else {
+        return [...prev, season];
+      }
+    });
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (showSeasonDropdown && !target.closest('.season-dropdown')) {
+        setShowSeasonDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showSeasonDropdown]);
 
   const fetchData = async () => {
     try {
@@ -125,12 +150,15 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
   const getSeasonGameStats = () => {
     if (!player.gameStats) return [];
     
-    if (selectedSeason === 'All-Time') {
+    // Check if "All-Time" is selected
+    const isAllTime = selectedSeasons.includes('All-Time');
+    
+    if (isAllTime || selectedSeasons.length === 0) {
       return player.gameStats;
     }
     
-    // Filter by season
-    const seasonGames = games.filter(g => g.season === selectedSeason);
+    // Filter by multiple selected seasons
+    const seasonGames = games.filter(g => selectedSeasons.includes(g.season));
     const seasonGameIds = new Set(seasonGames.map(g => g.id));
     return player.gameStats.filter((gs: any) => seasonGameIds.has(gs.gameId));
   };
@@ -294,19 +322,39 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
       
       {/* Header */}
       <div className="bg-white dark:bg-gray-800 rounded-lg p-8 border border-gray-200 dark:border-gray-700 mb-6 shadow-sm relative z-10">
-        {/* Season Selector */}
-        <div className="absolute top-6 right-6 z-20">
+        {/* Season Multi-Selector */}
+        <div className="absolute top-6 right-6 z-20 season-dropdown">
           <div className="flex items-center space-x-3">
-            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Season Stats:</label>
-            <select
-              value={selectedSeason}
-              onChange={(e) => setSelectedSeason(e.target.value)}
-              className="px-4 py-2 bg-gradient-to-r from-mba-blue to-mba-red text-white border-0 rounded-lg font-medium shadow-md hover:shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-mba-blue focus:ring-offset-2 dark:focus:ring-offset-gray-800 cursor-pointer"
-            >
-              {availableSeasons.map(season => (
-                <option key={season} value={season} className="bg-gray-800 text-white">{season}</option>
-              ))}
-            </select>
+            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Seasons:</label>
+            <div className="relative">
+              <button
+                onClick={() => setShowSeasonDropdown(!showSeasonDropdown)}
+                className="px-4 py-2 bg-gradient-to-r from-mba-blue to-mba-red text-white border-0 rounded-lg font-medium shadow-md hover:shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-mba-blue focus:ring-offset-2 dark:focus:ring-offset-gray-800 cursor-pointer min-w-[150px] text-left flex items-center justify-between"
+              >
+                <span className="truncate">
+                  {selectedSeasons.length === 1 ? selectedSeasons[0] : `${selectedSeasons.length} selected`}
+                </span>
+                <span className="ml-2">▼</span>
+              </button>
+              {showSeasonDropdown && (
+                <div className="absolute right-0 z-30 mt-1 w-48 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                  {availableSeasons.map(season => (
+                    <label
+                      key={season}
+                      className="flex items-center px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedSeasons.includes(season)}
+                        onChange={() => toggleSeason(season)}
+                        className="mr-3 w-4 h-4 text-mba-blue bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-mba-blue"
+                      />
+                      <span className="text-gray-900 dark:text-white">{season}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
         <div className="flex flex-col md:flex-row items-center md:items-start space-y-4 md:space-y-0 md:space-x-6">

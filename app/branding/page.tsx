@@ -11,10 +11,63 @@ export default function BrandingPage() {
   const [teams, setTeams] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [conferenceFilter, setConferenceFilter] = useState<ConferenceFilter>('all');
+  const [selectedSeasons, setSelectedSeasons] = useState<string[]>(['All-Time']);
+  const [availableSeasons, setAvailableSeasons] = useState<string[]>(['All-Time']);
+  const [showSeasonDropdown, setShowSeasonDropdown] = useState(false);
 
   useEffect(() => {
     fetchTeams();
+    fetchSeasons();
   }, []);
+
+  const fetchSeasons = async () => {
+    try {
+      const res = await fetch('/api/seasons');
+      if (res.ok) {
+        const seasons = await res.json();
+        const seasonNames = seasons.map((s: any) => s.name);
+        
+        // Always include All-Time
+        if (!seasonNames.includes('All-Time')) {
+          seasonNames.push('All-Time');
+        }
+        
+        setAvailableSeasons(seasonNames);
+        
+        // Set current season as default
+        const currentSeason = seasons.find((s: any) => s.isCurrent);
+        if (currentSeason) {
+          setSelectedSeasons([currentSeason.name]);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching seasons:', error);
+    }
+  };
+
+  const toggleSeason = (season: string) => {
+    setSelectedSeasons(prev => {
+      if (prev.includes(season)) {
+        // Don't allow deselecting if it's the last one
+        if (prev.length === 1) return prev;
+        return prev.filter(s => s !== season);
+      } else {
+        return [...prev, season];
+      }
+    });
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (showSeasonDropdown && !target.closest('.season-dropdown')) {
+        setShowSeasonDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showSeasonDropdown]);
 
   const fetchTeams = async () => {
     try {
@@ -48,38 +101,75 @@ export default function BrandingPage() {
         <p className="text-gray-600 dark:text-gray-400">Meet the teams and leadership of the Minecraft Basketball Association</p>
       </div>
 
-      {/* Conference Filter */}
-      <div className="mb-6 flex space-x-2">
-        <button
-          onClick={() => setConferenceFilter('all')}
-          className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-            conferenceFilter === 'all'
-              ? 'bg-mba-blue text-white'
-              : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600'
-          }`}
-        >
-          All Teams
-        </button>
-        <button
-          onClick={() => setConferenceFilter('Western')}
-          className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-            conferenceFilter === 'Western'
-              ? 'bg-mba-red text-white'
-              : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-gray-700 border border-red-300 dark:border-gray-600'
-          }`}
-        >
-          Western Conference
-        </button>
-        <button
-          onClick={() => setConferenceFilter('Eastern')}
-          className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-            conferenceFilter === 'Eastern'
-              ? 'bg-mba-blue text-white'
-              : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-gray-700 border border-blue-300 dark:border-gray-600'
-          }`}
-        >
-          Eastern Conference
-        </button>
+      {/* Filters */}
+      <div className="mb-6 flex flex-wrap gap-4">
+        {/* Conference Filter */}
+        <div className="flex space-x-2">
+          <button
+            onClick={() => setConferenceFilter('all')}
+            className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+              conferenceFilter === 'all'
+                ? 'bg-mba-blue text-white'
+                : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600'
+            }`}
+          >
+            All Teams
+          </button>
+          <button
+            onClick={() => setConferenceFilter('Western')}
+            className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+              conferenceFilter === 'Western'
+                ? 'bg-mba-red text-white'
+                : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-gray-700 border border-red-300 dark:border-gray-600'
+            }`}
+          >
+            Western Conference
+          </button>
+          <button
+            onClick={() => setConferenceFilter('Eastern')}
+            className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+              conferenceFilter === 'Eastern'
+                ? 'bg-mba-blue text-white'
+                : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-gray-700 border border-blue-300 dark:border-gray-600'
+            }`}
+          >
+            Eastern Conference
+          </button>
+        </div>
+
+        {/* Season Multi-Selector */}
+        <div className="season-dropdown">
+          <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Seasons:</label>
+          <div className="relative">
+            <button
+              onClick={() => setShowSeasonDropdown(!showSeasonDropdown)}
+              className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-mba-blue min-w-[200px] text-left flex items-center justify-between"
+            >
+              <span className="truncate">
+                {selectedSeasons.length === 1 ? selectedSeasons[0] : `${selectedSeasons.length} seasons selected`}
+              </span>
+              <span className="ml-2">▼</span>
+            </button>
+            {showSeasonDropdown && (
+              <div className="absolute z-10 mt-1 w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                {availableSeasons.map(season => (
+                  <label
+                    key={season}
+                    className="flex items-center px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedSeasons.includes(season)}
+                      onChange={() => toggleSeason(season)}
+                      className="mr-3 w-4 h-4 text-mba-blue bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-mba-blue"
+                    />
+                    <span className="text-gray-900 dark:text-white">{season}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

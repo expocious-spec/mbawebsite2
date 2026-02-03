@@ -77,6 +77,8 @@ export async function GET() {
         teamName: user.teams?.name,
         teamLogo: user.teams?.team_logo_url || user.teams?.team_logo_emoji,
         roles: user.roles || ['Player'],
+        stars: user.stars || 1,
+        coinWorth: user.coin_worth || 1000,
         stats: {
           gamesPlayed: stats.gamesPlayed,
           points: parseFloat((stats.totalPoints / gp).toFixed(1)),
@@ -178,6 +180,8 @@ export async function PUT(request: Request) {
     if (body.roles !== undefined) updates.roles = body.roles;
     if (body.description !== undefined) updates.description = body.description;
     if (body.discordUsername !== undefined) updates.discord_username = body.discordUsername;
+    if (body.stars !== undefined) updates.stars = body.stars;
+    if (body.coinWorth !== undefined) updates.coin_worth = body.coinWorth;
 
     const { data, error } = await supabaseAdmin
       .from('users')

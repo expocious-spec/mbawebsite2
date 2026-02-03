@@ -23,6 +23,8 @@ export default function PlayersAdmin() {
   const [teamId, setTeamId] = useState('');
   const [roles, setRoles] = useState<string[]>(['Player']);
   const [showStats, setShowStats] = useState(false);
+  const [stars, setStars] = useState<number>(1);
+  const [coinWorth, setCoinWorth] = useState<number>(1000);
   
   // Stats state
   const [gamesPlayed, setGamesPlayed] = useState('0');
@@ -32,6 +34,27 @@ export default function PlayersAdmin() {
   const [steals, setSteals] = useState('0');
   const [blocks, setBlocks] = useState('0');
   const [turnovers, setTurnovers] = useState('0');
+
+  // Star to coin worth mapping
+  const getDefaultCoinWorth = (starRating: number): number => {
+    const starToCoin: { [key: number]: number } = {
+      5: 12000,
+      4.5: 10500,
+      4: 9000,
+      3.5: 7500,
+      3: 6000,
+      2.5: 4500,
+      2: 3000,
+      1.5: 1500,
+      1: 1000,
+    };
+    return starToCoin[starRating] || 1000;
+  };
+
+  // Update coin worth when stars change
+  useEffect(() => {
+    setCoinWorth(getDefaultCoinWorth(stars));
+  }, [stars]);
 
   // Fetch players and teams on mount
   useEffect(() => {
@@ -85,6 +108,8 @@ export default function PlayersAdmin() {
           discordUsername,
           teamId,
           roles,
+          stars,
+          coinWorth,
           stats: {
             gamesPlayed: parseInt(gamesPlayed) || 0,
             points: parseFloat(points) || 0,
@@ -129,6 +154,8 @@ export default function PlayersAdmin() {
           discordUsername,
           teamId,
           roles,
+          stars,
+          coinWorth,
         }),
       });
 
@@ -180,6 +207,8 @@ export default function PlayersAdmin() {
     setDiscordUsername('');
     setTeamId('');
     setRoles(['Player']);
+    setStars(1);
+    setCoinWorth(1000);
     setGamesPlayed('0');
     setPoints('0');
     setRebounds('0');
@@ -200,6 +229,8 @@ export default function PlayersAdmin() {
     setDiscordUsername(player.discordUsername || '');
     setTeamId(player.teamId || '');
     setRoles(player.roles || ['Player']);
+    setStars(player.stars || 1);
+    setCoinWorth(player.coinWorth || 1000);
     setGamesPlayed(player.stats?.gamesPlayed?.toString() || '0');
     setPoints(player.stats?.points?.toString() || '0');
     setRebounds(player.stats?.rebounds?.toString() || '0');
@@ -328,6 +359,43 @@ export default function PlayersAdmin() {
                   </label>
                 ))}
               </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                Star Rating ⭐
+              </label>
+              <select
+                value={stars}
+                onChange={(e) => setStars(parseFloat(e.target.value))}
+                className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
+              >
+                <option value={5}>5 ⭐ - $12k</option>
+                <option value={4.5}>4.5 ⭐ - $10.5k</option>
+                <option value={4}>4 ⭐ - $9k</option>
+                <option value={3.5}>3.5 ⭐ - $7.5k</option>
+                <option value={3}>3 ⭐ - $6k</option>
+                <option value={2.5}>2.5 ⭐ - $4.5k</option>
+                <option value={2}>2 ⭐ - $3k</option>
+                <option value={1.5}>1.5 ⭐ - $1.5k</option>
+                <option value={1}>1 ⭐ - $1k</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                Coin Worth (Optional)
+              </label>
+              <input
+                type="number"
+                value={coinWorth}
+                onChange={(e) => setCoinWorth(parseInt(e.target.value) || 1000)}
+                placeholder="Auto-filled from stars"
+                className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
+              />
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Leave blank to use default based on star rating
+              </p>
             </div>
           </div>
 
@@ -512,6 +580,14 @@ export default function PlayersAdmin() {
                           </span>
                         </>
                       )}
+                      <span className="text-sm text-gray-500 dark:text-gray-400">•</span>
+                      <span className="text-sm font-medium text-yellow-600 dark:text-yellow-500">
+                        {player.stars || 1} ⭐
+                      </span>
+                      <span className="text-sm text-gray-500 dark:text-gray-400">•</span>
+                      <span className="text-sm font-medium text-green-600 dark:text-green-500">
+                        ${((player.coinWorth || 1000) / 1000).toFixed(1)}k
+                      </span>
                     </div>
                   </div>
                 </div>

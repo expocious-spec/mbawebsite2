@@ -22,11 +22,12 @@ interface TeamStanding {
 export default function StandingsPage() {
   const [viewMode, setViewMode] = useState<ViewMode>('overall');
   const [recordType, setRecordType] = useState<RecordType>('overall');
-  const [selectedSeason, setSelectedSeason] = useState<string>('All-Time');
+  const [selectedSeasons, setSelectedSeasons] = useState<string[]>(['All-Time']);
   const [availableSeasons, setAvailableSeasons] = useState<string[]>(['All-Time']);
   const [teams, setTeams] = useState<any[]>([]);
   const [games, setGames] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showSeasonDropdown, setShowSeasonDropdown] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -50,13 +51,37 @@ export default function StandingsPage() {
         // Set current season as default
         const currentSeason = seasons.find((s: any) => s.isCurrent);
         if (currentSeason) {
-          setSelectedSeason(currentSeason.name);
+          setSelectedSeasons([currentSeason.name]);
         }
       }
     } catch (error) {
       console.error('Error fetching seasons:', error);
     }
   };
+
+  const toggleSeason = (season: string) => {
+    setSelectedSeasons(prev => {
+      if (prev.includes(season)) {
+        // Don't allow deselecting if it's the last one
+        if (prev.length === 1) return prev;
+        return prev.filter(s => s !== season);
+      } else {
+        return [...prev, season];
+      }
+    });
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (showSeasonDropdown && !target.closest('.season-dropdown')) {
+        setShowSeasonDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showSeasonDropdown]);
 
   const fetchData = async () => {
     try {
@@ -78,16 +103,19 @@ export default function StandingsPage() {
   };
 
   // Calculate standings for each team
-  const calculateStandings = (conferenceFilter?: 'Western' | 'Eastern', seasonFilter?: string, recordTypeFilter?: RecordType): TeamStanding[] => {
+  const calculateStandings = (conferenceFilter?: 'Western' | 'Eastern', seasonFilter?: string[], recordTypeFilter?: RecordType): TeamStanding[] => {
     return teams.map(team => {
       // Get all completed games for this team
       let teamGames = games.filter(
         g => (g.homeTeamId === team.id || g.awayTeamId === team.id) && g.status === 'completed'
       );
 
-      // Filter by season if not "All-Time"
-      if (seasonFilter && seasonFilter !== 'All-Time') {
-        teamGames = teamGames.filter(game => game.season === seasonFilter);
+      // Filter by seasons if not "All-Time"
+      if (seasonFilter && seasonFilter.length > 0) {
+        const isAllTime = seasonFilter.includes('All-Time');
+        if (!isAllTime) {
+          teamGames = teamGames.filter(game => seasonFilter.includes(game.season));
+        }
       }
 
       // If recordType is 'conference', only count games against teams in the same conference
@@ -173,7 +201,7 @@ export default function StandingsPage() {
     let standings: TeamStanding[];
     
     // Calculate standings with recordType determining which games count
-    standings = calculateStandings(undefined, selectedSeason, recordType);
+    standings = calculateStandings(undefined, selectedSeasons, recordType);
     
     // Filter teams by conference for display only
     if (viewMode === 'western') {
@@ -220,22 +248,40 @@ export default function StandingsPage() {
 
         {/* Filters */}
         <div className="flex justify-center gap-4 mb-6 flex-wrap">
-          {/* Season Filter */}
-          <div className="w-full max-w-xs">
+          {/* Season Multi-Filter */}
+          <div className="w-full max-w-xs season-dropdown">
             <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300 text-center">
-              Select Season
+              Select Seasons
             </label>
-            <select
-              value={selectedSeason}
-              onChange={(e) => setSelectedSeason(e.target.value)}
-              className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white shadow-sm"
-            >
-              {availableSeasons.map((season) => (
-                <option key={season} value={season}>
-                  {season}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <button
+                onClick={() => setShowSeasonDropdown(!showSeasonDropdown)}
+                className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white shadow-sm text-left flex items-center justify-between"
+              >
+                <span className="truncate">
+                  {selectedSeasons.length === 1 ? selectedSeasons[0] : `${selectedSeasons.length} seasons selected`}
+                </span>
+                <span className="ml-2">▼</span>
+              </button>
+              {showSeasonDropdown && (
+                <div className="absolute z-10 mt-1 w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                  {availableSeasons.map(season => (
+                    <label
+                      key={season}
+                      className="flex items-center px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedSeasons.includes(season)}
+                        onChange={() => toggleSeason(season)}
+                        className="mr-3 w-4 h-4 text-mba-blue bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-mba-blue"
+                      />
+                      <span className="text-gray-900 dark:text-white">{season}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Record Type Filter */}

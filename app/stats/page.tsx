@@ -24,19 +24,32 @@ const statCategories = [
 export default function StatsPage() {
   const [selectedStat, setSelectedStat] = useState<StatCategory>('points');
   const [statMode, setStatMode] = useState<StatMode>('averages');
-  const [selectedSeason, setSelectedSeason] = useState<string>('All-Time');
+  const [selectedSeasons, setSelectedSeasons] = useState<string[]>(['All-Time']);
   const [availableSeasons, setAvailableSeasons] = useState<string[]>(['All-Time']);
   const [players, setPlayers] = useState<any[]>([]);
   const [teams, setTeams] = useState<any[]>([]);
   const [games, setGames] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [showSeasonDropdown, setShowSeasonDropdown] = useState(false);
   const playersPerPage = 10;
 
   useEffect(() => {
     fetchData();
     fetchSeasons();
   }, []);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (showSeasonDropdown && !target.closest('.relative')) {
+        setShowSeasonDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showSeasonDropdown]);
 
   const fetchSeasons = async () => {
     try {
@@ -55,12 +68,24 @@ export default function StatsPage() {
         // Set current season as default
         const currentSeason = seasons.find((s: any) => s.isCurrent);
         if (currentSeason) {
-          setSelectedSeason(currentSeason.name);
+          setSelectedSeasons([currentSeason.name]);
         }
       }
     } catch (error) {
       console.error('Error fetching seasons:', error);
     }
+  };
+
+  const toggleSeason = (season: string) => {
+    setSelectedSeasons(prev => {
+      if (prev.includes(season)) {
+        // Don't allow deselecting if it's the last one
+        if (prev.length === 1) return prev;
+        return prev.filter(s => s !== season);
+      } else {
+        return [...prev, season];
+      }
+    });
   };
 
   const fetchData = async () => {
@@ -92,7 +117,10 @@ export default function StatsPage() {
 
   // Calculate per-season stats from gameStats
   const getPlayerSeasonStats = (player: any) => {
-    if (selectedSeason === 'All-Time') {
+    // Check if "All-Time" is selected
+    const isAllTime = selectedSeasons.includes('All-Time');
+    
+    if (isAllTime || selectedSeasons.length === 0) {
       // For All-Time, aggregate ALL game stats across all seasons
       if (!player.gameStats || player.gameStats.length === 0) {
         return {
@@ -166,13 +194,13 @@ export default function StatsPage() {
       };
     }
 
-    // Filter gameStats by games in the selected season
-    const seasonGames = games.filter(g => g.season === selectedSeason);
+    // Filter gameStats by games in the selected seasons (multiple seasons)
+    const seasonGames = games.filter(g => selectedSeasons.includes(g.season));
     const seasonGameIds = new Set(seasonGames.map(g => g.id));
     const seasonGameStats = player.gameStats.filter((gs: any) => seasonGameIds.has(gs.gameId));
 
     if (seasonGameStats.length === 0) {
-      // No games in this season
+      // No games in these seasons
       return {
         gamesPlayed: 0,
         points: 0,
@@ -301,42 +329,65 @@ export default function StatsPage() {
 
       {/* Filters */}
       <div className="mb-6 flex flex-wrap gap-4">
-        {/* Season Selector */}
-        <div className="flex items-center space-x-2">
-          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Season:</label>
-          <select
-            value={selectedSeason}
-            onChange={(e) => setSelectedSeason(e.target.value)}
-            className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-mba-blue"
-          >
-            {availableSeasons.map(season => (
-              <option key={season} value={season}>{season}</option>
-            ))}
-          </select>
+        {/* Season Multi-Selector */}
+        <div className="relative">
+          <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Seasons:</label>
+          <div className="relative">
+            <button
+              onClick={() => setShowSeasonDropdown(!showSeasonDropdown)}
+              className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-mba-blue min-w-[200px] text-left flex items-center justify-between"
+            >
+              <span className="truncate">
+                {selectedSeasons.length === 1 ? selectedSeasons[0] : `${selectedSeasons.length} seasons selected`}
+              </span>
+              <span className="ml-2">▼</span>
+            </button>
+            {showSeasonDropdown && (
+              <div className="absolute z-10 mt-1 w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                {availableSeasons.map(season => (
+                  <label
+                    key={season}
+                    className="flex items-center px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedSeasons.includes(season)}
+                      onChange={() => toggleSeason(season)}
+                      className="mr-3 w-4 h-4 text-mba-blue bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-mba-blue"
+                    />
+                    <span className="text-gray-900 dark:text-white">{season}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Totals/Averages Toggle */}
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={() => setStatMode('averages')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              statMode === 'averages'
-                ? 'bg-gradient-to-r from-mba-blue to-mba-red text-white'
-                : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600'
-            }`}
-          >
-            Averages
-          </button>
-          <button
-            onClick={() => setStatMode('totals')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-              statMode === 'totals'
-                ? 'bg-gradient-to-r from-mba-blue to-mba-red text-white'
-                : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600'
-            }`}
-          >
-            Totals
-          </button>
+        <div className="flex flex-col">
+          <label className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">View:</label>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => setStatMode('averages')}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                statMode === 'averages'
+                  ? 'bg-gradient-to-r from-mba-blue to-mba-red text-white'
+                  : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600'
+              }`}
+            >
+              Averages
+            </button>
+            <button
+              onClick={() => setStatMode('totals')}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                statMode === 'totals'
+                  ? 'bg-gradient-to-r from-mba-blue to-mba-red text-white'
+                  : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600'
+              }`}
+            >
+              Totals
+            </button>
+          </div>
         </div>
       </div>
 
