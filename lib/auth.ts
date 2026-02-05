@@ -5,7 +5,10 @@ import { getMinecraftHeadshot } from "./minecraft";
 
 // List of Discord user IDs that have admin access
 const ADMIN_DISCORD_IDS = process.env.ADMIN_DISCORD_IDS
-  ? process.env.ADMIN_DISCORD_IDS.split(',').map((id) => id.trim()).filter(Boolean)
+  ? process.env.ADMIN_DISCORD_IDS
+      .split(/[\s,]+/)
+      .map((id) => id.replace(/[^0-9]/g, '').trim())
+      .filter(Boolean)
   : [];
 
 // Debug: Log environment variables (remove this after debugging)
