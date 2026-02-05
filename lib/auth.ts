@@ -13,7 +13,9 @@ const ADMIN_DISCORD_IDS = process.env.ADMIN_DISCORD_IDS
 
 // Debug: Log environment variables (remove this after debugging)
 console.log("Discord Client ID:", process.env.DISCORD_CLIENT_ID);
-console.log("Admin IDs:", ADMIN_DISCORD_IDS);
+console.log("Raw ADMIN_DISCORD_IDS env:", process.env.ADMIN_DISCORD_IDS);
+console.log("Parsed Admin IDs:", ADMIN_DISCORD_IDS);
+console.log("Admin IDs count:", ADMIN_DISCORD_IDS.length);
 
 export const authOptions: NextAuthOptions = {
   session: {
@@ -101,6 +103,7 @@ export const authOptions: NextAuthOptions = {
         const isAdmin = ADMIN_DISCORD_IDS.includes(discordId);
         
         console.log("Discord sign in attempt:", { discordId, userId, isAdmin });
+        console.log("Checking if", discordId, "is in", ADMIN_DISCORD_IDS);
 
         try {
           // Check if user exists with this Discord ID
