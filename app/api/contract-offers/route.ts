@@ -91,7 +91,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { playerId, teamId, franchiseOwnerId, contractPrice } = body;
+    const { playerId, teamId, franchiseOwnerId, seasonId, contractPrice } = body;
 
     if (!playerId || !teamId || !franchiseOwnerId || !contractPrice) {
       return NextResponse.json({ 
@@ -117,6 +117,35 @@ export async function POST(request: Request) {
       }, { status: 400 });
     }
 
+    // Validate salary cap
+    const { data: team, error: teamError } = await supabaseAdmin
+      .from('teams')
+      .select('salary_cap')
+      .eq('id', teamId)
+      .single();
+
+    if (teamError || !team) {
+      return NextResponse.json({ error: 'Team not found' }, { status: 404 });
+    }
+
+    // Get current team players and calculate spend
+    const { data: teamPlayers, error: playersError } = await supabaseAdmin
+      .from('users')
+      .select('coin_worth')
+      .eq('team_id', teamId);
+
+    if (!playersError && teamPlayers) {
+      const currentSpend = teamPlayers.reduce((sum, p) => sum + (p.coin_worth || 0), 0);
+      const teamSalaryCap = team.salary_cap || 19000;
+      const availableCap = teamSalaryCap - currentSpend;
+
+      if (contractPrice > availableCap) {
+        return NextResponse.json({ 
+          error: `Contract exceeds team salary cap! Available: ${availableCap.toLocaleString()} coins` 
+        }, { status: 400 });
+      }
+    }
+
     // Create the contract offer
     const { data, error } = await supabaseAdmin
       .from('contract_offers')
@@ -124,6 +153,7 @@ export async function POST(request: Request) {
         player_id: playerId,
         team_id: teamId,
         franchise_owner_id: franchiseOwnerId,
+        season_id: seasonId || null,
         contract_price: contractPrice,
         status: 'pending',
       }])

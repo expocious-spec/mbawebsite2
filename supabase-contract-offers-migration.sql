@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS contract_offers (
   player_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   team_id TEXT NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
   franchise_owner_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  season_id BIGINT REFERENCES seasons(id) ON DELETE SET NULL,
   contract_price INTEGER NOT NULL,
   status TEXT CHECK (status IN ('pending', 'accepted', 'rejected', 'expired')) DEFAULT 'pending',
   created_at TIMESTAMPTZ DEFAULT NOW(),

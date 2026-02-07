@@ -39,22 +39,28 @@ export default function ContractOffersAdmin() {
   const [offers, setOffers] = useState<ContractOffer[]>([]);
   const [players, setPlayers] = useState<any[]>([]);
   const [teams, setTeams] = useState<any[]>([]);
+  const [seasons, setSeasons] = useState<any[]>([]);
   const [franchiseOwners, setFranchiseOwners] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [playerSearch, setPlayerSearch] = useState('');
 
   // Form state
   const [selectedPlayer, setSelectedPlayer] = useState('');
   const [selectedTeam, setSelectedTeam] = useState('');
   const [selectedOwner, setSelectedOwner] = useState('');
+  const [selectedSeason, setSelectedSeason] = useState('');
   const [contractPrice, setContractPrice] = useState<number>(1000);
   const [minContractPrice, setMinContractPrice] = useState<number>(1000);
+  const [teamSalaryCap, setTeamSalaryCap] = useState<number>(19000);
+  const [teamCurrentSpend, setTeamCurrentSpend] = useState<number>(0);
 
   useEffect(() => {
     fetchOffers();
     fetchPlayers();
     fetchTeams();
+    fetchSeasons();
   }, []);
 
   const fetchOffers = async () => {
@@ -111,6 +117,21 @@ export default function ContractOffersAdmin() {
     }
   };
 
+  const fetchSeasons = async () => {
+    try {
+      const response = await fetch('/api/seasons');
+      const data = await response.json();
+      setSeasons(data);
+      // Auto-select current season
+      const currentSeason = data.find((s: any) => s.isCurrent);
+      if (currentSeason) {
+        setSelectedSeason(currentSeason.id.toString());
+      }
+    } catch (error) {
+      console.error('Failed to fetch seasons:', error);
+    }
+  };
+
   // Update franchise owners when players or teams change
   useEffect(() => {
     if (teams.length > 0 && players.length > 0) {
@@ -156,8 +177,30 @@ export default function ContractOffersAdmin() {
     }
   }, [selectedOwner, franchiseOwners]);
 
+  // Calculate team salary cap usage when team is selected
+  useEffect(() => {
+    if (selectedTeam && players.length > 0) {
+      const team = teams.find(t => t.id === selectedTeam);
+      if (team) {
+        setTeamSalaryCap(team.salaryCap || 19000);
+        // Calculate current team spend
+        const teamPlayers = players.filter(p => p.teamId === selectedTeam);
+        const currentSpend = teamPlayers.reduce((sum, p) => sum + (p.coinWorth || 0), 0);
+        setTeamCurrentSpend(currentSpend);
+      }
+    }
+  }, [selectedTeam, teams, players]);
+
   const handleCreateOffer = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate salary cap
+    const availableCap = teamSalaryCap - teamCurrentSpend;
+    if (contractPrice > availableCap) {
+      alert(`Contract exceeds team salary cap! Available: ${availableCap.toLocaleString()} coins (Team Cap: ${teamSalaryCap.toLocaleString()}, Current Spend: ${teamCurrentSpend.toLocaleString()})`);
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -168,6 +211,7 @@ export default function ContractOffersAdmin() {
           playerId: selectedPlayer,
           teamId: selectedTeam,
           franchiseOwnerId: selectedOwner,
+          seasonId: selectedSeason ? parseInt(selectedSeason) : null,
           contractPrice: contractPrice,
         }),
       });
@@ -192,8 +236,17 @@ export default function ContractOffersAdmin() {
     setSelectedPlayer('');
     setSelectedTeam('');
     setSelectedOwner('');
+    setSelectedSeason('');
     setContractPrice(1000);
     setMinContractPrice(1000);
+    setPlayerSearch('');
+    setTeamSalaryCap(19000);
+    setTeamCurrentSpend(0);
+    // Re-select current season
+    const currentSeason = seasons.find((s: any) => s.isCurrent);
+    if (currentSeason) {
+      setSelectedSeason(currentSeason.id.toString());
+    }
   };
 
   const getTimeAgo = (dateString: string) => {
@@ -254,22 +307,67 @@ export default function ContractOffersAdmin() {
             <h3 className="text-xl font-bold text-white mb-4">Send Contract Offer</h3>
             
             <form onSubmit={handleCreateOffer} className="space-y-4">
-              {/* Player Selection */}
+              {/* Player Selection with Search */}
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
                   Player *
                 </label>
+                <input
+                  type="text"
+                  placeholder="Search players..."
+                  value={playerSearch}
+                  onChange={(e) => setPlayerSearch(e.target.value)}
+                  className="w-full px-3 py-2 mb-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-cyan-500"
+                />
                 <select
                   value={selectedPlayer}
                   onChange={(e) => setSelectedPlayer(e.target.value)}
                   required
+                  size={8}
                   className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-cyan-500"
                 >
                   <option value="">Select a player...</option>
-                  {players.map(player => (
-                    <option key={player.id} value={player.id}>
-                      {player.displayName} {player.discordUsername ? `(@${player.discordUsername})` : ''} 
-                      {player.coinWorth ? ` - ${player.coinWorth} coins` : ''}
+                  {players
+                    .filter(player => {
+                      const search = playerSearch.toLowerCase();
+                      return !search || 
+                        player.displayName.toLowerCase().includes(search) ||
+                        player.minecraftUsername.toLowerCase().includes(search) ||
+                        player.discordUsername?.toLowerCase().includes(search);
+                    })
+                    .map(player => (
+                      <option key={player.id} value={player.id}>
+                        {player.displayName} {player.discordUsername ? `(@${player.discordUsername})` : ''} 
+                        {player.coinWorth ? ` - ${player.coinWorth.toLocaleString()} coins` : ''}
+                      </option>
+                    ))}
+                </select>
+                <p className="text-xs text-gray-400 mt-1">
+                  {players.filter(p => {
+                    const search = playerSearch.toLowerCase();
+                    return !search || 
+                      p.displayName.toLowerCase().includes(search) ||
+                      p.minecraftUsername.toLowerCase().includes(search) ||
+                      p.discordUsername?.toLowerCase().includes(search);
+                  }).length} players shown
+                </p>
+              </div>
+
+              {/* Season Selection */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Season *
+                </label>
+                <select
+                  value={selectedSeason}
+                  onChange={(e) => setSelectedSeason(e.target.value)}
+                  required
+                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-cyan-500"
+                >
+                  <option value="">Select season...</option>
+                  {seasons.map(season => (
+                    <option key={season.id} value={season.id}>
+                      {season.name} {season.isCurrent ? '(Current)' : ''}
                     </option>
                   ))}
                 </select>
@@ -298,7 +396,7 @@ export default function ContractOffersAdmin() {
               {/* Team (Auto-selected) */}
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Team
+                  Team & Salary Cap
                 </label>
                 <select
                   value={selectedTeam}
@@ -313,6 +411,24 @@ export default function ContractOffersAdmin() {
                     </option>
                   ))}
                 </select>
+                {selectedTeam && (
+                  <div className="mt-2 p-3 bg-slate-800/50 rounded-lg border border-slate-700">
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="text-gray-400">Team Salary Cap:</span>
+                      <span className="text-white font-semibold">{teamSalaryCap.toLocaleString()} coins</span>
+                    </div>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="text-gray-400">Current Spend:</span>
+                      <span className="text-white font-semibold">{teamCurrentSpend.toLocaleString()} coins</span>
+                    </div>
+                    <div className="flex justify-between text-sm pt-2 border-t border-slate-700">
+                      <span className="text-gray-400">Available:</span>
+                      <span className={`font-bold ${(teamSalaryCap - teamCurrentSpend) >= contractPrice ? 'text-green-400' : 'text-red-400'}`}>
+                        {(teamSalaryCap - teamCurrentSpend).toLocaleString()} coins
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Contract Price */}
