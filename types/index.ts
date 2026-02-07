@@ -183,3 +183,35 @@ export interface Article {
   coverImage?: string;
   excerpt?: string;
 }
+
+export interface ContractOffer {
+  id: number;
+  playerId: string;
+  teamId: string;
+  franchiseOwnerId: string;
+  contractPrice: number;
+  status: 'pending' | 'accepted' | 'rejected' | 'expired';
+  createdAt: string;
+  updatedAt: string;
+  acceptedAt?: string;
+  player?: {
+    id: string;
+    username: string;
+    avatarUrl?: string;
+    discordUsername?: string;
+    coinWorth?: number;
+  };
+  team?: {
+    id: string;
+    name: string;
+    logo?: string;
+    primaryColor: string;
+    secondaryColor: string;
+  };
+  franchiseOwner?: {
+    id: string;
+    username: string;
+    avatarUrl?: string;
+    discordUsername?: string;
+  };
+}

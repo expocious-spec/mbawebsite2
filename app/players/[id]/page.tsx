@@ -1,6 +1,6 @@
 'use client';
 
-import { User, Shield, Award, Users as UsersIcon } from 'lucide-react';
+import { User, Shield, Award, Users as UsersIcon, DollarSign, Calendar, CheckCircle2, Clock } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
@@ -16,11 +16,13 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
   const [availableSeasons, setAvailableSeasons] = useState<string[]>(['All-Time']);
   const [games, setGames] = useState<any[]>([]);
   const [showSeasonDropdown, setShowSeasonDropdown] = useState(false);
+  const [contractOffers, setContractOffers] = useState<any[]>([]);
   const { data: session } = useSession();
 
   useEffect(() => {
     fetchData();
     fetchSeasons();
+    fetchContractOffers();
   }, [params.id]);
 
   const fetchSeasons = async () => {
@@ -53,6 +55,43 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
     } catch (error) {
       console.error('Error fetching seasons:', error);
     }
+  };
+
+  const fetchContractOffers = async () => {
+    try {
+      const response = await fetch(`/api/contract-offers?playerId=${params.id}`);
+      if (response.ok) {
+        const data = await response.json();
+        // Filter for pending offers only
+        setContractOffers(data.filter((offer: any) => offer.status === 'pending'));
+      }
+    } catch (error) {
+      console.error('Error fetching contract offers:', error);
+    }
+  };
+
+  const getTimeAgo = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffDays > 0) {
+      return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+    } else if (diffHours > 0) {
+      return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+    } else {
+      return 'Just now';
+    }
+  };
+
+  const canAcceptOffer = (createdAt: string) => {
+    const date = new Date(createdAt);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffHours = diffMs / (1000 * 60 * 60);
+    return diffHours >= 12;
   };
 
   const toggleSeason = (season: string) => {
@@ -684,6 +723,73 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
                     </div>
                   </div>
                 </Link>
+              ))}
+          </div>
+        </div>
+      )}
+
+      {/* Contract Offers */}
+      {contractOffers.length > 0 && (
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700 shadow-sm mt-6">
+          <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">Contract Offers</h2>
+          <div className="space-y-4">
+            {contractOffers
+              .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+              .map((offer: any) => (
+                <div
+                  key={offer.id}
+                  className="bg-gradient-to-br from-slate-50 to-gray-50 dark:from-slate-800/50 dark:to-slate-900/50 rounded-lg p-5 border border-gray-200 dark:border-slate-700 hover:border-cyan-500/30 dark:hover:border-cyan-500/30 transition-all"
+                >
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    {/* Team & Coach Info */}
+                    <div className="flex items-center gap-4 flex-1">
+                      <div
+                        className="w-12 h-12 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: offer.team.primaryColor }}
+                      />
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                          {offer.team.name}
+                        </h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          Coach: {offer.franchiseOwner.username}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Contract Price */}
+                    <div className="text-center sm:text-right">
+                      <div className="flex items-center gap-2 justify-center sm:justify-end mb-1">
+                        <DollarSign className="w-5 h-5 text-green-500" />
+                        <span className="text-2xl font-bold text-green-500">
+                          {offer.contractPrice.toLocaleString()}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">coins</p>
+                    </div>
+
+                    {/* Time & Eligibility */}
+                    <div className="text-center sm:text-right min-w-[140px]">
+                      <div className="flex items-center gap-2 justify-center sm:justify-end mb-2">
+                        <Calendar className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                          {getTimeAgo(offer.createdAt)}
+                        </span>
+                      </div>
+                      {canAcceptOffer(offer.createdAt) ? (
+                        <div className="flex items-center gap-1 text-green-500 text-sm font-medium">
+                          <CheckCircle2 className="w-4 h-4" />
+                          <span>Eligible to Accept</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1 text-yellow-500 text-sm font-medium">
+                          <Clock className="w-4 h-4" />
+                          <span>12hr Wait Period</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
               ))}
           </div>
         </div>

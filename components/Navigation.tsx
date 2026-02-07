@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { Home, Users, Link2, TrendingUp, Calendar, Search, Shield, Sun, Moon, Trophy, Briefcase, Award, User } from 'lucide-react';
+import { Home, Users, Link2, TrendingUp, Calendar, Search, Shield, Sun, Moon, Trophy, Briefcase, Award, User, FileText } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
 import { useSession, signIn, signOut } from 'next-auth/react';
 
@@ -16,6 +16,7 @@ const navItems = [
   { href: '/stats', label: 'Stats', icon: TrendingUp },
   { href: '/games', label: 'Games', icon: Calendar },
   { href: '/players', label: 'Players', icon: Search },
+  { href: '/contracts', label: 'Contracts', icon: FileText },
   { href: '/staff', label: 'Staff', icon: Briefcase },
   { href: '/admin', label: 'Admin', icon: Shield },
 ];
