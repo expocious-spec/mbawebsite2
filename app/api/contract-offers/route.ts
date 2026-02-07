@@ -32,11 +32,17 @@ export async function GET(request: Request) {
 
     if (error) {
       console.error('Error fetching contract offers:', error);
-      return NextResponse.json({ error: 'Failed to fetch contract offers' }, { status: 500 });
+      // Return empty array instead of error object for frontend compatibility
+      return NextResponse.json([]);
+    }
+
+    // If no data, return empty array
+    if (!data) {
+      return NextResponse.json([]);
     }
 
     // Transform to camelCase
-    const formattedOffers = data?.map(offer => ({
+    const formattedOffers = data.map(offer => ({
       id: offer.id,
       playerId: offer.player_id,
       teamId: offer.team_id,
@@ -66,12 +72,13 @@ export async function GET(request: Request) {
         avatarUrl: offer.franchise_owner.avatar_url,
         discordUsername: offer.franchise_owner.discord_username,
       } : null,
-    })) || [];
+    }));
 
     return NextResponse.json(formattedOffers);
   } catch (error) {
     console.error('Error in contract offers API:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    // Return empty array instead of error object for frontend compatibility
+    return NextResponse.json([]);
   }
 }
 

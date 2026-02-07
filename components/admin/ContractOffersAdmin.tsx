@@ -61,9 +61,16 @@ export default function ContractOffersAdmin() {
     try {
       const response = await fetch('/api/contract-offers');
       const data = await response.json();
-      setOffers(data);
+      // Ensure data is an array
+      if (Array.isArray(data)) {
+        setOffers(data);
+      } else {
+        console.error('Contract offers data is not an array:', data);
+        setOffers([]);
+      }
     } catch (error) {
       console.error('Failed to fetch contract offers:', error);
+      setOffers([]);
     }
   };
 

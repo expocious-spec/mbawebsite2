@@ -56,9 +56,16 @@ export default function ContractsPage() {
       setLoading(true);
       const response = await fetch('/api/contract-offers');
       const data = await response.json();
-      setOffers(data);
+      // Ensure data is an array
+      if (Array.isArray(data)) {
+        setOffers(data);
+      } else {
+        console.error('Contract offers data is not an array:', data);
+        setOffers([]);
+      }
     } catch (error) {
       console.error('Failed to fetch contract offers:', error);
+      setOffers([]);
     } finally {
       setLoading(false);
     }
@@ -76,10 +83,10 @@ export default function ContractsPage() {
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
       filtered = filtered.filter(offer => 
-        offer.player.username.toLowerCase().includes(searchLower) ||
-        offer.player.discordUsername?.toLowerCase().includes(searchLower) ||
-        offer.team.name.toLowerCase().includes(searchLower) ||
-        offer.franchiseOwner.username.toLowerCase().includes(searchLower)
+        offer.player?.username?.toLowerCase().includes(searchLower) ||
+        offer.player?.discordUsername?.toLowerCase().includes(searchLower) ||
+        offer.team?.name?.toLowerCase().includes(searchLower) ||
+        offer.franchiseOwner?.username?.toLowerCase().includes(searchLower)
       );
     }
 
