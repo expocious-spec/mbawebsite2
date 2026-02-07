@@ -50,7 +50,7 @@ export async function PATCH(
     // Map response back to frontend format
     const mappedData = {
       id: data.id,
-      name: data.name,
+      name: data.season_name,
       displayOrder: data.display_order || 0,
       isCurrent: data.is_active,
       startDate: data.start_date,
