@@ -222,6 +222,32 @@ export default function ContractOffersAdmin() {
   const handleCreateOffer = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Validate required fields
+    if (!selectedPlayer) {
+      alert('Please select a player by clicking on a player in the search results.');
+      return;
+    }
+
+    if (!selectedTeam) {
+      alert('Please select a team by clicking on a team in the search results.');
+      return;
+    }
+
+    if (!selectedOwner) {
+      alert('Franchise owner not found for the selected team. Please select a different team.');
+      return;
+    }
+
+    if (!selectedSeason) {
+      alert('Please select a season.');
+      return;
+    }
+
+    if (!contractPrice || contractPrice < minContractPrice) {
+      alert(`Contract price must be at least ${minContractPrice.toLocaleString()} coins.`);
+      return;
+    }
+
     // Validate salary cap
     const availableCap = teamSalaryCap - teamCurrentSpend;
     if (contractPrice > availableCap) {
@@ -396,7 +422,8 @@ export default function ContractOffersAdmin() {
             {/* Player Selection with Search */}
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Player * {selectedPlayer && <span className="text-green-600">✓ Selected</span>}
+                Player * {selectedPlayer && <span className="text-green-600 font-semibold">✓ Selected</span>}
+                {!selectedPlayer && <span className="text-red-600 text-xs ml-2">(Click a player below to select)</span>}
               </label>
               <div className="relative mb-2">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -465,7 +492,8 @@ export default function ContractOffersAdmin() {
             {/* Team Selection with Search */}
             <div className="md:col-span-1">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Team * {selectedTeam && <span className="text-green-600">✓ Selected</span>}
+                Team * {selectedTeam && <span className="text-green-600 font-semibold">✓ Selected</span>}
+                {!selectedTeam && <span className="text-red-600 text-xs ml-2">(Click a team below)</span>}
               </label>
               <div className="relative mb-2">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -550,7 +578,8 @@ export default function ContractOffersAdmin() {
 
             {/* Season Selection with Search */}
             <div className="md:col-span-1">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dar font-semibold">✓ Selected</span>}
+                {!selectedSeason && <span className="text-red-600 text-xs ml-2">(Click a season below)300 mb-2">
                 Season * {selectedSeason && <span className="text-green-600">✓ Selected</span>}
               </label>
               <div className="relative mb-2">
