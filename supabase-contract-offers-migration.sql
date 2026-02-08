@@ -4,6 +4,9 @@
 -- Allows admins to create contract offers from franchise owners to players
 -- Players must wait 12 hours before accepting an offer
 
+-- Add season_id column if it doesn't exist
+ALTER TABLE contract_offers ADD COLUMN IF NOT EXISTS season_id BIGINT REFERENCES seasons(id) ON DELETE SET NULL;
+
 CREATE TABLE IF NOT EXISTS contract_offers (
   id BIGSERIAL PRIMARY KEY,
   player_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -27,6 +30,10 @@ CREATE INDEX IF NOT EXISTS idx_contract_offers_status ON contract_offers(status,
 
 -- Enable RLS
 ALTER TABLE contract_offers ENABLE ROW LEVEL SECURITY;
+
+-- Drop existing policies if they exist
+DROP POLICY IF EXISTS "Allow authenticated users to view contract offers" ON contract_offers;
+DROP POLICY IF EXISTS "Allow admins to manage contract offers" ON contract_offers;
 
 -- Allow all authenticated users to read contract offers
 CREATE POLICY "Allow authenticated users to view contract offers"

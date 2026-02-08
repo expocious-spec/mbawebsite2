@@ -14,7 +14,7 @@ export async function GET(request: Request) {
       .from('contract_offers')
       .select(`
         *,
-        player:users!contract_offers_player_id_fkey(id, username, avatar_url, discord_username, coin_worth),
+        player:users!contract_offers_player_id_fkey(id, username, avatar_url, discord_username, coin_worth, minecraft_user_id),
         team:teams!contract_offers_team_id_fkey(id, name, logo, primary_color, secondary_color),
         franchise_owner:users!contract_offers_franchise_owner_id_fkey(id, username, avatar_url, discord_username)
       `)
@@ -58,6 +58,7 @@ export async function GET(request: Request) {
         avatarUrl: offer.player.avatar_url,
         discordUsername: offer.player.discord_username,
         coinWorth: offer.player.coin_worth,
+        minecraftUserId: offer.player.minecraft_user_id,
       } : null,
       team: offer.team ? {
         id: offer.team.id,
@@ -189,7 +190,7 @@ export async function POST(request: Request) {
       }])
       .select(`
         *,
-        player:users!contract_offers_player_id_fkey(id, username, avatar_url, discord_username, coin_worth),
+        player:users!contract_offers_player_id_fkey(id, username, avatar_url, discord_username, coin_worth, minecraft_user_id),
         team:teams!contract_offers_team_id_fkey(id, name, logo, primary_color, secondary_color),
         franchise_owner:users!contract_offers_franchise_owner_id_fkey(id, username, avatar_url, discord_username)
       `)
@@ -218,6 +219,7 @@ export async function POST(request: Request) {
         avatarUrl: data.player.avatar_url,
         discordUsername: data.player.discord_username,
         coinWorth: data.player.coin_worth,
+        minecraftUserId: data.player.minecraft_user_id,
       } : null,
       team: data.team ? {
         id: data.team.id,

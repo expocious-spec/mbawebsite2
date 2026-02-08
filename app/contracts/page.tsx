@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { DollarSign, Calendar, CheckCircle2, Clock, Search, FileText } from 'lucide-react';
 import Link from 'next/link';
+import { getMinecraftHeadshot } from '@/lib/minecraft';
+import Image from 'next/image';
 
 interface ContractOffer {
   id: number;
@@ -20,6 +22,7 @@ interface ContractOffer {
     avatarUrl?: string;
     discordUsername?: string;
     coinWorth?: number;
+    minecraftUserId?: string;
   };
   team: {
     id: string;
@@ -192,8 +195,14 @@ export default function ContractsPage() {
                   href={`/players/${offer.player.id}`}
                   className="flex items-center gap-4 flex-1 hover:opacity-80 transition-opacity"
                 >
-                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
-                    {offer.player.username.charAt(0).toUpperCase()}
+                  <div className="w-14 h-14 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700 flex-shrink-0">
+                    <Image
+                      src={getMinecraftHeadshot(offer.player.minecraftUserId, 128)}
+                      alt={offer.player.username}
+                      width={56}
+                      height={56}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -221,10 +230,24 @@ export default function ContractsPage() {
 
                 {/* Team & Coach Info */}
                 <div className="flex items-center gap-4 flex-1">
-                  <div
-                    className="w-14 h-14 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: offer.team.primaryColor }}
-                  />
+                  <div className="w-14 h-14 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700 flex-shrink-0">
+                    {offer.team.logo ? (
+                      <Image
+                        src={offer.team.logo}
+                        alt={offer.team.name}
+                        width={56}
+                        height={56}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div
+                        className="w-full h-full flex items-center justify-center text-white font-bold text-xl"
+                        style={{ backgroundColor: offer.team.primaryColor }}
+                      >
+                        {offer.team.name.charAt(0)}
+                      </div>
+                    )}
+                  </div>
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                       {offer.team.name}
