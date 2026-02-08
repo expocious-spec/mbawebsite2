@@ -17,12 +17,14 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
   const [games, setGames] = useState<any[]>([]);
   const [showSeasonDropdown, setShowSeasonDropdown] = useState(false);
   const [contractOffers, setContractOffers] = useState<any[]>([]);
+  const [accolades, setAccolades] = useState<any[]>([]);
   const { data: session } = useSession();
 
   useEffect(() => {
     fetchData();
     fetchSeasons();
     fetchContractOffers();
+    fetchAccolades();
   }, [params.id]);
 
   const fetchSeasons = async () => {
@@ -67,6 +69,18 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
       }
     } catch (error) {
       console.error('Error fetching contract offers:', error);
+    }
+  };
+
+  const fetchAccolades = async () => {
+    try {
+      const response = await fetch(`/api/accolades?playerId=${params.id}`);
+      if (response.ok) {
+        const data = await response.json();
+        setAccolades(data);
+      }
+    } catch (error) {
+      console.error('Error fetching accolades:', error);
     }
   };
 
@@ -460,6 +474,26 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
                 </div>
               ))}
             </div>
+
+            {/* Accolades */}
+            {accolades.length > 0 && (
+              <div className="mt-4">
+                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Accolades</h3>
+                <div className="flex flex-wrap gap-2 justify-center md:justify-start">
+                  {accolades.map((accolade: any) => (
+                    <div
+                      key={accolade.id}
+                      className="flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium text-white shadow-md transition-transform hover:scale-105"
+                      style={{ backgroundColor: accolade.color || '#FFD700' }}
+                      title={accolade.description || accolade.title}
+                    >
+                      {accolade.icon && <span className="text-lg">{accolade.icon}</span>}
+                      <span>{accolade.title}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
           </div>
         </div>

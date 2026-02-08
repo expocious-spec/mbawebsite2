@@ -1,14 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { Shield, UserPlus, Users, Calendar, FileText, LogOut, TrendingUp, Briefcase, Settings, Tv, Send } from 'lucide-react';
+import { Shield, UserPlus, Users, Calendar, FileText, LogOut, TrendingUp, Award, Settings, Tv, Send } from 'lucide-react';
 import { useSession, signIn, signOut } from 'next-auth/react';
-import { PlayersAdmin, TeamsAdmin, GamesAdmin, ArticlesAdmin, GameStatsAdmin, StaffAdmin, LiveStreamAdmin, ContractOffersAdmin } from '@/components/admin';
+import { PlayersAdmin, TeamsAdmin, GamesAdmin, ArticlesAdmin, GameStatsAdmin, AccoladesAdmin, LiveStreamAdmin, ContractOffersAdmin } from '@/components/admin';
 import SeasonsAdmin from '@/components/admin/SeasonsAdmin';
 
 export default function AdminPage() {
   const { data: session, status } = useSession();
-  const [activeTab, setActiveTab] = useState<'players' | 'teams' | 'games' | 'articles' | 'gamestats' | 'staff' | 'seasons' | 'livestream' | 'contracts'>('players');
+  const [activeTab, setActiveTab] = useState<'players' | 'teams' | 'games' | 'articles' | 'gamestats' | 'accolades' | 'seasons' | 'livestream' | 'contracts'>('players');
 
   // Show loading state while checking authentication
   if (status === 'loading') {
@@ -144,15 +144,15 @@ export default function AdminPage() {
           <span>Game Stats</span>
         </button>
         <button
-          onClick={() => setActiveTab('staff')}
+          onClick={() => setActiveTab('accolades')}
           className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-medium transition-colors ${
-            activeTab === 'staff'
+            activeTab === 'accolades'
               ? 'bg-mba-blue text-white'
               : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
           }`}
         >
-          <Briefcase className="w-5 h-5" />
-          <span>Staff</span>
+          <Award className="w-5 h-5" />
+          <span>Accolades</span>
         </button>
         <button
           onClick={() => setActiveTab('seasons')}
@@ -196,7 +196,7 @@ export default function AdminPage() {
         {activeTab === 'games' && <GamesAdmin />}
         {activeTab === 'articles' && <ArticlesAdmin />}
         {activeTab === 'gamestats' && <GameStatsAdmin />}
-        {activeTab === 'staff' && <StaffAdmin />}
+        {activeTab === 'accolades' && <AccoladesAdmin />}
         {activeTab === 'seasons' && <SeasonsAdmin />}
         {activeTab === 'contracts' && <ContractOffersAdmin />}
         {activeTab === 'livestream' && <LiveStreamAdmin />}

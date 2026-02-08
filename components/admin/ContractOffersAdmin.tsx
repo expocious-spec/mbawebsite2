@@ -310,7 +310,11 @@ export default function ContractOffersAdmin() {
               {/* Player Selection with Search */}
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Player *
+                  Player * {selectedPlayer && (
+                    <span className="ml-2 text-cyan-400 font-bold">
+                      ✓ {players.find(p => p.id === selectedPlayer)?.displayName}
+                    </span>
+                  )}
                 </label>
                 <input
                   type="text"
@@ -324,9 +328,13 @@ export default function ContractOffersAdmin() {
                   onChange={(e) => setSelectedPlayer(e.target.value)}
                   required
                   size={8}
-                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-cyan-500"
+                  className="w-full px-3 py-2 bg-slate-800 border-2 border-slate-700 rounded-lg text-white focus:outline-none focus:border-cyan-500 player-select"
+                  style={{
+                    scrollbarWidth: 'thin',
+                    scrollbarColor: '#0891b2 #1e293b'
+                  }}
                 >
-                  <option value="">Select a player...</option>
+                  <option value="" disabled>Select a player...</option>
                   {players
                     .filter(player => {
                       const search = playerSearch.toLowerCase();
@@ -336,7 +344,11 @@ export default function ContractOffersAdmin() {
                         player.discordUsername?.toLowerCase().includes(search);
                     })
                     .map(player => (
-                      <option key={player.id} value={player.id}>
+                      <option 
+                        key={player.id} 
+                        value={player.id}
+                        className={selectedPlayer === player.id ? 'bg-cyan-600 font-bold' : 'hover:bg-slate-700'}
+                      >
                         {player.displayName} {player.discordUsername ? `(@${player.discordUsername})` : ''} 
                         {player.coinWorth ? ` - ${player.coinWorth.toLocaleString()} coins` : ''}
                       </option>
@@ -351,6 +363,12 @@ export default function ContractOffersAdmin() {
                       p.discordUsername?.toLowerCase().includes(search);
                   }).length} players shown
                 </p>
+                <style jsx>{`
+                  .player-select option:checked {
+                    background: linear-gradient(90deg, #0891b2 0%, #06b6d4 100%) !important;
+                    font-weight: bold !important;
+                  }
+                `}</style>
               </div>
 
               {/* Season Selection */}

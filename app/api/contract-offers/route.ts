@@ -87,18 +87,16 @@ export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session || !session.user.isAdmin) {
+      console.error('Unauthorized access attempt to create contract offer');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await request.json();
+    console.log('Creating contract offer with body:', body);
     const { playerId, teamId, franchiseOwnerId, seasonId, contractPrice } = body;
 
-    if (!playerId || !teamId || !franchiseOwnerId || !contractPrice) {
-      return NextResponse.json({ 
-        error: 'Missing required fields: playerId, teamId, franchiseOwnerId, contractPrice' 
-      }, { status: 400 });
-    }
-
+    if (!playerId || !teamId || !franchiseOwnerId || contractPrice === undefined || contractPrice === null) {
+      console.error('Missing required fields:', { playerId, teamId, franchiseOwnerId, contractPrice });
     // Validate that contract price is at least the player's coin worth
     const { data: player, error: playerError } = await supabaseAdmin
       .from('users')

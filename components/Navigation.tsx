@@ -17,7 +17,7 @@ const navItems = [
   { href: '/games', label: 'Games', icon: Calendar },
   { href: '/players', label: 'Players', icon: Search },
   { href: '/contracts', label: 'Contracts', icon: FileText },
-  { href: '/staff', label: 'Staff', icon: Briefcase },
+  { href: '/accolades', label: 'Accolades', icon: Award },
   { href: '/admin', label: 'Admin', icon: Shield },
 ];
 

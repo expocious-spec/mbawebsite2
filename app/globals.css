@@ -96,4 +96,37 @@ body {
   }
 }
 
+/* Better select option styling */
+select option:checked,
+select option:hover {
+  background: linear-gradient(90deg, #0891b2 0%, #06b6d4 100%) !important;
+  color: white !important;
+  font-weight: bold !important;
+}
 
+select option {
+  padding: 8px !important;
+}
+
+select[size] {
+  scrollbar-width: thin;
+  scrollbar-color: #0891b2 #1e293b;
+}
+
+select[size]::-webkit-scrollbar {
+  width: 8px;
+}
+
+select[size]::-webkit-scrollbar-track {
+  background: #1e293b;
+  border-radius: 4px;
+}
+
+select[size]::-webkit-scrollbar-thumb {
+  background: #0891b2;
+  border-radius: 4px;
+}
+
+select[size]::-webkit-scrollbar-thumb:hover {
+  background: #06b6d4;
+}
