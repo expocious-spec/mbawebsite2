@@ -383,23 +383,18 @@ export default function PlayersAdmin() {
               <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                 Coin Worth
               </label>
-              <select
+              <input
+                type="number"
                 value={coinWorth}
-                onChange={(e) => setCoinWorth(parseInt(e.target.value))}
+                onChange={(e) => setCoinWorth(parseInt(e.target.value) || 0)}
+                placeholder="Enter coin worth"
+                min="0"
+                step="1000"
                 className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
-              >
-                <option value={12000}>12,000 coins</option>
-                <option value={11000}>11,000 coins</option>
-                <option value={10000}>10,000 coins</option>
-                <option value={9000}>9,000 coins</option>
-                <option value={8000}>8,000 coins</option>
-                <option value={7000}>7,000 coins</option>
-                <option value={6000}>6,000 coins</option>
-                <option value={5000}>5,000 coins</option>
-                <option value={4000}>4,000 coins</option>
-                <option value={3000}>3,000 coins</option>
-                <option value={1000}>1,000 coins</option>
-              </select>
+              />
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Common values: 1,000-12,000 coins
+              </p>
             </div>
           </div>
 
