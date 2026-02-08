@@ -11,6 +11,7 @@ export default function TeamPage({ params }: { params: { id: string } }) {
   const [team, setTeam] = useState<any>(null);
   const [teamPlayers, setTeamPlayers] = useState<any[]>([]);
   const [teamGames, setTeamGames] = useState<any[]>([]);
+  const [upcomingGames, setUpcomingGames] = useState<any[]>([]);
   const [teams, setTeams] = useState<any[]>([]);
   const [selectedSeason, setSelectedSeason] = useState<string>('All-Time');
   const [availableSeasons, setAvailableSeasons] = useState<string[]>(['All-Time']);
@@ -68,12 +69,17 @@ export default function TeamPage({ params }: { params: { id: string } }) {
       setTeams(teamsData);
       setTeamPlayers(playersData.filter((p: any) => p.teamId === currentTeam.id));
       
-      // Filter games and sort by date
+      // Filter completed games and sort by date (most recent first)
       let filteredGames = gamesData.filter(
         (g: any) => (g.homeTeamId === currentTeam.id || g.awayTeamId === currentTeam.id) && g.status === 'completed'
       );
-      
       setTeamGames(filteredGames.sort((a: any, b: any) => new Date(b.scheduledDate).getTime() - new Date(a.scheduledDate).getTime()));
+      
+      // Filter upcoming games and sort by date (soonest first)
+      let upcomingFiltered = gamesData.filter(
+        (g: any) => (g.homeTeamId === currentTeam.id || g.awayTeamId === currentTeam.id) && g.status === 'scheduled'
+      );
+      setUpcomingGames(upcomingFiltered.sort((a: any, b: any) => new Date(a.scheduledDate).getTime() - new Date(b.scheduledDate).getTime()));
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -154,35 +160,53 @@ export default function TeamPage({ params }: { params: { id: string } }) {
   const avgPointsFor = gamesPlayed > 0 ? (totalPointsFor / gamesPlayed).toFixed(1) : '0.0';
   const avgPointsAgainst = gamesPlayed > 0 ? (totalPointsAgainst / gamesPlayed).toFixed(1) : '0.0';
 
-  // Get stat leaders from gameStats
+  // Get game IDs from filtered games by season
+  const seasonGameIds = new Set(filteredGamesBySeason.map(game => game.id));
+
+  // Helper function to filter player stats by season
+  const getSeasonStats = (player: any) => {
+    if (!player.gameStats) return [];
+    return player.gameStats.filter((stat: any) => seasonGameIds.has(stat.gameId));
+  };
+
+  // Get stat leaders from gameStats (filtered by season)
   const getStatLeader = (stat: 'points' | 'rebounds' | 'assists') => {
     if (teamPlayers.length === 0) return null;
     return teamPlayers.reduce((leader, player) => {
-      const playerTotal = player.gameStats?.reduce((total: number, game: any) => total + (game[stat] || 0), 0) || 0;
-      const playerAvg = player.gameStats && player.gameStats.length > 0 ? playerTotal / player.gameStats.length : 0;
-      const leaderTotal = leader.gameStats?.reduce((total: number, game: any) => total + (game[stat] || 0), 0) || 0;
-      const leaderAvg = leader.gameStats && leader.gameStats.length > 0 ? leaderTotal / leader.gameStats.length : 0;
+      const seasonStats = getSeasonStats(player);
+      const playerTotal = seasonStats.reduce((total: number, game: any) => total + (game[stat] || 0), 0);
+      const playerAvg = seasonStats.length > 0 ? playerTotal / seasonStats.length : 0;
+      
+      const leaderSeasonStats = getSeasonStats(leader);
+      const leaderTotal = leaderSeasonStats.reduce((total: number, game: any) => total + (game[stat] || 0), 0);
+      const leaderAvg = leaderSeasonStats.length > 0 ? leaderTotal / leaderSeasonStats.length : 0;
+      
       return playerAvg > leaderAvg ? player : leader;
     });
   };
 
-  // Get possession time leader from game stats
+  // Get possession time leader from game stats (filtered by season)
   const getMinutesLeader = () => {
     if (teamPlayers.length === 0) return null;
     return teamPlayers.reduce((leader, player) => {
-      const playerMinutes = player.gameStats?.reduce((total: number, game: any) => total + (game.possessionTime || 0), 0) || 0;
-      const leaderMinutes = leader.gameStats?.reduce((total: number, game: any) => total + (game.possessionTime || 0), 0) || 0;
+      const seasonStats = getSeasonStats(player);
+      const playerMinutes = seasonStats.reduce((total: number, game: any) => total + (game.possessionTime || 0), 0);
+      
+      const leaderSeasonStats = getSeasonStats(leader);
+      const leaderMinutes = leaderSeasonStats.reduce((total: number, game: any) => total + (game.possessionTime || 0), 0);
+      
       return playerMinutes > leaderMinutes ? player : leader;
     });
   };
 
-  // Get efficiency leader from game stats
+  // Get efficiency leader from game stats (filtered by season)
   const getEfficiencyLeader = () => {
     if (teamPlayers.length === 0) return null;
     return teamPlayers.reduce((leader, player) => {
       const calculateEfficiency = (p: any) => {
-        if (!p.gameStats || p.gameStats.length === 0) return 0;
-        const totals = p.gameStats.reduce((acc: any, gs: any) => ({
+        const seasonStats = getSeasonStats(p);
+        if (seasonStats.length === 0) return 0;
+        const totals = seasonStats.reduce((acc: any, gs: any) => ({
           points: acc.points + (gs.points || 0),
           rebounds: acc.rebounds + (gs.rebounds || 0),
           assists: acc.assists + (gs.assists || 0),
@@ -192,7 +216,7 @@ export default function TeamPage({ params }: { params: { id: string } }) {
           fieldGoalsAttempted: acc.fieldGoalsAttempted + (gs.fieldGoalsAttempted || 0)
         }), { points: 0, rebounds: 0, assists: 0, steals: 0, turnovers: 0, fieldGoalsMade: 0, fieldGoalsAttempted: 0 });
         const missedFG = totals.fieldGoalsAttempted - totals.fieldGoalsMade;
-        return (totals.points + totals.rebounds + totals.assists + totals.steals - missedFG - totals.turnovers) / p.gameStats.length;
+        return (totals.points + totals.rebounds + totals.assists + totals.steals - missedFG - totals.turnovers) / seasonStats.length;
       };
       return calculateEfficiency(player) > calculateEfficiency(leader) ? player : leader;
     });
@@ -354,8 +378,9 @@ export default function TeamPage({ params }: { params: { id: string } }) {
                       </div>
                       <div className="text-2xl font-bold text-mba-blue">
                         {(() => {
-                          const total = pointsLeader.gameStats?.reduce((sum: number, game: any) => sum + (game.points || 0), 0) || 0;
-                          const avg = pointsLeader.gameStats && pointsLeader.gameStats.length > 0 ? total / pointsLeader.gameStats.length : 0;
+                          const seasonStats = getSeasonStats(pointsLeader);
+                          const total = seasonStats.reduce((sum: number, game: any) => sum + (game.points || 0), 0);
+                          const avg = seasonStats.length > 0 ? total / seasonStats.length : 0;
                           return avg.toFixed(1);
                         })()}
                       </div>
@@ -387,8 +412,9 @@ export default function TeamPage({ params }: { params: { id: string } }) {
                       </div>
                       <div className="text-2xl font-bold text-mba-blue">
                         {(() => {
-                          const total = reboundsLeader.gameStats?.reduce((sum: number, game: any) => sum + (game.rebounds || 0), 0) || 0;
-                          const avg = reboundsLeader.gameStats && reboundsLeader.gameStats.length > 0 ? total / reboundsLeader.gameStats.length : 0;
+                          const seasonStats = getSeasonStats(reboundsLeader);
+                          const total = seasonStats.reduce((sum: number, game: any) => sum + (game.rebounds || 0), 0);
+                          const avg = seasonStats.length > 0 ? total / seasonStats.length : 0;
                           return avg.toFixed(1);
                         })()}
                       </div>
@@ -420,8 +446,9 @@ export default function TeamPage({ params }: { params: { id: string } }) {
                       </div>
                       <div className="text-2xl font-bold text-mba-blue">
                         {(() => {
-                          const total = assistsLeader.gameStats?.reduce((sum: number, game: any) => sum + (game.assists || 0), 0) || 0;
-                          const avg = assistsLeader.gameStats && assistsLeader.gameStats.length > 0 ? total / assistsLeader.gameStats.length : 0;
+                          const seasonStats = getSeasonStats(assistsLeader);
+                          const total = seasonStats.reduce((sum: number, game: any) => sum + (game.assists || 0), 0);
+                          const avg = seasonStats.length > 0 ? total / seasonStats.length : 0;
                           return avg.toFixed(1);
                         })()}
                       </div>
@@ -453,15 +480,16 @@ export default function TeamPage({ params }: { params: { id: string } }) {
                       </div>
                       <div className="text-2xl font-bold text-mba-blue">
                         {(() => {
-                          const total = minutesLeader.gameStats?.reduce((sum: number, game: any) => sum + (game.possessionTime || 0), 0) || 0;
-                          const avg = minutesLeader.gameStats && minutesLeader.gameStats.length > 0 ? total / minutesLeader.gameStats.length : 0;
+                          const seasonStats = getSeasonStats(minutesLeader);
+                          const total = seasonStats.reduce((sum: number, game: any) => sum + (game.possessionTime || 0), 0);
+                          const avg = seasonStats.length > 0 ? total / seasonStats.length : 0;
                           return avg.toFixed(1);
                         })()}
                       </div>
                     </div>
                   )}
 
-                  {efficiencyLeader && efficiencyLeader.gameStats && efficiencyLeader.gameStats.length > 0 && (
+                  {efficiencyLeader && getSeasonStats(efficiencyLeader).length > 0 && (
                     <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                       <div className="flex items-center space-x-3">
                         <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-600 flex-shrink-0">
@@ -486,7 +514,8 @@ export default function TeamPage({ params }: { params: { id: string } }) {
                       </div>
                       <div className="text-2xl font-bold text-mba-blue">
                         {(() => {
-                          const totals = efficiencyLeader.gameStats.reduce((acc: any, gs: any) => ({
+                          const seasonStats = getSeasonStats(efficiencyLeader);
+                          const totals = seasonStats.reduce((acc: any, gs: any) => ({
                             points: acc.points + (gs.points || 0),
                             rebounds: acc.rebounds + (gs.rebounds || 0),
                             assists: acc.assists + (gs.assists || 0),
@@ -496,7 +525,7 @@ export default function TeamPage({ params }: { params: { id: string } }) {
                             fieldGoalsAttempted: acc.fieldGoalsAttempted + (gs.fieldGoalsAttempted || 0)
                           }), { points: 0, rebounds: 0, assists: 0, steals: 0, turnovers: 0, fieldGoalsMade: 0, fieldGoalsAttempted: 0 });
                           const missedFG = totals.fieldGoalsAttempted - totals.fieldGoalsMade;
-                          return ((totals.points + totals.rebounds + totals.assists + totals.steals - missedFG - totals.turnovers) / efficiencyLeader.gameStats.length).toFixed(1);
+                          return ((totals.points + totals.rebounds + totals.assists + totals.steals - missedFG - totals.turnovers) / seasonStats.length).toFixed(1);
                         })()}
                       </div>
                     </div>
@@ -504,6 +533,43 @@ export default function TeamPage({ params }: { params: { id: string } }) {
                 </div>
               ) : (
                 <p className="text-gray-600 dark:text-gray-400">No players on this team yet.</p>
+              )}
+            </div>
+
+            {/* Upcoming Games */}
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Upcoming Games</h2>
+              
+              {upcomingGames.length > 0 ? (
+                <div className="space-y-3">
+                  {upcomingGames.slice(0, 5).map((game) => {
+                    const isHome = game.homeTeamId === team.id;
+                    const opponent = teams.find(t => t.id === (isHome ? game.awayTeamId : game.homeTeamId));
+
+                    return (
+                      <div
+                        key={game.id}
+                        className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg"
+                      >
+                        <div className="flex items-center space-x-4">
+                          <div className="px-3 py-1 rounded-full text-sm font-bold bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
+                            {isHome ? 'HOME' : 'AWAY'}
+                          </div>
+                          <div>
+                            <div className="font-semibold text-gray-900 dark:text-white">
+                              {isHome ? 'vs' : '@'} {opponent?.name || 'Unknown'}
+                            </div>
+                            <div className="text-sm text-gray-600 dark:text-gray-400">
+                              {new Date(game.scheduledDate).toLocaleDateString()}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-gray-600 dark:text-gray-400">No upcoming games scheduled.</p>
               )}
             </div>
 
@@ -582,8 +648,9 @@ export default function TeamPage({ params }: { params: { id: string } }) {
                         </div>
                         <div className="text-sm text-gray-600 dark:text-gray-400">
                           {(() => {
-                            const total = player.gameStats?.reduce((sum: number, game: any) => sum + (game.points || 0), 0) || 0;
-                            const avg = player.gameStats && player.gameStats.length > 0 ? total / player.gameStats.length : 0;
+                            const seasonStats = getSeasonStats(player);
+                            const total = seasonStats.reduce((sum: number, game: any) => sum + (game.points || 0), 0);
+                            const avg = seasonStats.length > 0 ? total / seasonStats.length : 0;
                             return avg.toFixed(1);
                           })()} PPG
                         </div>
