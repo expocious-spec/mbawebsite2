@@ -109,12 +109,21 @@ export async function POST(request: Request) {
       .eq('id', playerId)
       .single();
 
-    if (playerError || !player) {
+    if (playerError) {
+      console.error('Error fetching player:', playerError);
+      return NextResponse.json({ error: `Player fetch error: ${playerError.message}` }, { status: 500 });
+    }
+
+    if (!player) {
+      console.error('Player not found:', playerId);
       return NextResponse.json({ error: 'Player not found' }, { status: 404 });
     }
 
+    console.log('Player found:', player);
+
     const minPrice = player.coin_worth || 0;
     if (contractPrice < minPrice) {
+      console.error('Contract price too low:', { contractPrice, minPrice });
       return NextResponse.json({ 
         error: `Contract price must be at least ${minPrice} (player's current coin worth)` 
       }, { status: 400 });
@@ -127,9 +136,17 @@ export async function POST(request: Request) {
       .eq('id', teamId)
       .single();
 
-    if (teamError || !team) {
+    if (teamError) {
+      console.error('Error fetching team:', teamError);
+      return NextResponse.json({ error: `Team fetch error: ${teamError.message}` }, { status: 500 });
+    }
+
+    if (!team) {
+      console.error('Team not found:', teamId);
       return NextResponse.json({ error: 'Team not found' }, { status: 404 });
     }
+
+    console.log('Team found:', team);
 
     // Get current team players and calculate spend
     const { data: teamPlayers, error: playersError } = await supabaseAdmin
@@ -137,10 +154,19 @@ export async function POST(request: Request) {
       .select('coin_worth')
       .eq('team_id', teamId);
 
-    if (!playersError && teamPlayers) {
+    if (playersError) {
+      console.error('Error fetching team players:', playersError);
+      return NextResponse.json({ error: `Team players fetch error: ${playersError.message}` }, { status: 500 });
+    }
+
+    console.log('Team players found:', teamPlayers?.length || 0);
+
+    if (teamPlayers) {
       const currentSpend = teamPlayers.reduce((sum, p) => sum + (p.coin_worth || 0), 0);
       const teamSalaryCap = team.salary_cap || 19000;
       const availableCap = teamSalaryCap - currentSpend;
+
+      console.log('Salary cap validation:', { teamSalaryCap, currentSpend, availableCap, contractPrice });
 
       if (contractPrice > availableCap) {
         return NextResponse.json({ 
@@ -150,6 +176,7 @@ export async function POST(request: Request) {
     }
 
     // Create the contract offer
+    console.log('Creating contract offer in database...');
     const { data, error } = await supabaseAdmin
       .from('contract_offers')
       .insert([{
@@ -170,7 +197,8 @@ export async function POST(request: Request) {
 
     if (error) {
       console.error('Database error creating contract offer:', error);
-      return NextResponse.json({ error: 'Failed to create contract offer' }, { status: 500 });
+      console.error('Error details:', JSON.stringify(error, null, 2));
+      return NextResponse.json({ error: `Failed to create contract offer: ${error.message}` }, { status: 500 });
     }
 
     // Transform to camelCase
