@@ -326,6 +326,13 @@ export default function ContractOffersAdmin() {
     e.preventDefault();
     if (!editingOffer) return;
 
+    // Validate contract price
+    const minPrice = editingOffer.player.coinWorth || 1000;
+    if (!contractPrice || contractPrice < minPrice) {
+      alert(`Contract price must be at least ${minPrice.toLocaleString()} coins.`);
+      return;
+    }
+
     setLoading(true);
     try {
       const response = await fetch(`/api/contract-offers/${editingOffer.id}`, {
@@ -918,7 +925,6 @@ export default function ContractOffersAdmin() {
                     value={contractPrice}
                     onChange={(e) => setContractPrice(parseInt(e.target.value) || 0)}
                     min={editingOffer.player.coinWorth || 1000}
-                    step="100"
                     required
                     className="w-full pl-10 pr-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-cyan-500"
                   />
