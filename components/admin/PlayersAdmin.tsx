@@ -10,8 +10,10 @@ export default function PlayersAdmin() {
   const [selectedPlayer, setSelectedPlayer] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [teamFilter, setTeamFilter] = useState<string>('');
+  const [seasonFilter, setSeasonFilter] = useState<string>('');
   const [players, setPlayers] = useState<any[]>([]);
   const [teams, setTeams] = useState<any[]>([]);
+  const [seasons, setSeasons] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [showGameStatsModal, setShowGameStatsModal] = useState(false);
   const [gameStatsPlayer, setGameStatsPlayer] = useState<any>(null);
@@ -38,6 +40,7 @@ export default function PlayersAdmin() {
   useEffect(() => {
     fetchPlayers();
     fetchTeams();
+    fetchSeasons();
   }, []);
 
   const fetchPlayers = async () => {
@@ -60,6 +63,16 @@ export default function PlayersAdmin() {
     }
   };
 
+  const fetchSeasons = async () => {
+    try {
+      const response = await fetch('/api/seasons');
+      const data = await response.json();
+      setSeasons(data);
+    } catch (error) {
+      console.error('Failed to fetch seasons:', error);
+    }
+  };
+
   const filteredPlayers = players.filter(p => {
     const matchesSearch = p.minecraftUsername.toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -69,6 +82,11 @@ export default function PlayersAdmin() {
     
     return matchesSearch && matchesTeam;
   });
+
+  // Filter teams based on selected season
+  const filteredTeams = seasonFilter 
+    ? teams.filter(team => team.seasons?.includes(seasonFilter))
+    : teams;
 
   const handleImportPlayer = async () => {
     if (!minecraftUsername) {
@@ -296,6 +314,25 @@ export default function PlayersAdmin() {
 
             <div>
               <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                Filter by Season
+              </label>
+              <select
+                value={seasonFilter}
+                onChange={(e) => {
+                  setSeasonFilter(e.target.value);
+                  setTeamId(''); // Reset team selection when season filter changes
+                }}
+                className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
+              >
+                <option value="">All Seasons</option>
+                {seasons.map((season) => (
+                  <option key={season.id} value={season.name}>{season.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                 Team
               </label>
               <select
@@ -304,10 +341,17 @@ export default function PlayersAdmin() {
                 className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
               >
                 <option value="">Select team...</option>
-                {teams.map((team) => (
-                  <option key={team.id} value={team.id}>{team.name}</option>
+                {filteredTeams.map((team) => (
+                  <option key={team.id} value={team.id}>
+                    {team.name} {team.seasons?.length > 0 && `(${team.seasons.join(', ')})`}
+                  </option>
                 ))}
               </select>
+              {seasonFilter && (
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Showing teams from {seasonFilter}
+                </p>
+              )}
             </div>
 
             <div>
@@ -493,6 +537,21 @@ export default function PlayersAdmin() {
             placeholder="Search players by Minecraft or Discord username..."
             className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
           />
+        </div>
+        <div className="sm:w-48">
+          <select
+            value={seasonFilter}
+            onChange={(e) => {
+              setSeasonFilter(e.target.value);
+              setTeamId(''); // Reset team selection when season changes
+            }}
+            className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
+          >
+            <option value="">All Seasons</option>
+            {seasons.map((season) => (
+              <option key={season.id} value={season.name}>{season.name}</option>
+            ))}
+          </select>
         </div>
         <div className="sm:w-64">
           <select
