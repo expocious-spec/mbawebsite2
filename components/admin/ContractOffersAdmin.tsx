@@ -179,10 +179,20 @@ export default function ContractOffersAdmin() {
     if (selectedTeam) {
       const team = teams.find(t => t.id === selectedTeam);
       if (team && team.owner) {
-        // Find the owner player ID from their display name
-        const ownerPlayer = players.find(p => p.displayName === team.owner);
+        // Find the owner player ID - try multiple matching strategies
+        const ownerName = team.owner.toLowerCase();
+        const ownerPlayer = players.find(p => 
+          p.displayName?.toLowerCase() === ownerName ||
+          p.username?.toLowerCase() === ownerName ||
+          p.minecraftUsername?.toLowerCase() === ownerName ||
+          p.discordUsername?.toLowerCase() === ownerName
+        );
         if (ownerPlayer) {
           setSelectedOwner(ownerPlayer.id);
+        } else {
+          // Clear owner selection if not found
+          setSelectedOwner('');
+          console.warn(`Could not find owner player for team ${team.name} with owner name: ${team.owner}`);
         }
       }
     }
@@ -234,7 +244,7 @@ export default function ContractOffersAdmin() {
     }
 
     if (!selectedOwner) {
-      alert('Franchise owner not found for the selected team. Please select a different team.');
+      alert('Please select a franchise owner from the dropdown menu.');
       return;
     }
 
@@ -640,6 +650,32 @@ export default function ContractOffersAdmin() {
                 }).length !== 1 ? 's' : ''} found
               </p>
             </div>
+
+            {/* Franchise Owner Selection - Manual Override */}
+            {selectedTeam && (
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Franchise Owner * {selectedOwner && <span className="text-green-600 font-semibold">✓ Auto-selected</span>}
+                  {!selectedOwner && <span className="text-amber-600 text-xs ml-2">(Auto-select failed - please select manually)</span>}
+                </label>
+                <select
+                  value={selectedOwner}
+                  onChange={(e) => setSelectedOwner(e.target.value)}
+                  className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
+                  required
+                >
+                  <option value="">Select franchise owner...</option>
+                  {players.map((player) => (
+                    <option key={player.id} value={player.id}>
+                      {player.displayName} (@{player.minecraftUsername})
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  This should match the team owner. If not auto-selected correctly, choose manually.
+                </p>
+              </div>
+            )}
 
             {/* Salary Cap Info */}
             {selectedTeam && (
