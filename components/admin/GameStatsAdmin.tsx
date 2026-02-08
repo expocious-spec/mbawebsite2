@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { TrendingUp, Plus, X, Search, Edit2, Trash2 } from 'lucide-react';
+import { TrendingUp, Plus, X, Search, Edit2, Trash2, Upload } from 'lucide-react';
+import BulkGameStatsModal from './BulkGameStatsModal';
 
 export default function GameStatsAdmin() {
   const [players, setPlayers] = useState<any[]>([]);
@@ -9,6 +10,7 @@ export default function GameStatsAdmin() {
   const [games, setGames] = useState<any[]>([]);
   const [gameStats, setGameStats] = useState<any[]>([]);
   const [showForm, setShowForm] = useState(false);
+  const [showBulkImport, setShowBulkImport] = useState(false);
   const [editingStatId, setEditingStatId] = useState<string | null>(null);
   const [playerSearch, setPlayerSearch] = useState('');
   const [selectedGameFilter, setSelectedGameFilter] = useState('');
@@ -315,6 +317,26 @@ export default function GameStatsAdmin() {
     return acc;
   }, {} as Record<string, any[]>);
 
+  const handleBulkSave = async (allStats: any[]) => {
+    for (const stat of allStats) {
+      try {
+        const response = await fetch('/api/players/game-stats', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(stat),
+        });
+        if (!response.ok) {
+          console.error('Failed to save stat for player:', stat.playerId);
+        }
+      } catch (error) {
+        console.error('Error saving bulk stats:', error);
+      }
+    }
+    setShowBulkImport(false);
+    fetchGameStats();
+    alert(`Successfully imported ${allStats.length} player stats!`);
+  };
+
   return (
     <div className="admin-page bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
       <div className="flex items-center justify-between mb-6">
@@ -322,14 +344,31 @@ export default function GameStatsAdmin() {
           <TrendingUp className="w-6 h-6 mr-2 text-mba-blue" />
           Game Stats
         </h2>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="px-4 py-2 bg-mba-blue hover:bg-blue-600 text-white rounded-lg font-medium transition-colors flex items-center space-x-2"
-        >
-          {showForm ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-          <span>{showForm ? 'Cancel' : 'Add Game Stats'}</span>
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={() => setShowBulkImport(true)}
+            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors flex items-center space-x-2"
+          >
+            <Upload className="w-4 h-4" />
+            <span>Bulk Import</span>
+          </button>
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className="px-4 py-2 bg-mba-blue hover:bg-blue-600 text-white rounded-lg font-medium transition-colors flex items-center space-x-2"
+          >
+            {showForm ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+            <span>{showForm ? 'Cancel' : 'Add Game Stats'}</span>
+          </button>
+        </div>
       </div>
+
+      {/* Bulk Import Modal */}
+      {showBulkImport && (
+        <BulkGameStatsModal
+          onClose={() => setShowBulkImport(false)}
+          onSave={handleBulkSave}
+        />
+      )}
 
       {showForm && (
         <form onSubmit={handleSubmit} className="space-y-6 mb-6 p-6 bg-gray-50 dark:bg-gray-900 rounded-lg">
