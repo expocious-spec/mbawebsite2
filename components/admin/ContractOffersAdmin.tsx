@@ -373,7 +373,6 @@ export default function ContractOffersAdmin() {
       {showCreateForm && (
         <form onSubmit={handleCreateOffer} className="space-y-6 p-6 bg-gray-50 dark:bg-gray-900 rounded-lg">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Player Selection with Search */}
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
