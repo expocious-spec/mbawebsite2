@@ -25,6 +25,7 @@ interface ParsedPlayerStat {
 
 export default function BulkGameStatsModal({ onClose, onSave }: BulkGameStatsModalProps) {
   const [games, setGames] = useState<any[]>([]);
+  const [teams, setTeams] = useState<any[]>([]);
   const [players, setPlayers] = useState<any[]>([]);
   const [selectedGameId, setSelectedGameId] = useState('');
   const [date, setDate] = useState('');
@@ -35,6 +36,7 @@ export default function BulkGameStatsModal({ onClose, onSave }: BulkGameStatsMod
 
   useEffect(() => {
     fetchGames();
+    fetchTeams();
     fetchPlayers();
   }, []);
 
@@ -45,6 +47,16 @@ export default function BulkGameStatsModal({ onClose, onSave }: BulkGameStatsMod
       setGames(data);
     } catch (error) {
       console.error('Failed to fetch games:', error);
+    }
+  };
+
+  const fetchTeams = async () => {
+    try {
+      const response = await fetch('/api/teams');
+      const data = await response.json();
+      setTeams(data);
+    } catch (error) {
+      console.error('Failed to fetch teams:', error);
     }
   };
 
@@ -212,11 +224,16 @@ export default function BulkGameStatsModal({ onClose, onSave }: BulkGameStatsMod
                 className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
               >
                 <option value="">Manual Entry</option>
-                {games.map(game => (
-                  <option key={game.id} value={game.id}>
-                    {new Date(game.scheduledDate).toLocaleDateString()} - {game.status}
-                  </option>
-                ))}
+                {games.map(game => {
+                  const homeTeam = teams.find(t => t.id === game.homeTeamId);
+                  const awayTeam = teams.find(t => t.id === game.awayTeamId);
+                  const matchup = homeTeam && awayTeam ? `${awayTeam.name} @ ${homeTeam.name}` : 'TBD';
+                  return (
+                    <option key={game.id} value={game.id}>
+                      {new Date(game.scheduledDate).toLocaleDateString()} - {matchup} ({game.status})
+                    </option>
+                  );
+                })}
               </select>
             </div>
 
