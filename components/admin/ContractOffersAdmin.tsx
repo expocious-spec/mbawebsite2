@@ -578,9 +578,9 @@ export default function ContractOffersAdmin() {
 
             {/* Season Selection with Search */}
             <div className="md:col-span-1">
-              <label className="block text-sm font-medium text-gray-700 dar font-semibold">✓ Selected</span>}
-                {!selectedSeason && <span className="text-red-600 text-xs ml-2">(Click a season below)300 mb-2">
-                Season * {selectedSeason && <span className="text-green-600">✓ Selected</span>}
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Season * {selectedSeason && <span className="text-green-600 font-semibold">✓ Selected</span>}
+                {!selectedSeason && <span className="text-red-600 text-xs ml-2">(Click a season below)</span>}
               </label>
               <div className="relative mb-2">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
