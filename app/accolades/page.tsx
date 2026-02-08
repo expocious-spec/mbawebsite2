@@ -4,8 +4,27 @@ import { Award, Filter, User } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
+interface Accolade {
+  id: number;
+  seasonId?: number;
+  title: string;
+  description?: string;
+  color: string;
+  icon?: string;
+}
+
+interface AccoladeWithPlayers extends Accolade {
+  players: Array<{
+    id: string;
+    minecraftUsername: string;
+    minecraftUserId: string;
+    displayName?: string;
+    awardedDate: string;
+  }>;
+}
+
 export default function AccoladesPage() {
-  const [accolades, setAccolades] = useState<any[]>([]);
+  const [accolades, setAccolades] = useState<AccoladeWithPlayers[]>([]);
   const [seasons, setSeasons] = useState<any[]>([]);
   const [players, setPlayers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,7 +51,26 @@ export default function AccoladesPage() {
           playersRes.json()
         ]);
 
-        setAccolades(accoladesData);
+        // Fetch assignments for each accolade
+        const accoladesWithPlayers = await Promise.all(
+          accoladesData.map(async (accolade: Accolade) => {
+            const assignmentsRes = await fetch(`/api/accolades/${accolade.id}`);
+            const assignments = assignmentsRes.ok ? await assignmentsRes.json() : [];
+            
+            return {
+              ...accolade,
+              players: assignments.map((assignment: any) => ({
+                id: assignment.playerId,
+                minecraftUsername: assignment.minecraftUsername,
+                minecraftUserId: assignment.minecraftUserId,
+                displayName: playersData.find((p: any) => p.id === assignment.playerId)?.displayName,
+                awardedDate: assignment.awardedDate,
+              })),
+            };
+          })
+        );
+
+        setAccolades(accoladesWithPlayers);
         setSeasons(seasonsData);
         setPlayers(playersData);
 
@@ -52,7 +90,6 @@ export default function AccoladesPage() {
   const toggleSeason = (seasonId: string) => {
     setSelectedSeasons(prev => {
       if (prev.includes(seasonId)) {
-        // Allow deselecting to show all seasons
         return prev.filter(id => id !== seasonId);
       } else {
         return [...prev, seasonId];
@@ -60,17 +97,11 @@ export default function AccoladesPage() {
     });
   };
 
-  const getPlayerForAccolade = (playerId: string) => {
-    return players.find(p => p.id === playerId);
-  };
-
-  const getSeasonForAccolade = (seasonId: number | null) => {
-    if (!seasonId) return null;
-    return seasons.find(s => s.id === seasonId);
-  };
-
   // Filter accolades by selected seasons and search query
   const filteredAccolades = accolades.filter(accolade => {
+    // Skip accolades with no players
+    if (accolade.players.length === 0) return false;
+
     // If seasons are selected, filter by them
     if (selectedSeasons.length > 0) {
       if (!accolade.seasonId || !selectedSeasons.includes(accolade.seasonId.toString())) {
@@ -80,14 +111,16 @@ export default function AccoladesPage() {
 
     // Filter by search query
     if (searchQuery) {
-      const player = getPlayerForAccolade(accolade.playerId);
-      const season = getSeasonForAccolade(accolade.seasonId);
       const searchLower = searchQuery.toLowerCase();
+      const season = seasons.find(s => s.id === accolade.seasonId);
       
       return (
         accolade.title.toLowerCase().includes(searchLower) ||
         (accolade.description || '').toLowerCase().includes(searchLower) ||
-        (player?.displayName || '').toLowerCase().includes(searchLower) ||
+        accolade.players.some(p => 
+          (p.displayName || '').toLowerCase().includes(searchLower) ||
+          p.minecraftUsername.toLowerCase().includes(searchLower)
+        ) ||
         (season?.name || '').toLowerCase().includes(searchLower)
       );
     }
@@ -96,7 +129,7 @@ export default function AccoladesPage() {
   });
 
   // Group accolades by season
-  const accoladesBySeason = filteredAccolades.reduce((acc: any, accolade: any) => {
+  const accoladesBySeason = filteredAccolades.reduce((acc: any, accolade: AccoladeWithPlayers) => {
     const seasonId = accolade.seasonId || 'no-season';
     if (!acc[seasonId]) {
       acc[seasonId] = [];
@@ -222,7 +255,7 @@ export default function AccoladesPage() {
       ) : (
         <div className="space-y-8">
           {sortedSeasonIds.map(seasonId => {
-            const season = seasonId === 'no-season' ? null : getSeasonForAccolade(Number(seasonId));
+            const season = seasonId === 'no-season' ? null : seasons.find(s => s.id === Number(seasonId));
             const seasonAccolades = accoladesBySeason[seasonId];
 
             return (
@@ -236,50 +269,48 @@ export default function AccoladesPage() {
                   )}
                 </h2>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {seasonAccolades.map((accolade: any) => {
-                    const player = getPlayerForAccolade(accolade.playerId);
-                    
-                    return (
-                      <Link
-                        key={accolade.id}
-                        href={`/players/${accolade.playerId}`}
-                        className="flex items-center space-x-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:shadow-md transition-shadow"
-                      >
-                        {/* Player Avatar */}
-                        <div className="w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center overflow-hidden flex-shrink-0">
-                          {player?.profilePicture ? (
-                            <img
-                              src={player.profilePicture}
-                              alt={player.displayName}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <User className="w-6 h-6 text-gray-400" />
-                          )}
+                <div className="space-y-6">
+                  {seasonAccolades.map((accolade: AccoladeWithPlayers) => (
+                    <div key={accolade.id} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                      {/* Accolade Header */}
+                      <div className="mb-4">
+                        <div
+                          className="inline-flex items-center space-x-2 px-4 py-2 rounded-lg text-lg font-semibold text-white"
+                          style={{ backgroundColor: accolade.color || '#FFD700' }}
+                        >
+                          {accolade.icon && <span className="text-xl">{accolade.icon}</span>}
+                          <span>{accolade.title}</span>
                         </div>
+                        {accolade.description && (
+                          <p className="text-gray-600 dark:text-gray-400 mt-2 text-sm">
+                            {accolade.description}
+                          </p>
+                        )}
+                      </div>
 
-                        {/* Accolade Info */}
-                        <div className="flex-1 min-w-0">
-                          <div className="font-semibold text-gray-900 dark:text-white truncate">
-                            {player?.displayName || 'Unknown Player'}
-                          </div>
-                          <div
-                            className="inline-flex items-center space-x-1 px-2 py-1 rounded text-sm font-medium text-white mt-1"
-                            style={{ backgroundColor: accolade.color || '#FFD700' }}
+                      {/* Players Grid */}
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                        {accolade.players.map((player) => (
+                          <Link
+                            key={`${accolade.id}-${player.id}`}
+                            href={`/players/${player.id}`}
+                            className="flex items-center space-x-3 p-3 bg-white dark:bg-gray-800 rounded-lg hover:shadow-md transition-all border border-gray-200 dark:border-gray-600"
                           >
-                            {accolade.icon && <span>{accolade.icon}</span>}
-                            <span>{accolade.title}</span>
-                          </div>
-                          {accolade.description && (
-                            <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
-                              {accolade.description}
-                            </p>
-                          )}
-                        </div>
-                      </Link>
-                    );
-                  })}
+                            <img
+                              src={`https://mc-heads.net/avatar/${player.minecraftUserId}/32`}
+                              alt={player.minecraftUsername}
+                              className="w-8 h-8 rounded flex-shrink-0"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium text-gray-900 dark:text-white truncate text-sm">
+                                {player.displayName || player.minecraftUsername}
+                              </div>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             );
