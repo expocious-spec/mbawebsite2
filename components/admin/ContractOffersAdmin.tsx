@@ -169,15 +169,19 @@ export default function ContractOffersAdmin() {
     }
   }, [selectedPlayer, players]);
 
-  // Auto-select team when owner is selected
+  // Auto-select owner when team is selected
   useEffect(() => {
-    if (selectedOwner) {
-      const owner = franchiseOwners.find(o => o.id === selectedOwner);
-      if (owner) {
-        setSelectedTeam(owner.teamId);
+    if (selectedTeam) {
+      const team = teams.find(t => t.id === selectedTeam);
+      if (team && team.owner) {
+        // Find the owner player ID from their display name
+        const ownerPlayer = players.find(p => p.displayName === team.owner);
+        if (ownerPlayer) {
+          setSelectedOwner(ownerPlayer.id);
+        }
       }
     }
-  }, [selectedOwner, franchiseOwners]);
+  }, [selectedTeam, teams, players]);
 
   // Calculate team salary cap usage when team is selected
   useEffect(() => {
@@ -452,44 +456,31 @@ export default function ContractOffersAdmin() {
                 </select>
               </div>
 
-              {/* Franchise Owner Selection */}
+              {/* Team Selection */}
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Franchise Owner *
+                  Team *
                 </label>
                 <select
-                  value={selectedOwner}
-                  onChange={(e) => setSelectedOwner(e.target.value)}
+                  value={selectedTeam}
+                  onChange={(e) => setSelectedTeam(e.target.value)}
                   required
                   className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-cyan-500"
                 >
-                  <option value="">Select franchise owner...</option>
-                  {franchiseOwners.map(owner => (
-                    <option key={owner.id} value={owner.id}>
-                      {owner.name} - {owner.teamName}
+                  <option value="">Select team...</option>
+                  {teams.map(team => (
+                    <option key={team.id} value={team.id}>
+                      {team.name} {team.owner ? `(${team.owner})` : ''}
                     </option>
                   ))}
                 </select>
               </div>
 
-              {/* Team (Auto-selected) */}
+              {/* Salary Cap Info */}
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Team & Salary Cap
+                  Team Salary Cap
                 </label>
-                <select
-                  value={selectedTeam}
-                  onChange={(e) => setSelectedTeam(e.target.value)}
-                  disabled
-                  className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-gray-400 cursor-not-allowed"
-                >
-                  <option value="">Auto-selected from owner</option>
-                  {teams.map(team => (
-                    <option key={team.id} value={team.id}>
-                      {team.name}
-                    </option>
-                  ))}
-                </select>
                 {selectedTeam && (
                   <div className="mt-2 p-3 bg-slate-800/50 rounded-lg border border-slate-700">
                     <div className="flex justify-between text-sm mb-1">
@@ -522,7 +513,7 @@ export default function ContractOffersAdmin() {
                     value={contractPrice}
                     onChange={(e) => setContractPrice(parseInt(e.target.value) || minContractPrice)}
                     min={minContractPrice}
-                    step="100"
+                    step="250"
                     required
                     className="w-full pl-10 pr-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-cyan-500"
                   />

@@ -794,10 +794,24 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     {/* Team & Coach Info */}
                     <div className="flex items-center gap-4 flex-1">
-                      <div
-                        className="w-12 h-12 rounded-full flex-shrink-0"
-                        style={{ backgroundColor: offer.team.primaryColor }}
-                      />
+                      <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700 flex-shrink-0">
+                        {offer.team.logo ? (
+                          <Image
+                            src={offer.team.logo}
+                            alt={offer.team.name}
+                            width={48}
+                            height={48}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div
+                            className="w-full h-full flex items-center justify-center text-white font-bold"
+                            style={{ backgroundColor: offer.team.primaryColor }}
+                          >
+                            {offer.team.name.charAt(0)}
+                          </div>
+                        )}
+                      </div>
                       <div>
                         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                           {offer.team.name}
