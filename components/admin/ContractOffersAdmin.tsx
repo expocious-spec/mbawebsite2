@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { Send, Search, Users, DollarSign, Calendar, CheckCircle2, Clock, Edit2, Trash2, X, Plus } from 'lucide-react';
+import Image from 'next/image';
+import { getMinecraftHeadshot } from '@/lib/minecraft';
 
 interface ContractOffer {
   id: number;
@@ -19,6 +21,7 @@ interface ContractOffer {
     avatarUrl?: string;
     discordUsername?: string;
     coinWorth?: number;
+    minecraftUserId?: string;
   };
   team: {
     id: string;
@@ -696,29 +699,49 @@ export default function ContractOffersAdmin() {
               <div className="flex items-start justify-between gap-4">
                 {/* Player Info */}
                 <div className="flex items-center gap-4 flex-1">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center text-white font-bold">
-                    {offer.player.username.charAt(0).toUpperCase()}
+                  <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700 flex-shrink-0">
+                    <Image
+                      src={getMinecraftHeadshot(offer.player.minecraftUserId, 128)}
+                      alt={offer.player.username}
+                      width={48}
+                      height={48}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-white">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                       {offer.player.username}
                     </h3>
                     {offer.player.discordUsername && (
-                      <p className="text-sm text-gray-400">@{offer.player.discordUsername}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">@{offer.player.discordUsername}</p>
                     )}
                   </div>
                 </div>
 
                 {/* Team & Owner Info */}
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div
-                      className="w-8 h-8 rounded-full"
-                      style={{ backgroundColor: offer.team.primaryColor }}
-                    />
-                    <span className="text-white font-medium">{offer.team.name}</span>
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700 flex-shrink-0">
+                      {offer.team.logo ? (
+                        <Image
+                          src={offer.team.logo}
+                          alt={offer.team.name}
+                          width={40}
+                          height={40}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div
+                          className="w-full h-full flex items-center justify-center text-white font-bold text-sm"
+                          style={{ backgroundColor: offer.team.primaryColor }}
+                        >
+                          {offer.team.name.charAt(0)}
+                        </div>
+                      )}
+                    </div>
+                    <span className="text-gray-900 dark:text-white font-medium">{offer.team.name}</span>
                   </div>
-                  <p className="text-sm text-gray-400">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
                     Coach: {offer.franchiseOwner.username}
                   </p>
                 </div>
@@ -726,38 +749,38 @@ export default function ContractOffersAdmin() {
                 {/* Contract Price */}
                 <div className="text-right">
                   <div className="flex items-center gap-2 justify-end mb-1">
-                    <DollarSign className="w-5 h-5 text-green-400" />
-                    <span className="text-2xl font-bold text-green-400">
+                    <DollarSign className="w-5 h-5 text-green-600 dark:text-green-400" />
+                    <span className="text-2xl font-bold text-green-600 dark:text-green-400">
                       {offer.contractPrice.toLocaleString()}
                     </span>
                   </div>
-                  <p className="text-xs text-gray-500">coins</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">coins</p>
                 </div>
 
                 {/* Time & Status */}
                 <div className="text-right min-w-[140px]">
                   <div className="flex items-center gap-2 justify-end mb-2">
-                    <Calendar className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm text-gray-400">{getTimeAgo(offer.createdAt)}</span>
+                    <Calendar className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                    <span className="text-sm text-gray-600 dark:text-gray-400">{getTimeAgo(offer.createdAt)}</span>
                   </div>
                   {offer.status === 'pending' && (
                     canAcceptOffer(offer.createdAt) ? (
-                      <div className="flex items-center gap-1 text-green-400 text-sm">
+                      <div className="flex items-center gap-1 text-green-600 dark:text-green-400 text-sm">
                         <CheckCircle2 className="w-4 h-4" />
                         <span>Can Accept</span>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-1 text-yellow-400 text-sm">
+                      <div className="flex items-center gap-1 text-yellow-600 dark:text-yellow-400 text-sm">
                         <Clock className="w-4 h-4" />
                         <span>Waiting Period</span>
                       </div>
                     )
                   )}
                   {offer.status === 'accepted' && (
-                    <div className="text-green-400 text-sm font-medium">✓ Accepted</div>
+                    <div className="text-green-600 dark:text-green-400 text-sm font-medium">✓ Accepted</div>
                   )}
                   {offer.status === 'rejected' && (
-                    <div className="text-red-400 text-sm font-medium">✗ Rejected</div>
+                    <div className="text-red-600 dark:text-red-400 text-sm font-medium">✗ Rejected</div>
                   )}
                 </div>
 
@@ -765,14 +788,14 @@ export default function ContractOffersAdmin() {
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleEditOffer(offer)}
-                    className="p-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 rounded-lg transition-colors"
+                    className="p-2 bg-blue-100 dark:bg-blue-500/20 hover:bg-blue-200 dark:hover:bg-blue-500/30 text-blue-600 dark:text-blue-400 rounded-lg transition-colors"
                     title="Edit offer"
                   >
                     <Edit2 className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => handleDeleteOffer(offer.id)}
-                    className="p-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg transition-colors"
+                    className="p-2 bg-red-100 dark:bg-red-500/20 hover:bg-red-200 dark:hover:bg-red-500/30 text-red-600 dark:text-red-400 rounded-lg transition-colors"
                     title="Delete offer"
                   >
                     <Trash2 className="w-4 h-4" />
