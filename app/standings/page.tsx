@@ -104,7 +104,19 @@ export default function StandingsPage() {
 
   // Calculate standings for each team
   const calculateStandings = (conferenceFilter?: 'Western' | 'Eastern', seasonFilter?: string[], recordTypeFilter?: RecordType): TeamStanding[] => {
-    return teams.map(team => {
+    // Filter teams based on selected seasons
+    let filteredTeams = teams;
+    if (seasonFilter && seasonFilter.length > 0) {
+      const isAllTime = seasonFilter.includes('All-Time');
+      if (!isAllTime) {
+        // Only show teams that have at least one of the selected seasons
+        filteredTeams = teams.filter(team => 
+          team.seasons?.some((s: string) => seasonFilter.includes(s))
+        );
+      }
+    }
+
+    return filteredTeams.map(team => {
       // Get all completed games for this team
       let teamGames = games.filter(
         g => (g.homeTeamId === team.id || g.awayTeamId === team.id) && g.status === 'completed'
