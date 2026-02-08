@@ -30,13 +30,16 @@ export async function GET(
       return NextResponse.json([]);
     }
 
-    const formatted = data?.map(assignment => ({
-      id: assignment.id,
-      playerId: assignment.player_id,
-      minecraftUserId: assignment.player.minecraft_user_id,
-      minecraftUsername: assignment.player.minecraft_username,
-      awardedDate: assignment.awarded_date,
-    })) || [];
+    const formatted = data?.map((assignment: any) => {
+      const player = Array.isArray(assignment.player) ? assignment.player[0] : assignment.player;
+      return {
+        id: assignment.id,
+        playerId: assignment.player_id,
+        minecraftUserId: player?.minecraft_user_id || '',
+        minecraftUsername: player?.minecraft_username || '',
+        awardedDate: assignment.awarded_date,
+      };
+    }) || [];
 
     return NextResponse.json(formatted);
   } catch (error) {
