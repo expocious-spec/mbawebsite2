@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Send, Search, Users, DollarSign, Calendar, CheckCircle2, Clock } from 'lucide-react';
+import { Send, Search, Users, DollarSign, Calendar, CheckCircle2, Clock, Edit2, Trash2, X } from 'lucide-react';
 
 interface ContractOffer {
   id: number;
@@ -43,6 +43,8 @@ export default function ContractOffersAdmin() {
   const [franchiseOwners, setFranchiseOwners] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [editingOffer, setEditingOffer] = useState<ContractOffer | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [playerSearch, setPlayerSearch] = useState('');
 
@@ -242,10 +244,69 @@ export default function ContractOffersAdmin() {
     setPlayerSearch('');
     setTeamSalaryCap(19000);
     setTeamCurrentSpend(0);
+    setEditingOffer(null);
     // Re-select current season
     const currentSeason = seasons.find((s: any) => s.isCurrent);
     if (currentSeason) {
       setSelectedSeason(currentSeason.id.toString());
+    }
+  };
+
+  const handleEditOffer = (offer: ContractOffer) => {
+    setEditingOffer(offer);
+    setContractPrice(offer.contractPrice);
+    setShowEditForm(true);
+  };
+
+  const handleUpdateOffer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingOffer) return;
+
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/contract-offers/${editingOffer.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contractPrice: contractPrice,
+          status: editingOffer.status,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update offer');
+      }
+
+      alert('Contract offer updated successfully!');
+      setShowEditForm(false);
+      resetForm();
+      fetchOffers();
+    } catch (error: any) {
+      alert(error.message || 'Failed to update contract offer');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteOffer = async (offerId: number) => {
+    if (!confirm('Are you sure you want to delete this contract offer?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/contract-offers/${offerId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete offer');
+      }
+
+      alert('Contract offer deleted successfully!');
+      fetchOffers();
+    } catch (error: any) {
+      alert(error.message || 'Failed to delete contract offer');
     }
   };
 
@@ -588,11 +649,125 @@ export default function ContractOffersAdmin() {
                     <div className="text-red-400 text-sm font-medium">✗ Rejected</div>
                   )}
                 </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleEditOffer(offer)}
+                    className="p-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 rounded-lg transition-colors"
+                    title="Edit offer"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteOffer(offer.id)}
+                    className="p-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg transition-colors"
+                    title="Delete offer"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             </div>
           ))
         )}
       </div>
+
+      {/* Edit Offer Modal */}
+      {showEditForm && editingOffer && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+          <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-xl p-6 max-w-md w-full border border-cyan-500/20">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-white">Edit Contract Offer</h3>
+              <button
+                onClick={() => {
+                  setShowEditForm(false);
+                  resetForm();
+                }}
+                className="p-1 hover:bg-slate-700 rounded transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-400" />
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdateOffer} className="space-y-4">
+              {/* Player Info (read-only) */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Player</label>
+                <div className="px-3 py-2 bg-slate-800/50 border border-slate-700 rounded-lg text-gray-400">
+                  {editingOffer.player.username}
+                </div>
+              </div>
+
+              {/* Team Info (read-only) */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Team</label>
+                <div className="px-3 py-2 bg-slate-800/50 border border-slate-700 rounded-lg text-gray-400">
+                  {editingOffer.team.name}
+                </div>
+              </div>
+
+              {/* Contract Price */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Contract Price *
+                </label>
+                <div className="relative">
+                  <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    type="number"
+                    value={contractPrice}
+                    onChange={(e) => setContractPrice(parseInt(e.target.value) || 0)}
+                    min={editingOffer.player.coinWorth || 1000}
+                    step="100"
+                    required
+                    className="w-full pl-10 pr-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-cyan-500"
+                  />
+                </div>
+                <p className="text-xs text-gray-400 mt-1">
+                  Minimum: {(editingOffer.player.coinWorth || 1000).toLocaleString()} coins
+                </p>
+              </div>
+
+              {/* Status */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Status</label>
+                <select
+                  value={editingOffer.status}
+                  onChange={(e) => setEditingOffer({ ...editingOffer, status: e.target.value })}
+                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-cyan-500"
+                >
+                  <option value="pending">Pending</option>
+                  <option value="accepted">Accepted</option>
+                  <option value="rejected">Rejected</option>
+                  <option value="expired">Expired</option>
+                </select>
+              </div>
+
+              {/* Buttons */}
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowEditForm(false);
+                    resetForm();
+                  }}
+                  className="flex-1 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="flex-1 px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white rounded-lg transition-all disabled:opacity-50"
+                >
+                  {loading ? 'Updating...' : 'Update Offer'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
