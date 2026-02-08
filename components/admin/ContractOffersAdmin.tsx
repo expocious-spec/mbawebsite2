@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Send, Search, Users, DollarSign, Calendar, CheckCircle2, Clock, Edit2, Trash2, X } from 'lucide-react';
+import { Send, Search, Users, DollarSign, Calendar, CheckCircle2, Clock, Edit2, Trash2, X, Plus } from 'lucide-react';
 
 interface ContractOffer {
   id: number;
@@ -47,6 +47,8 @@ export default function ContractOffersAdmin() {
   const [editingOffer, setEditingOffer] = useState<ContractOffer | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [playerSearch, setPlayerSearch] = useState('');
+  const [teamSearch, setTeamSearch] = useState('');
+  const [seasonSearch, setSeasonSearch] = useState('');
 
   // Form state
   const [selectedPlayer, setSelectedPlayer] = useState('');
@@ -246,6 +248,8 @@ export default function ContractOffersAdmin() {
     setContractPrice(1000);
     setMinContractPrice(1000);
     setPlayerSearch('');
+    setTeamSearch('');
+    setSeasonSearch('');
     setTeamSalaryCap(19000);
     setTeamCurrentSpend(0);
     setEditingOffer(null);
@@ -353,211 +357,281 @@ export default function ContractOffersAdmin() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-white">Contract Offers</h2>
-          <p className="text-gray-400 mt-1">Manage contract offers from franchise owners to players</p>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Contract Offers</h2>
+          <p className="text-gray-500 dark:text-gray-400 mt-1">Manage contract offers from franchise owners to players</p>
         </div>
         <button
-          onClick={() => setShowCreateForm(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white rounded-lg transition-all"
+          onClick={() => setShowCreateForm(!showCreateForm)}
+          className="px-4 py-2 bg-mba-blue hover:bg-blue-600 text-white rounded-lg font-medium transition-colors flex items-center space-x-2"
         >
-          <Send className="w-4 h-4" />
-          Send Offer
+          {showCreateForm ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+          <span>{showCreateForm ? 'Cancel' : 'Send Offer'}</span>
         </button>
       </div>
 
       {/* Create Offer Form */}
       {showCreateForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-6 flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Send Contract Offer</h2>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowCreateForm(false);
-                  resetForm();
-                }}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-              >
-                <X className="w-6 h-6 text-gray-500" />
-              </button>
-            </div>
-            
-            <form onSubmit={handleCreateOffer} className="p-6 space-y-4">
-              {/* Player Selection with Search */}
-              <div>
-                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
-                  Player * {selectedPlayer && (
-                    <span className="ml-2 text-blue-500 dark:text-cyan-400 font-bold">
-                      ✓ {players.find(p => p.id === selectedPlayer)?.displayName}
-                    </span>
-                  )}
-                </label>
+        <form onSubmit={handleCreateOffer} className="space-y-6 p-6 bg-gray-50 dark:bg-gray-900 rounded-lg">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Player Selection with Search */}
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Player * {selectedPlayer && <span className="text-green-600">✓ Selected</span>}
+              </label>
+              <div className="relative mb-2">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Search players..."
+                  placeholder="Search players by name or username..."
                   value={playerSearch}
                   onChange={(e) => setPlayerSearch(e.target.value)}
-                  className="w-full px-4 py-2 mb-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
+                  className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
                 />
-                <select
-                  value={selectedPlayer}
-                  onChange={(e) => setSelectedPlayer(e.target.value)}
-                  required
-                  size={8}
-                  className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white player-select"
-                  style={{
-                    scrollbarWidth: 'thin',
-                    scrollbarColor: '#3b82f6 #e5e7eb'
-                  }}
-                >
-                  <option value="" disabled>Select a player...</option>
-                  {players
-                    .filter(player => {
-                      const search = playerSearch.toLowerCase();
-                      return !search || 
-                        player.displayName.toLowerCase().includes(search) ||
-                        player.minecraftUsername.toLowerCase().includes(search) ||
-                        player.discordUsername?.toLowerCase().includes(search);
-                    })
-                    .map(player => (
-                      <option 
-                        key={player.id} 
-                        value={player.id}
-                        className={selectedPlayer === player.id ? 'bg-blue-500 font-bold' : 'hover:bg-gray-100 dark:hover:bg-gray-700'}
-                      >
-                        {player.displayName} {player.discordUsername ? `(@${player.discordUsername})` : ''} 
-                        {player.coinWorth ? ` - ${player.coinWorth.toLocaleString()} coins` : ''}
-                      </option>
-                    ))}
-                </select>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  {players.filter(p => {
+              </div>
+              <div className="max-h-48 overflow-y-auto border border-gray-300 dark:border-gray-600 rounded-lg">
+                {(() => {
+                  const filteredPlayers = players.filter(player => {
                     const search = playerSearch.toLowerCase();
                     return !search || 
-                      p.displayName.toLowerCase().includes(search) ||
-                      p.minecraftUsername.toLowerCase().includes(search) ||
-                      p.discordUsername?.toLowerCase().includes(search);
-                  }).length} players shown
-                </p>
-                <style jsx>{`
-                  .player-select option:checked {
-                    background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%) !important;
-                    font-weight: bold !important;
+                      player.displayName.toLowerCase().includes(search) ||
+                      player.minecraftUsername.toLowerCase().includes(search) ||
+                      player.discordUsername?.toLowerCase().includes(search);
+                  });
+
+                  if (filteredPlayers.length === 0) {
+                    return <div className="p-4 text-center text-gray-500 dark:text-gray-400">No players found</div>;
                   }
-                `}</style>
-              </div>
 
-              {/* Season Selection */}
-              <div>
-                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
-                  Season *
-                </label>
-                <select
-                  value={selectedSeason}
-                  onChange={(e) => setSelectedSeason(e.target.value)}
-                  required
-                  className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
-                >
-                  <option value="">Select season...</option>
-                  {seasons.map(season => (
-                    <option key={season.id} value={season.id}>
-                      {season.name} {season.isCurrent ? '(Current)' : ''}
-                    </option>
-                  ))}
-                </select>
+                  return filteredPlayers.map((player) => (
+                    <button
+                      key={player.id}
+                      type="button"
+                      onClick={() => setSelectedPlayer(player.id)}
+                      className={`w-full px-4 py-3 text-left hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors border-b border-gray-200 dark:border-gray-700 last:border-b-0 ${
+                        selectedPlayer === player.id
+                          ? 'bg-mba-blue text-white hover:bg-blue-600'
+                          : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white'
+                      }`}
+                    >
+                      <div className="font-medium">{player.displayName}</div>
+                      <div className={`text-sm ${
+                        selectedPlayer === player.id
+                          ? 'text-blue-100'
+                          : 'text-gray-500 dark:text-gray-400'
+                      }`}>
+                        @{player.minecraftUsername} • {player.coinWorth ? `${player.coinWorth.toLocaleString()} coins` : 'No worth'}
+                      </div>
+                    </button>
+                  ));
+                })()}
               </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                {players.filter(p => {
+                  const search = playerSearch.toLowerCase();
+                  return !search || 
+                    p.displayName.toLowerCase().includes(search) ||
+                    p.minecraftUsername.toLowerCase().includes(search) ||
+                    p.discordUsername?.toLowerCase().includes(search);
+                }).length} player{players.filter(p => {
+                  const search = playerSearch.toLowerCase();
+                  return !search || 
+                    p.displayName.toLowerCase().includes(search) ||
+                    p.minecraftUsername.toLowerCase().includes(search) ||
+                    p.discordUsername?.toLowerCase().includes(search);
+                }).length !== 1 ? 's' : ''} found • Click to select
+              </p>
+            </div>
 
-              {/* Team Selection */}
-              <div>
-                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
-                  Team *
-                </label>
-                <select
-                  value={selectedTeam}
-                  onChange={(e) => setSelectedTeam(e.target.value)}
-                  required
-                  className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
-                >
-                  <option value="">Select team...</option>
-                  {teams.map(team => (
-                    <option key={team.id} value={team.id}>
-                      {team.name} {team.owner ? `(${team.owner})` : ''}
-                    </option>
-                  ))}
-                </select>
+            {/* Team Selection with Search */}
+            <div className="md:col-span-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Team * {selectedTeam && <span className="text-green-600">✓ Selected</span>}
+              </label>
+              <div className="relative mb-2">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search teams..."
+                  value={teamSearch}
+                  onChange={(e) => setTeamSearch(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
+                />
               </div>
+              <div className="max-h-48 overflow-y-auto border border-gray-300 dark:border-gray-600 rounded-lg">
+                {(() => {
+                  const filteredTeams = teams.filter(team => {
+                    const search = teamSearch.toLowerCase();
+                    return !search || 
+                      team.name.toLowerCase().includes(search) ||
+                      team.owner?.toLowerCase().includes(search);
+                  });
 
-              {/* Salary Cap Info */}
-              <div>
-                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                  if (filteredTeams.length === 0) {
+                    return <div className="p-4 text-center text-gray-500 dark:text-gray-400">No teams found</div>;
+                  }
+
+                  return filteredTeams.map((team) => (
+                    <button
+                      key={team.id}
+                      type="button"
+                      onClick={() => setSelectedTeam(team.id)}
+                      className={`w-full px-4 py-3 text-left hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors border-b border-gray-200 dark:border-gray-700 last:border-b-0 ${
+                        selectedTeam === team.id
+                          ? 'bg-mba-blue text-white hover:bg-blue-600'
+                          : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white'
+                      }`}
+                    >
+                      <div className="font-medium">{team.name}</div>
+                      {team.owner && (
+                        <div className={`text-sm ${
+                          selectedTeam === team.id
+                            ? 'text-blue-100'
+                            : 'text-gray-500 dark:text-gray-400'
+                        }`}>
+                          Owner: {team.owner}
+                        </div>
+                      )}
+                    </button>
+                  ));
+                })()}
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                {teams.filter(t => {
+                  const search = teamSearch.toLowerCase();
+                  return !search || 
+                    t.name.toLowerCase().includes(search) ||
+                    t.owner?.toLowerCase().includes(search);
+                }).length} team{teams.filter(t => {
+                  const search = teamSearch.toLowerCase();
+                  return !search || 
+                    t.name.toLowerCase().includes(search) ||
+                    t.owner?.toLowerCase().includes(search);
+                }).length !== 1 ? 's' : ''} found
+              </p>
+            </div>
+
+            {/* Season Selection with Search */}
+            <div className="md:col-span-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Season * {selectedSeason && <span className="text-green-600">✓ Selected</span>}
+              </label>
+              <div className="relative mb-2">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search seasons..."
+                  value={seasonSearch}
+                  onChange={(e) => setSeasonSearch(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
+                />
+              </div>
+              <div className="max-h-48 overflow-y-auto border border-gray-300 dark:border-gray-600 rounded-lg">
+                {(() => {
+                  const filteredSeasons = seasons.filter(season => {
+                    const search = seasonSearch.toLowerCase();
+                    return !search || season.name.toLowerCase().includes(search);
+                  });
+
+                  if (filteredSeasons.length === 0) {
+                    return <div className="p-4 text-center text-gray-500 dark:text-gray-400">No seasons found</div>;
+                  }
+
+                  return filteredSeasons.map((season) => (
+                    <button
+                      key={season.id}
+                      type="button"
+                      onClick={() => setSelectedSeason(season.id.toString())}
+                      className={`w-full px-4 py-3 text-left hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors border-b border-gray-200 dark:border-gray-700 last:border-b-0 ${
+                        selectedSeason === season.id.toString()
+                          ? 'bg-mba-blue text-white hover:bg-blue-600'
+                          : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white'
+                      }`}
+                    >
+                      <div className="font-medium">
+                        {season.name}
+                        {season.isCurrent && (
+                          <span className={`ml-2 text-xs px-2 py-0.5 rounded ${
+                            selectedSeason === season.id.toString()
+                              ? 'bg-green-500 text-white'
+                              : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                          }`}>
+                            Current
+                          </span>
+                        )}
+                      </div>
+                    </button>
+                  ));
+                })()}
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                {seasons.filter(s => {
+                  const search = seasonSearch.toLowerCase();
+                  return !search || s.name.toLowerCase().includes(search);
+                }).length} season{seasons.filter(s => {
+                  const search = seasonSearch.toLowerCase();
+                  return !search || s.name.toLowerCase().includes(search);
+                }).length !== 1 ? 's' : ''} found
+              </p>
+            </div>
+
+            {/* Salary Cap Info */}
+            {selectedTeam && (
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Team Salary Cap
                 </label>
-                {selectedTeam && (
-                  <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
-                    <div className="flex justify-between text-sm mb-2">
-                      <span className="text-gray-600 dark:text-gray-400">Team Salary Cap:</span>
-                      <span className="text-gray-900 dark:text-white font-semibold">{teamSalaryCap.toLocaleString()} coins</span>
-                    </div>
-                    <div className="flex justify-between text-sm mb-2">
-                      <span className="text-gray-600 dark:text-gray-400">Current Spend:</span>
-                      <span className="text-gray-900 dark:text-white font-semibold">{teamCurrentSpend.toLocaleString()} coins</span>
-                    </div>
-                    <div className="flex justify-between text-sm pt-2 border-t border-gray-300 dark:border-gray-600">
-                      <span className="text-gray-600 dark:text-gray-400">Available:</span>
-                      <span className={`font-bold ${(teamSalaryCap - teamCurrentSpend) >= contractPrice ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                        {(teamSalaryCap - teamCurrentSpend).toLocaleString()} coins
-                      </span>
-                    </div>
+                <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+                  <div className="flex justify-between text-sm mb-2">
+                    <span className="text-gray-600 dark:text-gray-400">Team Salary Cap:</span>
+                    <span className="text-gray-900 dark:text-white font-semibold">{teamSalaryCap.toLocaleString()} coins</span>
                   </div>
-                )}
-              </div>
-
-              {/* Contract Price */}
-              <div>
-                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
-                  Contract Price *
-                </label>
-                <div className="relative">
-                  <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 dark:text-gray-400" />
-                  <input
-                    type="number"
-                    value={contractPrice}
-                    onChange={(e) => setContractPrice(parseInt(e.target.value) || minContractPrice)}
-                    min={minContractPrice}
-                    step="250"
-                    required
-                    className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
-                  />
+                  <div className="flex justify-between text-sm mb-2">
+                    <span className="text-gray-600 dark:text-gray-400">Current Spend:</span>
+                    <span className="text-gray-900 dark:text-white font-semibold">{teamCurrentSpend.toLocaleString()} coins</span>
+                  </div>
+                  <div className="flex justify-between text-sm pt-2 border-t border-gray-300 dark:border-gray-600">
+                    <span className="text-gray-600 dark:text-gray-400">Available:</span>
+                    <span className={`font-bold ${(teamSalaryCap - teamCurrentSpend) >= contractPrice ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                      {(teamSalaryCap - teamCurrentSpend).toLocaleString()} coins
+                    </span>
+                  </div>
                 </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  Minimum: {minContractPrice.toLocaleString()} coins (player's current worth)
-                </p>
               </div>
+            )}
 
-              {/* Buttons */}
-              <div className="flex gap-3 pt-4">
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="flex-1 bg-mba-blue hover:bg-blue-600 text-white py-2.5 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-                >
-                  {loading ? 'Sending Offer...' : 'Send Contract Offer'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowCreateForm(false);
-                    resetForm();
-                  }}
-                  className="px-6 py-2.5 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white rounded-lg transition-all font-medium"
-                >
-                  Cancel
-                </button>
+            {/* Contract Price */}
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Contract Price *
+              </label>
+              <div className="relative">
+                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 dark:text-gray-400" />
+                <input
+                  type="number"
+                  value={contractPrice}
+                  onChange={(e) => setContractPrice(parseInt(e.target.value) || minContractPrice)}
+                  min={minContractPrice}
+                  step="250"
+                  required
+                  className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
+                />
               </div>
-            </form>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Minimum: {minContractPrice.toLocaleString()} coins (player's current worth) • Increment by 250
+              </p>
+            </div>
           </div>
-        </div>
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full px-6 py-3 bg-mba-blue hover:bg-blue-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? 'Sending Offer...' : 'Send Contract Offer'}
+          </button>
+        </form>
       )}
 
       {/* Search Bar */}
@@ -568,22 +642,22 @@ export default function ContractOffersAdmin() {
           placeholder="Search by player, team, or owner..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full pl-10 pr-4 py-2 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-cyan-500"
+          className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-mba-blue"
         />
       </div>
 
       {/* Offers List */}
       <div className="space-y-4">
         {filteredOffers.length === 0 ? (
-          <div className="text-center py-12 bg-slate-800/30 rounded-lg border border-slate-700">
-            <Send className="w-12 h-12 text-gray-500 mx-auto mb-3" />
-            <p className="text-gray-400">No contract offers found</p>
+          <div className="text-center py-12 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+            <Send className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+            <p className="text-gray-500 dark:text-gray-400">No contract offers found</p>
           </div>
         ) : (
           filteredOffers.map(offer => (
             <div
               key={offer.id}
-              className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 rounded-lg p-6 border border-slate-700 hover:border-cyan-500/30 transition-all"
+              className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700 hover:border-mba-blue dark:hover:border-mba-blue transition-all"
             >
               <div className="flex items-start justify-between gap-4">
                 {/* Player Info */}
