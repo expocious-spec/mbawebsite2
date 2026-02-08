@@ -4,7 +4,10 @@
 -- Allows admins to create accolades/awards and assign them to players
 -- Players can have multiple accolades
 
-CREATE TABLE IF NOT EXISTS accolades (
+-- Drop existing table if it exists (to ensure clean migration)
+DROP TABLE IF EXISTS accolades CASCADE;
+
+CREATE TABLE accolades (
   id BIGSERIAL PRIMARY KEY,
   player_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   season_id BIGINT REFERENCES seasons(id) ON DELETE SET NULL,

@@ -97,6 +97,11 @@ export async function POST(request: Request) {
 
     if (!playerId || !teamId || !franchiseOwnerId || contractPrice === undefined || contractPrice === null) {
       console.error('Missing required fields:', { playerId, teamId, franchiseOwnerId, contractPrice });
+      return NextResponse.json({ 
+        error: 'Missing required fields: playerId, teamId, franchiseOwnerId, contractPrice' 
+      }, { status: 400 });
+    }
+
     // Validate that contract price is at least the player's coin worth
     const { data: player, error: playerError } = await supabaseAdmin
       .from('users')
