@@ -199,6 +199,23 @@ export default function ContractOffersAdmin() {
     }
   }, [selectedTeam, teams, players]);
 
+  // Clear team selection when season changes
+  useEffect(() => {
+    if (selectedSeason && selectedTeam) {
+      // Check if selected team is still valid for this season
+      const selectedSeasonObj = seasons.find(s => s.id.toString() === selectedSeason);
+      const selectedTeamObj = teams.find(t => t.id === selectedTeam);
+      
+      if (selectedSeasonObj && selectedTeamObj) {
+        const isTeamInSeason = selectedTeamObj.seasons?.includes(selectedSeasonObj.name);
+        if (!isTeamInSeason) {
+          setSelectedTeam('');
+          setSelectedOwner('');
+        }
+      }
+    }
+  }, [selectedSeason, selectedTeam, seasons, teams]);
+
   const handleCreateOffer = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -459,15 +476,30 @@ export default function ContractOffersAdmin() {
               </div>
               <div className="max-h-48 overflow-y-auto border border-gray-300 dark:border-gray-600 rounded-lg">
                 {(() => {
-                  const filteredTeams = teams.filter(team => {
+                  // Get selected season name
+                  const selectedSeasonObj = seasons.find(s => s.id.toString() === selectedSeason);
+                  const selectedSeasonName = selectedSeasonObj?.name;
+
+                  let filteredTeams = teams.filter(team => {
+                    // Filter by search term
                     const search = teamSearch.toLowerCase();
-                    return !search || 
+                    const matchesSearch = !search || 
                       team.name.toLowerCase().includes(search) ||
                       team.owner?.toLowerCase().includes(search);
+                    
+                    // Filter by selected season (only show teams assigned to this season)
+                    const matchesSeason = !selectedSeasonName || 
+                      (team.seasons && team.seasons.includes(selectedSeasonName));
+                    
+                    return matchesSearch && matchesSeason;
                   });
 
+                  if (!selectedSeason) {
+                    return <div className="p-4 text-center text-gray-500 dark:text-gray-400">Select a season first</div>;
+                  }
+
                   if (filteredTeams.length === 0) {
-                    return <div className="p-4 text-center text-gray-500 dark:text-gray-400">No teams found</div>;
+                    return <div className="p-4 text-center text-gray-500 dark:text-gray-400">No teams found for this season</div>;
                   }
 
                   return filteredTeams.map((team) => (
@@ -496,17 +528,20 @@ export default function ContractOffersAdmin() {
                 })()}
               </div>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                {teams.filter(t => {
-                  const search = teamSearch.toLowerCase();
-                  return !search || 
-                    t.name.toLowerCase().includes(search) ||
-                    t.owner?.toLowerCase().includes(search);
-                }).length} team{teams.filter(t => {
-                  const search = teamSearch.toLowerCase();
-                  return !search || 
-                    t.name.toLowerCase().includes(search) ||
-                    t.owner?.toLowerCase().includes(search);
-                }).length !== 1 ? 's' : ''} found
+                {(() => {
+                  const selectedSeasonObj = seasons.find(s => s.id.toString() === selectedSeason);
+                  const selectedSeasonName = selectedSeasonObj?.name;
+                  const count = teams.filter(t => {
+                    const search = teamSearch.toLowerCase();
+                    const matchesSearch = !search || 
+                      t.name.toLowerCase().includes(search) ||
+                      t.owner?.toLowerCase().includes(search);
+                    const matchesSeason = !selectedSeasonName || 
+                      (t.seasons && t.seasons.includes(selectedSeasonName));
+                    return matchesSearch && matchesSeason;
+                  }).length;
+                  return `${count} team${count !== 1 ? 's' : ''} found${selectedSeasonName ? ` in ${selectedSeasonName}` : ''}`;
+                })()}
               </p>
             </div>
 
