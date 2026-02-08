@@ -120,6 +120,23 @@ export default function ContractsPage() {
     return diffHours >= 12;
   };
 
+  const getTimeRemaining = (createdAt: string) => {
+    const date = new Date(createdAt);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffHours = diffMs / (1000 * 60 * 60);
+    
+    if (diffHours >= 12) {
+      return null; // Can accept now
+    }
+    
+    const remainingMs = (12 * 60 * 60 * 1000) - diffMs;
+    const remainingHours = Math.floor(remainingMs / (1000 * 60 * 60));
+    const remainingMinutes = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
+    
+    return `${remainingHours}h ${remainingMinutes}m`;
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
@@ -286,9 +303,14 @@ export default function ContractsPage() {
                           <span>Eligible</span>
                         </div>
                       ) : (
-                        <div className="flex items-center gap-1 text-yellow-500 text-sm font-medium">
-                          <Clock className="w-4 h-4" />
-                          <span>Wait Period</span>
+                        <div className="flex flex-col items-center">
+                          <div className="flex items-center gap-1 text-yellow-500 text-sm font-medium">
+                            <Clock className="w-4 h-4" />
+                            <span>Wait Period</span>
+                          </div>
+                          <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            {getTimeRemaining(offer.createdAt)} left
+                          </span>
                         </div>
                       )
                     )}

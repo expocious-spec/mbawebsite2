@@ -108,6 +108,23 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
     return diffHours >= 12;
   };
 
+  const getTimeRemaining = (createdAt: string) => {
+    const date = new Date(createdAt);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffHours = diffMs / (1000 * 60 * 60);
+    
+    if (diffHours >= 12) {
+      return null; // Can accept now
+    }
+    
+    const remainingMs = (12 * 60 * 60 * 1000) - diffMs;
+    const remainingHours = Math.floor(remainingMs / (1000 * 60 * 60));
+    const remainingMinutes = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
+    
+    return `${remainingHours}h ${remainingMinutes}m`;
+  };
+
   const toggleSeason = (season: string) => {
     setSelectedSeasons(prev => {
       if (prev.includes(season)) {
@@ -816,9 +833,14 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
                           <span>Eligible to Accept</span>
                         </div>
                       ) : (
-                        <div className="flex items-center gap-1 text-yellow-500 text-sm font-medium">
-                          <Clock className="w-4 h-4" />
-                          <span>12hr Wait Period</span>
+                        <div className="flex flex-col items-center sm:items-end">
+                          <div className="flex items-center gap-1 text-yellow-500 text-sm font-medium">
+                            <Clock className="w-4 h-4" />
+                            <span>Wait Period</span>
+                          </div>
+                          <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            {getTimeRemaining(offer.createdAt)} left
+                          </span>
                         </div>
                       )}
                     </div>
