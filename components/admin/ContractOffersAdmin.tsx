@@ -367,16 +367,28 @@ export default function ContractOffersAdmin() {
 
       {/* Create Offer Form */}
       {showCreateForm && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-          <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-xl p-6 max-w-2xl w-full border border-cyan-500/20">
-            <h3 className="text-xl font-bold text-white mb-4">Send Contract Offer</h3>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-6 flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Send Contract Offer</h2>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowCreateForm(false);
+                  resetForm();
+                }}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              >
+                <X className="w-6 h-6 text-gray-500" />
+              </button>
+            </div>
             
-            <form onSubmit={handleCreateOffer} className="space-y-4">
+            <form onSubmit={handleCreateOffer} className="p-6 space-y-4">
               {/* Player Selection with Search */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                   Player * {selectedPlayer && (
-                    <span className="ml-2 text-cyan-400 font-bold">
+                    <span className="ml-2 text-blue-500 dark:text-cyan-400 font-bold">
                       ✓ {players.find(p => p.id === selectedPlayer)?.displayName}
                     </span>
                   )}
@@ -386,17 +398,17 @@ export default function ContractOffersAdmin() {
                   placeholder="Search players..."
                   value={playerSearch}
                   onChange={(e) => setPlayerSearch(e.target.value)}
-                  className="w-full px-3 py-2 mb-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-cyan-500"
+                  className="w-full px-4 py-2 mb-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
                 />
                 <select
                   value={selectedPlayer}
                   onChange={(e) => setSelectedPlayer(e.target.value)}
                   required
                   size={8}
-                  className="w-full px-3 py-2 bg-slate-800 border-2 border-slate-700 rounded-lg text-white focus:outline-none focus:border-cyan-500 player-select"
+                  className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white player-select"
                   style={{
                     scrollbarWidth: 'thin',
-                    scrollbarColor: '#0891b2 #1e293b'
+                    scrollbarColor: '#3b82f6 #e5e7eb'
                   }}
                 >
                   <option value="" disabled>Select a player...</option>
@@ -412,14 +424,14 @@ export default function ContractOffersAdmin() {
                       <option 
                         key={player.id} 
                         value={player.id}
-                        className={selectedPlayer === player.id ? 'bg-cyan-600 font-bold' : 'hover:bg-slate-700'}
+                        className={selectedPlayer === player.id ? 'bg-blue-500 font-bold' : 'hover:bg-gray-100 dark:hover:bg-gray-700'}
                       >
                         {player.displayName} {player.discordUsername ? `(@${player.discordUsername})` : ''} 
                         {player.coinWorth ? ` - ${player.coinWorth.toLocaleString()} coins` : ''}
                       </option>
                     ))}
                 </select>
-                <p className="text-xs text-gray-400 mt-1">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                   {players.filter(p => {
                     const search = playerSearch.toLowerCase();
                     return !search || 
@@ -430,7 +442,7 @@ export default function ContractOffersAdmin() {
                 </p>
                 <style jsx>{`
                   .player-select option:checked {
-                    background: linear-gradient(90deg, #0891b2 0%, #06b6d4 100%) !important;
+                    background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%) !important;
                     font-weight: bold !important;
                   }
                 `}</style>
@@ -438,14 +450,14 @@ export default function ContractOffersAdmin() {
 
               {/* Season Selection */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                   Season *
                 </label>
                 <select
                   value={selectedSeason}
                   onChange={(e) => setSelectedSeason(e.target.value)}
                   required
-                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-cyan-500"
+                  className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
                 >
                   <option value="">Select season...</option>
                   {seasons.map(season => (
@@ -458,14 +470,14 @@ export default function ContractOffersAdmin() {
 
               {/* Team Selection */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                   Team *
                 </label>
                 <select
                   value={selectedTeam}
                   onChange={(e) => setSelectedTeam(e.target.value)}
                   required
-                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-cyan-500"
+                  className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
                 >
                   <option value="">Select team...</option>
                   {teams.map(team => (
@@ -478,22 +490,22 @@ export default function ContractOffersAdmin() {
 
               {/* Salary Cap Info */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                   Team Salary Cap
                 </label>
                 {selectedTeam && (
-                  <div className="mt-2 p-3 bg-slate-800/50 rounded-lg border border-slate-700">
-                    <div className="flex justify-between text-sm mb-1">
-                      <span className="text-gray-400">Team Salary Cap:</span>
-                      <span className="text-white font-semibold">{teamSalaryCap.toLocaleString()} coins</span>
+                  <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+                    <div className="flex justify-between text-sm mb-2">
+                      <span className="text-gray-600 dark:text-gray-400">Team Salary Cap:</span>
+                      <span className="text-gray-900 dark:text-white font-semibold">{teamSalaryCap.toLocaleString()} coins</span>
                     </div>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span className="text-gray-400">Current Spend:</span>
-                      <span className="text-white font-semibold">{teamCurrentSpend.toLocaleString()} coins</span>
+                    <div className="flex justify-between text-sm mb-2">
+                      <span className="text-gray-600 dark:text-gray-400">Current Spend:</span>
+                      <span className="text-gray-900 dark:text-white font-semibold">{teamCurrentSpend.toLocaleString()} coins</span>
                     </div>
-                    <div className="flex justify-between text-sm pt-2 border-t border-slate-700">
-                      <span className="text-gray-400">Available:</span>
-                      <span className={`font-bold ${(teamSalaryCap - teamCurrentSpend) >= contractPrice ? 'text-green-400' : 'text-red-400'}`}>
+                    <div className="flex justify-between text-sm pt-2 border-t border-gray-300 dark:border-gray-600">
+                      <span className="text-gray-600 dark:text-gray-400">Available:</span>
+                      <span className={`font-bold ${(teamSalaryCap - teamCurrentSpend) >= contractPrice ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                         {(teamSalaryCap - teamCurrentSpend).toLocaleString()} coins
                       </span>
                     </div>
@@ -503,11 +515,11 @@ export default function ContractOffersAdmin() {
 
               {/* Contract Price */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
                   Contract Price *
                 </label>
                 <div className="relative">
-                  <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 dark:text-gray-400" />
                   <input
                     type="number"
                     value={contractPrice}
@@ -515,11 +527,11 @@ export default function ContractOffersAdmin() {
                     min={minContractPrice}
                     step="250"
                     required
-                    className="w-full pl-10 pr-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-cyan-500"
+                    className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
                   />
                 </div>
-                <p className="text-xs text-gray-400 mt-1">
-                  Minimum: {minContractPrice} coins (player's current worth)
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Minimum: {minContractPrice.toLocaleString()} coins (player's current worth)
                 </p>
               </div>
 
@@ -528,9 +540,9 @@ export default function ContractOffersAdmin() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex-1 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white py-2 rounded-lg transition-all disabled:opacity-50"
+                  className="flex-1 bg-mba-blue hover:bg-blue-600 text-white py-2.5 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                 >
-                  {loading ? 'Creating...' : 'Send Offer'}
+                  {loading ? 'Sending Offer...' : 'Send Contract Offer'}
                 </button>
                 <button
                   type="button"
@@ -538,7 +550,7 @@ export default function ContractOffersAdmin() {
                     setShowCreateForm(false);
                     resetForm();
                   }}
-                  className="px-6 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-all"
+                  className="px-6 py-2.5 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-white rounded-lg transition-all font-medium"
                 >
                   Cancel
                 </button>
