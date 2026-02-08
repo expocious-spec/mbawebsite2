@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Award, Search, Plus, Trash2, Users, CheckCircle } from 'lucide-react';
+import { Award, Search, Plus, Trash2, Users, CheckCircle, Edit2 } from 'lucide-react';
 
 interface Accolade {
   id: number;
@@ -28,6 +28,7 @@ export default function AccoladesAdmin() {
   const [loading, setLoading] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showAssignModal, setShowAssignModal] = useState(false);
+  const [editingMode, setEditingMode] = useState(false);
   const [selectedAccolade, setSelectedAccolade] = useState<Accolade | null>(null);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -212,9 +213,58 @@ export default function AccoladesAdmin() {
 
   const handleManageAccolade = (accolade: Accolade) => {
     setSelectedAccolade(accolade);
+    setEditingMode(false);
     setShowAssignModal(true);
     fetchAssignments(accolade.id);
     setSelectedPlayerIds([]);
+    // Populate form fields for potential editing
+    setTitle(accolade.title);
+    setDescription(accolade.description || '');
+    setColor(accolade.color);
+    setIcon(accolade.icon || '');
+    setSelectedSeason(accolade.seasonId?.toString() || '');
+  };
+
+  const handleUpdateAccolade = async () => {
+    if (!selectedAccolade) return;
+
+    setLoading(true);
+    try {
+      const response = await fetch('/api/accolades', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: selectedAccolade.id,
+          seasonId: selectedSeason ? parseInt(selectedSeason) : null,
+          title,
+          description,
+          color,
+          icon,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update accolade');
+      }
+
+      alert('Accolade updated successfully!');
+      setEditingMode(false);
+      fetchAccolades();
+      // Update the selected accolade with new values
+      setSelectedAccolade({
+        ...selectedAccolade,
+        title,
+        description,
+        color,
+        icon,
+        seasonId: selectedSeason ? parseInt(selectedSeason) : undefined,
+      });
+    } catch (error: any) {
+      alert(error.message || 'Failed to update accolade');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const resetForm = () => {
@@ -484,17 +534,159 @@ export default function AccoladesAdmin() {
               </button>
             </div>
 
-            {/* Accolade Info */}
-            <div className="mb-6 p-4 bg-slate-800/50 rounded-lg border border-slate-700">
-              <div 
-                className="inline-flex items-center gap-2 px-3 py-1 rounded-lg text-sm font-semibold text-white mb-2"
-                style={{ backgroundColor: selectedAccolade.color }}
-              >
-                {selectedAccolade.icon && <span>{selectedAccolade.icon}</span>}
-                <span>{selectedAccolade.title}</span>
-              </div>
-              {selectedAccolade.description && (
-                <p className="text-gray-400 text-sm mt-2">{selectedAccolade.description}</p>
+            {/* Accolade Info/Edit */}
+            <div className="mb-6">
+              {!editingMode ? (
+                <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700">
+                  <div className="flex items-start justify-between mb-2">
+                    <div 
+                      className="inline-flex items-center gap-2 px-3 py-1 rounded-lg text-sm font-semibold text-white"
+                      style={{ backgroundColor: selectedAccolade.color }}
+                    >
+                      {selectedAccolade.icon && <span>{selectedAccolade.icon}</span>}
+                      <span>{selectedAccolade.title}</span>
+                    </div>
+                    <button
+                      onClick={() => setEditingMode(true)}
+                      className="p-2 text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 rounded-lg transition-all"
+                      title="Edit accolade"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                  {selectedAccolade.description && (
+                    <p className="text-gray-400 text-sm mt-2">{selectedAccolade.description}</p>
+                  )}
+                  <div className="text-xs text-gray-500 mt-2">
+                    {seasons.find(s => s.id === selectedAccolade.seasonId)?.name || 'Lifetime Achievement'}
+                  </div>
+                </div>
+              ) : (
+                <div className="p-4 bg-slate-800/50 rounded-lg border border-yellow-500/30 space-y-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="text-white font-semibold">Edit Accolade</h4>
+                    <button
+                      onClick={() => setEditingMode(false)}
+                      className="text-gray-400 hover:text-white text-sm"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+
+                  {/* Season Selection */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Season
+                    </label>
+                    <select
+                      value={selectedSeason}
+                      onChange={(e) => setSelectedSeason(e.target.value)}
+                      className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-yellow-500"
+                    >
+                      <option value="">No Season (Lifetime Achievement)</option>
+                      {seasons.map(season => (
+                        <option key={season.id} value={season.id}>
+                          {season.name} {season.isCurrent ? '(Current)' : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Title */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Title *
+                    </label>
+                    <input
+                      type="text"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-yellow-500"
+                    />
+                  </div>
+
+                  {/* Description */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Description
+                    </label>
+                    <textarea
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      rows={2}
+                      className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-yellow-500"
+                    />
+                  </div>
+
+                  {/* Color Selection */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Badge Color
+                    </label>
+                    <div className="grid grid-cols-4 gap-2 mb-2">
+                      {presetColors.map(preset => (
+                        <button
+                          key={preset.value}
+                          type="button"
+                          onClick={() => setColor(preset.value)}
+                          className={`px-2 py-1 rounded-lg border-2 transition-all ${
+                            color === preset.value 
+                              ? 'border-yellow-500 scale-105' 
+                              : 'border-slate-700 hover:border-slate-600'
+                          }`}
+                          style={{ backgroundColor: preset.value }}
+                        >
+                          <span className="text-white text-xs font-semibold text-shadow">
+                            {preset.name}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                    <input
+                      type="color"
+                      value={color}
+                      onChange={(e) => setColor(e.target.value)}
+                      className="w-full h-8 bg-slate-800 border border-slate-700 rounded-lg cursor-pointer"
+                    />
+                  </div>
+
+                  {/* Icon/Emoji */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Icon/Emoji (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={icon}
+                      onChange={(e) => setIcon(e.target.value)}
+                      placeholder="e.g., 🏆, 👑, ⭐, 🥇"
+                      className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-yellow-500"
+                    />
+                  </div>
+
+                  {/* Preview */}
+                  {title && (
+                    <div className="p-3 bg-slate-800/50 rounded-lg border border-slate-700">
+                      <p className="text-xs text-gray-400 mb-2">Preview:</p>
+                      <div 
+                        className="inline-flex items-center gap-2 px-3 py-1 rounded-lg text-sm font-semibold text-white"
+                        style={{ backgroundColor: color }}
+                      >
+                        {icon && <span>{icon}</span>}
+                        <span>{title}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Update Button */}
+                  <button
+                    onClick={handleUpdateAccolade}
+                    disabled={loading || !title}
+                    className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 disabled:opacity-50 text-white py-2 rounded-lg transition-all"
+                  >
+                    {loading ? 'Updating...' : 'Update Accolade'}
+                  </button>
+                </div>
               )}
             </div>
 

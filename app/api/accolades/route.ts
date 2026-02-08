@@ -144,6 +144,60 @@ export async function POST(request: Request) {
   }
 }
 
+// PATCH - Update accolade
+export async function PATCH(request: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user.isAdmin) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const { id, seasonId, title, description, color, icon } = body;
+
+    if (!id) {
+      return NextResponse.json({ error: 'Accolade ID is required' }, { status: 400 });
+    }
+
+    if (!title) {
+      return NextResponse.json({ error: 'Title is required' }, { status: 400 });
+    }
+
+    const { data: accolade, error } = await supabaseAdmin
+      .from('accolades')
+      .update({
+        season_id: seasonId || null,
+        title,
+        description: description || null,
+        color: color || '#FFD700',
+        icon: icon || null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating accolade:', error);
+      return NextResponse.json({ error: 'Failed to update accolade' }, { status: 500 });
+    }
+
+    return NextResponse.json({
+      id: accolade.id,
+      seasonId: accolade.season_id,
+      title: accolade.title,
+      description: accolade.description,
+      color: accolade.color,
+      icon: accolade.icon,
+    });
+  } catch (error: any) {
+    console.error('Error updating accolade:', error);
+    return NextResponse.json({ 
+      error: error.message || 'Failed to update accolade' 
+    }, { status: 500 });
+  }
+}
+
 // DELETE - Delete accolade (and all assignments)
 export async function DELETE(request: Request) {
   try {
