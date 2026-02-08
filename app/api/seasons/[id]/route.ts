@@ -79,6 +79,42 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // First, get the season name
+    const { data: season, error: fetchError } = await supabaseAdmin
+      .from('seasons')
+      .select('season_name')
+      .eq('id', params.id)
+      .single();
+
+    if (fetchError || !season) {
+      return NextResponse.json({ error: 'Season not found' }, { status: 404 });
+    }
+
+    // Check if any teams are assigned to this season
+    const { data: teamsWithSeason, error: teamsError } = await supabaseAdmin
+      .from('teams')
+      .select('id, name, seasons')
+      .not('seasons', 'is', null);
+
+    if (teamsError) {
+      console.error('Error checking teams:', teamsError);
+      throw teamsError;
+    }
+
+    // Filter teams that have this season
+    const affectedTeams = teamsWithSeason?.filter(team => 
+      team.seasons && team.seasons.includes(season.season_name)
+    ) || [];
+
+    if (affectedTeams.length > 0) {
+      const teamNames = affectedTeams.map(t => t.name).join(', ');
+      return NextResponse.json({ 
+        error: `Cannot delete season "${season.season_name}" because it is assigned to ${affectedTeams.length} team(s): ${teamNames}. Please remove the season from these teams first.`,
+        affectedTeams: affectedTeams.map(t => ({ id: t.id, name: t.name }))
+      }, { status: 400 });
+    }
+
+    // If no teams are affected, proceed with deletion
     const { error } = await supabaseAdmin
       .from('seasons')
       .delete()

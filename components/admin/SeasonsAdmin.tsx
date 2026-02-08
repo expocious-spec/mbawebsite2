@@ -85,11 +85,51 @@ export default function SeasonsAdmin() {
 
     try {
       const res = await fetch(`/api/seasons/${id}`, { method: 'DELETE' });
+      const data = await res.json();
+      
       if (res.ok) {
         await fetchSeasons();
       } else {
-        const error = await res.json();
-        alert(error.error || 'Failed to delete season');
+        // Check if the error is due to teams being assigned
+        if (res.status === 400 && data.affectedTeams) {
+          const teamNames = data.affectedTeams.map((t: any) => t.name).join(', ');
+          const shouldRemove = confirm(
+            `This season is assigned to ${data.affectedTeams.length} team(s): ${teamNames}.\n\n` +
+            `Would you like to remove this season from all teams and then delete it?\n\n` +
+            `Click OK to remove from teams and delete, or Cancel to abort.`
+          );
+          
+          if (shouldRemove) {
+            // Get the season name first
+            const season = seasons.find(s => s.id === id);
+            if (!season) {
+              alert('Season not found');
+              return;
+            }
+            
+            // Remove from teams
+            const removeRes = await fetch(`/api/seasons/${id}/remove-from-teams`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ seasonName: season.name }),
+            });
+            
+            if (removeRes.ok) {
+              // Try deleting again
+              const deleteRes = await fetch(`/api/seasons/${id}`, { method: 'DELETE' });
+              if (deleteRes.ok) {
+                await fetchSeasons();
+                alert('Season removed from teams and deleted successfully');
+              } else {
+                alert('Failed to delete season after removing from teams');
+              }
+            } else {
+              alert('Failed to remove season from teams');
+            }
+          }
+        } else {
+          alert(data.error || 'Failed to delete season');
+        }
       }
     } catch (error) {
       console.error('Error deleting season:', error);
