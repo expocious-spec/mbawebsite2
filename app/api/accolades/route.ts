@@ -27,15 +27,18 @@ export async function GET(request: Request) {
         return NextResponse.json([]);
       }
 
-      const formatted = data?.map(assignment => ({
-        id: assignment.accolade.id,
-        title: assignment.accolade.title,
-        description: assignment.accolade.description,
-        color: assignment.accolade.color,
-        icon: assignment.accolade.icon,
-        seasonId: assignment.accolade.season_id,
-        awardedDate: assignment.awarded_date,
-      })) || [];
+      const formatted = data?.map((assignment: any) => {
+        const accolade = Array.isArray(assignment.accolade) ? assignment.accolade[0] : assignment.accolade;
+        return {
+          id: accolade?.id || 0,
+          title: accolade?.title || '',
+          description: accolade?.description || '',
+          color: accolade?.color || '#FFD700',
+          icon: accolade?.icon || '',
+          seasonId: accolade?.season_id || null,
+          awardedDate: assignment.awarded_date,
+        };
+      }) || [];
 
       return NextResponse.json(formatted);
     }
