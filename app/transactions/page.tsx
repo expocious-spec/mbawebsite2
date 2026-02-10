@@ -217,7 +217,12 @@ export default function TransactionsPage() {
 
   const getTransactionIcon = (transaction: Transaction) => {
     if (transaction.type === 'contract') {
-      return <DollarSign className="w-6 h-6 text-green-500" />;
+      const colorClass = transaction.status === 'pending' 
+        ? 'text-yellow-500' 
+        : transaction.status === 'rejected' 
+        ? 'text-red-500' 
+        : 'text-green-500';
+      return <DollarSign className={`w-6 h-6 ${colorClass}`} />;
     } else if (transaction.type === 'role_assignment') {
       if (transaction.title === 'Promotion') {
         return <TrendingUp className="w-6 h-6 text-blue-500" />;
@@ -231,7 +236,12 @@ export default function TransactionsPage() {
 
   const getTransactionBadge = (transaction: Transaction) => {
     if (transaction.type === 'contract') {
-      return <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">Contract</span>;
+      const colors = transaction.status === 'pending' 
+        ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400'
+        : transaction.status === 'rejected' 
+        ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
+        : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400';
+      return <span className={`px-3 py-1 rounded-full text-xs font-medium ${colors}`}>Contract</span>;
     } else if (transaction.type === 'role_assignment') {
       if (transaction.title === 'Promotion') {
         return <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">Promotion</span>;
