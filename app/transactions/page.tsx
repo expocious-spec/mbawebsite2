@@ -63,14 +63,49 @@ export default function TransactionsPage() {
   const fetchTransactions = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/transactions');
-      const data = await response.json();
-      if (Array.isArray(data)) {
-        setTransactions(data);
-      } else {
-        console.error('Transactions data is not an array:', data);
-        setTransactions([]);
-      }
+      
+      // Fetch both contract offers and transactions
+      const [contractsResponse, transactionsResponse] = await Promise.all([
+        fetch('/api/contract-offers'),
+        fetch('/api/transactions')
+      ]);
+      
+      const contractOffers = await contractsResponse.json();
+      const roleTransactions = await transactionsResponse.json();
+      
+      // Transform contract offers into transaction format
+      const contractTransactions: Transaction[] = Array.isArray(contractOffers) 
+        ? contractOffers.map((offer: any) => ({
+            id: `contract-${offer.id}`,
+            type: 'contract' as const,
+            playerId: offer.playerId,
+            teamId: offer.teamId,
+            fromUserId: offer.franchiseOwnerId,
+            title: 'Contract Offer',
+            description: `Contract offer of ${offer.contractPrice.toLocaleString()} coins`,
+            contractOfferId: offer.id,
+            contractPrice: offer.contractPrice,
+            status: offer.status,
+            createdAt: offer.createdAt,
+            completedAt: offer.acceptedAt,
+            player: offer.player,
+            team: offer.team,
+            fromUser: offer.franchiseOwner
+          }))
+        : [];
+      
+      // Combine both arrays
+      const allTransactions = [
+        ...contractTransactions,
+        ...(Array.isArray(roleTransactions) ? roleTransactions : [])
+      ];
+      
+      // Sort by created date (newest first)
+      allTransactions.sort((a, b) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+      
+      setTransactions(allTransactions);
     } catch (error) {
       console.error('Failed to fetch transactions:', error);
       setTransactions([]);
