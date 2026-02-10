@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { DollarSign, Calendar, CheckCircle2, Clock, Search, FileText, TrendingUp, TrendingDown, UserCog } from 'lucide-react';
+import { DollarSign, Calendar, CheckCircle2, Clock, Search, FileText, TrendingUp, TrendingDown, UserCog, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { getMinecraftHeadshot } from '@/lib/minecraft';
 import Image from 'next/image';
@@ -51,9 +51,11 @@ export default function TransactionsPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     fetchTransactions();
+    checkAdminStatus();
   }, []);
 
   useEffect(() => {
@@ -135,6 +137,41 @@ export default function TransactionsPage() {
     }
 
     setFilteredTransactions(filtered);
+  };
+
+  const checkAdminStatus = async () => {
+    try {
+      const response = await fetch('/api/auth/session');
+      const session = await response.json();
+      setIsAdmin(session?.user?.isAdmin || false);
+    } catch (error) {
+      console.error('Failed to check admin status:', error);
+      setIsAdmin(false);
+    }
+  };
+
+  const handleDelete = async (transactionId: string, transactionType: string) => {
+    if (!confirm('Are you sure you want to delete this transaction?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/transactions?id=${transactionId}&type=${transactionType}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete transaction');
+      }
+
+      // Remove from local state
+      setTransactions(prev => prev.filter(t => t.id !== transactionId));
+      
+      alert('Transaction deleted successfully');
+    } catch (error) {
+      console.error('Failed to delete transaction:', error);
+      alert('Failed to delete transaction');
+    }
   };
 
   const getTimeAgo = (dateString: string) => {
@@ -400,6 +437,17 @@ export default function TransactionsPage() {
                     </div>
                   )}
                 </div>
+
+                {/* Admin Delete Button */}
+                {isAdmin && (
+                  <button
+                    onClick={() => handleDelete(transaction.id, transaction.type)}
+                    className="p-2 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors flex-shrink-0"
+                    title="Delete transaction"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                  </button>
+                )}
               </div>
             </div>
           ))}

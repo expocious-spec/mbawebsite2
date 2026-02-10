@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { supabase, supabaseAdmin } from '@/lib/supabase';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 // GET - Get all transactions
 export async function GET(request: NextRequest) {
@@ -82,5 +84,54 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error('Error fetching transactions:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+// DELETE - Delete a transaction (admin only)
+export async function DELETE(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user?.isAdmin) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const transactionId = searchParams.get('id');
+    const transactionType = searchParams.get('type');
+    
+    if (!transactionId) {
+      return NextResponse.json({ error: 'Transaction ID is required' }, { status: 400 });
+    }
+
+    // If it's a contract transaction, we need to delete from contract_offers table
+    if (transactionType === 'contract' && transactionId.startsWith('contract-')) {
+      const contractId = transactionId.replace('contract-', '');
+      const { error } = await supabaseAdmin
+        .from('contract_offers')
+        .delete()
+        .eq('id', contractId);
+
+      if (error) {
+        console.error('Contract offer deletion error:', error);
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
+    } else {
+      // Delete from transactions table
+      const { error } = await supabaseAdmin
+        .from('transactions')
+        .delete()
+        .eq('id', transactionId);
+
+      if (error) {
+        console.error('Transaction deletion error:', error);
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
+    }
+
+    return NextResponse.json({ success: true, message: 'Transaction deleted successfully' });
+  } catch (error: any) {
+    console.error('DELETE transactions error:', error);
+    return NextResponse.json({ error: 'Failed to delete transaction' }, { status: 500 });
   }
 }
