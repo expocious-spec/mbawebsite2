@@ -96,6 +96,52 @@ export async function PATCH(
       return NextResponse.json({ error: 'Failed to update contract offer' }, { status: 500 });
     }
 
+    // Create transaction record if contract was accepted
+    if (status === 'accepted') {
+      try {
+        await supabaseAdmin
+          .from('transactions')
+          .insert({
+            type: 'contract',
+            player_id: data.player_id,
+            team_id: data.team_id,
+            from_user_id: data.franchise_owner_id,
+            title: 'Contract Accepted',
+            description: `${data.player?.username || 'Player'} accepted a contract offer of ${data.contract_price.toLocaleString()} coins from the ${data.team?.name || 'team'}`,
+            contract_offer_id: data.id,
+            contract_price: data.contract_price,
+            status: 'completed',
+            completed_at: new Date().toISOString(),
+          });
+      } catch (transactionError) {
+        console.error('Error creating transaction record:', transactionError);
+        // Don't fail the whole operation if transaction creation fails
+      }
+    }
+
+    // Create transaction record if contract was rejected
+    if (status === 'rejected') {
+      try {
+        await supabaseAdmin
+          .from('transactions')
+          .insert({
+            type: 'contract',
+            player_id: data.player_id,
+            team_id: data.team_id,
+            from_user_id: data.franchise_owner_id,
+            title: 'Contract Rejected',
+            description: `${data.player?.username || 'Player'} rejected a contract offer of ${data.contract_price.toLocaleString()} coins from the ${data.team?.name || 'team'}`,
+            contract_offer_id: data.id,
+            contract_price: data.contract_price,
+            status: 'rejected',
+            completed_at: new Date().toISOString(),
+          });
+      } catch (transactionError) {
+        console.error('Error creating transaction record:', transactionError);
+        // Don't fail the whole operation if transaction creation fails
+      }
+    }
+
     // Transform to camelCase
     const formattedOffer = {
       id: data.id,
