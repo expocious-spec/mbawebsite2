@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Send, Search, Users, DollarSign, Calendar, CheckCircle2, Clock, Edit2, Trash2, X, Plus } from 'lucide-react';
+import { Send, Search, Users, DollarSign, Calendar, CheckCircle2, Clock, Edit2, Trash2, X, Plus, Check, XCircle } from 'lucide-react';
 import Image from 'next/image';
 import { getMinecraftHeadshot } from '@/lib/minecraft';
 
@@ -378,6 +378,58 @@ export default function ContractOffersAdmin() {
       fetchOffers();
     } catch (error: any) {
       alert(error.message || 'Failed to delete contract offer');
+    }
+  };
+
+  const handleAcceptOffer = async (offerId: number) => {
+    if (!confirm('Are you sure you want to accept this contract offer?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/contract-offers/${offerId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          status: 'accepted',
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to accept offer');
+      }
+
+      alert('Contract offer accepted successfully!');
+      fetchOffers();
+    } catch (error: any) {
+      alert(error.message || 'Failed to accept contract offer');
+    }
+  };
+
+  const handleDeclineOffer = async (offerId: number) => {
+    if (!confirm('Are you sure you want to decline this contract offer?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/contract-offers/${offerId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          status: 'rejected',
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to decline offer');
+      }
+
+      alert('Contract offer declined successfully!');
+      fetchOffers();
+    } catch (error: any) {
+      alert(error.message || 'Failed to decline contract offer');
     }
   };
 
@@ -858,6 +910,24 @@ export default function ContractOffersAdmin() {
 
                 {/* Action Buttons */}
                 <div className="flex gap-2">
+                  {offer.status === 'pending' && (
+                    <>
+                      <button
+                        onClick={() => handleAcceptOffer(offer.id)}
+                        className="p-2 bg-green-100 dark:bg-green-500/20 hover:bg-green-200 dark:hover:bg-green-500/30 text-green-600 dark:text-green-400 rounded-lg transition-colors"
+                        title="Accept offer"
+                      >
+                        <Check className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeclineOffer(offer.id)}
+                        className="p-2 bg-orange-100 dark:bg-orange-500/20 hover:bg-orange-200 dark:hover:bg-orange-500/30 text-orange-600 dark:text-orange-400 rounded-lg transition-colors"
+                        title="Decline offer"
+                      >
+                        <XCircle className="w-4 h-4" />
+                      </button>
+                    </>
+                  )}
                   <button
                     onClick={() => handleEditOffer(offer)}
                     className="p-2 bg-blue-100 dark:bg-blue-500/20 hover:bg-blue-200 dark:hover:bg-blue-500/30 text-blue-600 dark:text-blue-400 rounded-lg transition-colors"

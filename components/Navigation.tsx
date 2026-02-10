@@ -16,7 +16,7 @@ const navItems = [
   { href: '/stats', label: 'Stats', icon: TrendingUp },
   { href: '/games', label: 'Games', icon: Calendar },
   { href: '/players', label: 'Players', icon: Search },
-  { href: '/contracts', label: 'Contracts', icon: FileText },
+  { href: '/transactions', label: 'Transactions', icon: FileText },
   { href: '/accolades', label: 'Accolades', icon: Award },
   { href: '/admin', label: 'Admin', icon: Shield },
 ];

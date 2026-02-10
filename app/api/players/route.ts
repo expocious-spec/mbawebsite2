@@ -4,6 +4,114 @@ import { getMinecraftHeadshot } from '@/lib/minecraft';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
+// Helper function to sync team staff roles
+async function syncTeamStaffRoles(userId: string, teamId: string | null, roles: string[], previousRoles: string[] = []) {
+  if (!teamId) {
+    // If no team, remove all team staff entries for this user
+    await supabaseAdmin
+      .from('team_staff')
+      .delete()
+      .eq('player_id', userId);
+    return;
+  }
+
+  const teamRoles = ['Franchise Owner', 'Head Coach', 'Assistant Coach', 'General Manager'];
+  const userTeamRoles = roles.filter(role => teamRoles.includes(role));
+  const previousTeamRoles = previousRoles.filter(role => teamRoles.includes(role));
+
+  // Determine which roles were added and which were removed
+  const addedRoles = userTeamRoles.filter(role => !previousTeamRoles.includes(role));
+  const removedRoles = previousTeamRoles.filter(role => !userTeamRoles.includes(role));
+
+  // Remove existing team staff entries for this player on this team
+  await supabaseAdmin
+    .from('team_staff')
+    .delete()
+    .eq('player_id', userId)
+    .eq('team_id', teamId);
+
+  // Add new team staff entries for each team role
+  if (userTeamRoles.length > 0) {
+    const staffEntries = userTeamRoles.map(role => ({
+      team_id: teamId,
+      player_id: userId,
+      role: role,
+    }));
+
+    await supabaseAdmin
+      .from('team_staff')
+      .insert(staffEntries);
+  }
+
+  // Create transaction records for role changes
+  try {
+    // Get user and team info for transaction description
+    const { data: user } = await supabaseAdmin
+      .from('users')
+      .select('username')
+      .eq('id', userId)
+      .single();
+
+    const { data: team } = await supabaseAdmin
+      .from('teams')
+      .select('name')
+      .eq('id', teamId)
+      .single();
+
+    if (user && team) {
+      const transactions = [];
+
+      // Create transactions for added roles (promotions)
+      for (const role of addedRoles) {
+        const isPromotion = previousTeamRoles.length === 0 || 
+          (role === 'Franchise Owner' || role === 'Head Coach') && 
+          !previousTeamRoles.includes('Franchise Owner') && 
+          !previousTeamRoles.includes('Head Coach');
+
+        transactions.push({
+          type: 'role_assignment',
+          player_id: userId,
+          team_id: teamId,
+          title: isPromotion ? 'Promotion' : 'Role Assignment',
+          description: `${user.username} has been appointed ${role} of the ${team.name}`,
+          role: role,
+          status: 'completed',
+          completed_at: new Date().toISOString(),
+        });
+      }
+
+      // Create transactions for removed roles (demotions)
+      for (const role of removedRoles) {
+        const isDemotion = userTeamRoles.length === 0 || 
+          (role === 'Franchise Owner' || role === 'Head Coach') &&
+          !userTeamRoles.includes('Franchise Owner') &&
+          !userTeamRoles.includes('Head Coach');
+
+        transactions.push({
+          type: 'role_assignment',
+          player_id: userId,
+          team_id: teamId,
+          title: isDemotion ? 'Demotion' : 'Role Removed',
+          description: `${user.username} has been removed from ${role} of the ${team.name}`,
+          previous_role: role,
+          status: 'completed',
+          completed_at: new Date().toISOString(),
+        });
+      }
+
+      // Insert all transactions
+      if (transactions.length > 0) {
+        await supabaseAdmin
+          .from('transactions')
+          .insert(transactions);
+      }
+    }
+  } catch (error) {
+    console.error('Error creating role change transactions:', error);
+    // Don't fail the whole operation if transaction recording fails
+  }
+}
+
 // This endpoint is kept for backward compatibility
 // New code should use /api/users instead
 export async function GET() {
@@ -207,6 +315,9 @@ export async function POST(request: Request) {
         details: createError.message 
       }, { status: 500 });
     }
+
+    // Sync team staff roles
+    await syncTeamStaffRoles(newUser.id, newUser.team_id, newUser.roles);
 
     return NextResponse.json({ 
       success: true, 

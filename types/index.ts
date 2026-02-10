@@ -215,3 +215,28 @@ export interface ContractOffer {
     discordUsername?: string;
   };
 }
+
+export interface TeamStaff {
+  id: string;
+  teamId: string;
+  playerId: string;
+  role: 'Franchise Owner' | 'Head Coach' | 'Assistant Coach' | 'General Manager';
+  createdAt: string;
+  updatedAt: string;
+  player?: {
+    id: string;
+    display_name: string;
+    minecraft_username: string;
+    minecraft_user_id: string;
+    discord_username?: string;
+    profile_picture?: string;
+  };
+  team?: {
+    id: string;
+    name: string;
+    logo?: string;
+    primary_color: string;
+    secondary_color: string;
+  };
+}
+

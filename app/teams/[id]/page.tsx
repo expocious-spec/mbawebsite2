@@ -13,6 +13,7 @@ export default function TeamPage({ params }: { params: { id: string } }) {
   const [teamGames, setTeamGames] = useState<any[]>([]);
   const [upcomingGames, setUpcomingGames] = useState<any[]>([]);
   const [teams, setTeams] = useState<any[]>([]);
+  const [teamStaff, setTeamStaff] = useState<any[]>([]);
   const [selectedSeason, setSelectedSeason] = useState<string>('All-Time');
   const [availableSeasons, setAvailableSeasons] = useState<string[]>(['All-Time']);
   const [loading, setLoading] = useState(true);
@@ -49,15 +50,17 @@ export default function TeamPage({ params }: { params: { id: string } }) {
 
   const fetchData = async () => {
     try {
-      const [teamsRes, playersRes, gamesRes] = await Promise.all([
+      const [teamsRes, playersRes, gamesRes, staffRes] = await Promise.all([
         fetch('/api/teams'),
         fetch('/api/players'),
-        fetch('/api/games')
+        fetch('/api/games'),
+        fetch(`/api/team-staff?teamId=${params.id}`)
       ]);
-      const [teamsData, playersData, gamesData] = await Promise.all([
+      const [teamsData, playersData, gamesData, staffData] = await Promise.all([
         teamsRes.json(),
         playersRes.json(),
-        gamesRes.json()
+        gamesRes.json(),
+        staffRes.json()
       ]);
       
       const currentTeam = teamsData.find((t: any) => t.id === params.id);
@@ -68,6 +71,7 @@ export default function TeamPage({ params }: { params: { id: string } }) {
       setTeam(currentTeam);
       setTeams(teamsData);
       setTeamPlayers(playersData.filter((p: any) => p.teamId === currentTeam.id));
+      setTeamStaff(staffData || []);
       
       // Filter completed games and sort by date (most recent first)
       let filteredGames = gamesData.filter(
@@ -274,19 +278,24 @@ export default function TeamPage({ params }: { params: { id: string } }) {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6 pt-6 border-t border-white/20">
-            <div>
-              <div className="text-sm opacity-75">Owner</div>
-              <div className="font-semibold">{team.owner || 'TBD'}</div>
-            </div>
-            <div>
-              <div className="text-sm opacity-75">General Manager</div>
-              <div className="font-semibold">{team.generalManager || 'TBD'}</div>
-            </div>
-            <div>
-              <div className="text-sm opacity-75">Head Coach</div>
-              <div className="font-semibold">{team.headCoach || 'TBD'}</div>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-6 pt-6 border-t border-white/20">
+            {['Franchise Owner', 'Head Coach', 'Assistant Coach', 'General Manager'].map((role) => {
+              const staffMembers = teamStaff.filter((s: any) => s.role === role);
+              return (
+                <div key={role}>
+                  <div className="text-sm opacity-75">{role}</div>
+                  {staffMembers.length > 0 ? (
+                    staffMembers.map((staff: any) => (
+                      <div key={staff.id} className="font-semibold">
+                        {staff.player?.display_name || 'Unknown'}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="font-semibold">TBD</div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
 
