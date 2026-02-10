@@ -153,6 +153,31 @@ export default function TransactionsPage() {
     }
   };
 
+  const canAcceptOffer = (createdAt: string) => {
+    const date = new Date(createdAt);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffHours = diffMs / (1000 * 60 * 60);
+    return diffHours >= 12;
+  };
+
+  const getTimeRemaining = (createdAt: string) => {
+    const date = new Date(createdAt);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffHours = diffMs / (1000 * 60 * 60);
+    
+    if (diffHours >= 12) {
+      return null; // Can accept now
+    }
+    
+    const remainingMs = (12 * 60 * 60 * 1000) - diffMs;
+    const remainingHours = Math.floor(remainingMs / (1000 * 60 * 60));
+    const remainingMinutes = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
+    
+    return `${remainingHours}h ${remainingMinutes}m`;
+  };
+
   const getTransactionIcon = (transaction: Transaction) => {
     if (transaction.type === 'contract') {
       return <DollarSign className="w-6 h-6 text-green-500" />;
@@ -329,16 +354,47 @@ export default function TransactionsPage() {
                   </div>
                 )}
 
-                {/* Time */}
-                <div className="text-center min-w-[100px]">
-                  <div className="flex items-center gap-2 justify-center">
+                {/* Time & Status */}
+                <div className="text-center min-w-[140px]">
+                  <div className="flex items-center gap-2 justify-center mb-2">
                     <Calendar className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                     <span className="text-sm text-gray-600 dark:text-gray-400">
                       {getTimeAgo(transaction.createdAt)}
                     </span>
                   </div>
-                  {transaction.status === 'completed' && (
-                    <div className="flex items-center gap-1 text-green-500 text-xs font-medium mt-1 justify-center">
+                  
+                  {/* Contract-specific status indicators */}
+                  {transaction.type === 'contract' && transaction.status === 'pending' && (
+                    canAcceptOffer(transaction.createdAt) ? (
+                      <div className="flex items-center gap-1 text-green-500 text-sm font-medium">
+                        <CheckCircle2 className="w-4 h-4" />
+                        <span>Eligible</span>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center">
+                        <div className="flex items-center gap-1 text-yellow-500 text-sm font-medium">
+                          <Clock className="w-4 h-4" />
+                          <span>Wait Period</span>
+                        </div>
+                        <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          {getTimeRemaining(transaction.createdAt)} left
+                        </span>
+                      </div>
+                    )
+                  )}
+                  {transaction.status === 'accepted' && (
+                    <div className="flex items-center gap-1 text-green-500 text-sm font-medium">
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>Accepted</span>
+                    </div>
+                  )}
+                  {transaction.status === 'rejected' && (
+                    <div className="flex items-center gap-1 text-red-500 text-sm font-medium">
+                      <span>✗ Rejected</span>
+                    </div>
+                  )}
+                  {transaction.status === 'completed' && transaction.type !== 'contract' && (
+                    <div className="flex items-center gap-1 text-green-500 text-xs font-medium justify-center">
                       <CheckCircle2 className="w-3 h-3" />
                       <span>Completed</span>
                     </div>

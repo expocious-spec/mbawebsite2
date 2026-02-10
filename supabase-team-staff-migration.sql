@@ -36,6 +36,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS update_team_staff_updated_at ON public.team_staff;
+
 CREATE TRIGGER update_team_staff_updated_at 
   BEFORE UPDATE ON public.team_staff
   FOR EACH ROW 
