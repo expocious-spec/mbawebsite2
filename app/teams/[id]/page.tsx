@@ -287,7 +287,7 @@ export default function TeamPage({ params }: { params: { id: string } }) {
                   {staffMembers.length > 0 ? (
                     staffMembers.map((staff: any) => (
                       <div key={staff.id} className="font-semibold">
-                        {staff.player?.display_name || 'Unknown'}
+                        {staff.player?.username || 'Unknown'}
                       </div>
                     ))
                   ) : (

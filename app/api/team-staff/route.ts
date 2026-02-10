@@ -16,15 +16,15 @@ export async function GET(request: NextRequest) {
         role,
         created_at,
         updated_at,
-        player:players (
+        player:users!player_id (
           id,
-          display_name,
+          username,
           minecraft_username,
           minecraft_user_id,
           discord_username,
-          profile_picture
+          avatar_url
         ),
-        team:teams (
+        team:teams!team_id (
           id,
           name,
           logo,
@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
 
     // Check if player exists
     const { data: player, error: playerError } = await supabase
-      .from('players')
+      .from('users')
       .select('id')
       .eq('id', playerId)
       .single();
@@ -137,13 +137,13 @@ export async function POST(request: NextRequest) {
         role,
         created_at,
         updated_at,
-        player:players (
+        player:users!player_id (
           id,
-          display_name,
+          username,
           minecraft_username,
           discord_username
         ),
-        team:teams (
+        team:teams!team_id (
           id,
           name
         )
