@@ -85,7 +85,7 @@ export default function TransactionsPage() {
             description: `Contract offer of ${offer.contractPrice.toLocaleString()} coins`,
             contractOfferId: offer.id,
             contractPrice: offer.contractPrice,
-            status: offer.status,
+            status: offer.status === 'accepted' ? 'completed' : (offer.status === 'expired' ? 'cancelled' : offer.status),
             createdAt: offer.createdAt,
             completedAt: offer.acceptedAt,
             player: offer.player,
@@ -382,7 +382,7 @@ export default function TransactionsPage() {
                       </div>
                     )
                   )}
-                  {transaction.status === 'accepted' && (
+                  {transaction.status === 'completed' && transaction.type === 'contract' && (
                     <div className="flex items-center gap-1 text-green-500 text-sm font-medium">
                       <CheckCircle2 className="w-4 h-4" />
                       <span>Accepted</span>
