@@ -356,8 +356,20 @@ export default function TransactionsPage() {
                   </p>
                   {transaction.contractPrice && (
                     <div className="flex items-center gap-2 mt-1">
-                      <DollarSign className="w-4 h-4 text-green-500" />
-                      <span className="text-lg font-bold text-green-500">
+                      <DollarSign className={`w-4 h-4 ${
+                        transaction.status === 'pending' 
+                          ? 'text-yellow-500' 
+                          : transaction.status === 'rejected' 
+                          ? 'text-red-500' 
+                          : 'text-green-500'
+                      }`} />
+                      <span className={`text-lg font-bold ${
+                        transaction.status === 'pending' 
+                          ? 'text-yellow-500' 
+                          : transaction.status === 'rejected' 
+                          ? 'text-red-500' 
+                          : 'text-green-500'
+                      }`}>
                         {transaction.contractPrice.toLocaleString()} coins
                       </span>
                     </div>
