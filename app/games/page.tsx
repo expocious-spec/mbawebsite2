@@ -11,7 +11,9 @@ type GameFilter = 'all' | 'upcoming' | 'completed';
 export default function GamesPage() {
   const [filter, setFilter] = useState<GameFilter>('all');
   const [selectedSeason, setSelectedSeason] = useState<string>('All-Time');
+  const [selectedWeek, setSelectedWeek] = useState<string>('all');
   const [availableSeasons, setAvailableSeasons] = useState<string[]>(['All-Time']);
+  const [availableWeeks, setAvailableWeeks] = useState<number[]>([]);
   const [games, setGames] = useState<any[]>([]);
   const [teams, setTeams] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -58,6 +60,10 @@ export default function GamesPage() {
       ]);
       setGames(gamesData);
       setTeams(teamsData);
+      
+      // Extract unique weeks from games
+      const weeks = Array.from(new Set(gamesData.map((g: any) => g.week).filter((w: any) => w !== null && w !== undefined)));
+      setAvailableWeeks(weeks.sort((a: number, b: number) => a - b));
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -73,8 +79,25 @@ export default function GamesPage() {
     // Filter by season
     if (selectedSeason !== 'All-Time' && game.season !== selectedSeason) return false;
     
+    // Filter by week
+    if (selectedWeek !== 'all') {
+      if (selectedWeek === 'none' && game.week !== null && game.week !== undefined) return false;
+      if (selectedWeek !== 'none' && game.week !== parseInt(selectedWeek)) return false;
+    }
+    
     return true;
-  }).sort((a, b) => new Date(b.scheduledDate).getTime() - new Date(a.scheduledDate).getTime());
+  }).sort((a, b) => {
+    const dateA = new Date(a.scheduledDate).getTime();
+    const dateB = new Date(b.scheduledDate).getTime();
+    
+    // For scheduled games, show earliest (upcoming) first
+    if (a.status === 'scheduled' && b.status === 'scheduled') {
+      return dateA - dateB;
+    }
+    
+    // For completed games or mixed statuses, show most recent first
+    return dateB - dateA;
+  });
 
   if (loading) {
     return (
@@ -94,22 +117,43 @@ export default function GamesPage() {
         <p className="text-gray-600 dark:text-gray-400">View upcoming games and recent results</p>
       </div>
 
-      {/* Season Filter */}
-      <div className="mb-4">
-        <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
-          Select Season
-        </label>
-        <select
-          value={selectedSeason}
-          onChange={(e) => setSelectedSeason(e.target.value)}
-          className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
-        >
-          {availableSeasons.map((season) => (
-            <option key={season} value={season}>
-              {season}
-            </option>
-          ))}
-        </select>
+      {/* Filters */}
+      <div className="mb-4 flex gap-4">
+        <div className="flex-1">
+          <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+            Select Season
+          </label>
+          <select
+            value={selectedSeason}
+            onChange={(e) => setSelectedSeason(e.target.value)}
+            className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
+          >
+            {availableSeasons.map((season) => (
+              <option key={season} value={season}>
+                {season}
+              </option>
+            ))}
+          </select>
+        </div>
+        
+        <div className="flex-1">
+          <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+            Select Week
+          </label>
+          <select
+            value={selectedWeek}
+            onChange={(e) => setSelectedWeek(e.target.value)}
+            className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
+          >
+            <option value="all">All Weeks</option>
+            {availableWeeks.map((week) => (
+              <option key={week} value={week.toString()}>
+                Week {week}
+              </option>
+            ))}
+            <option value="none">No Week Assigned</option>
+          </select>
+        </div>
       </div>
 
       {/* Filter Tabs */}
@@ -195,7 +239,15 @@ export default function GamesPage() {
                       </>
                     )}
                   </div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">{getSeasonDisplay(game.season)}</div>
+                  <div className="flex items-center space-x-2">
+                    <div className="text-xs text-gray-500 dark:text-gray-400">{getSeasonDisplay(game.season)}</div>
+                    {game.week && (
+                      <>
+                        <span className="text-xs text-gray-400">•</span>
+                        <span className="text-xs font-medium text-indigo-600 dark:text-indigo-400">Week {game.week}</span>
+                      </>
+                    )}
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-3 gap-4 items-center">

@@ -20,6 +20,7 @@ export async function GET() {
     scheduledDate: game.scheduled_date,
     status: game.status,
     season: game.season,
+    week: game.week,
     isForfeit: game.is_forfeit ?? false,
     forfeitWinner: game.forfeit_winner ?? null,
   })) || [];
@@ -45,6 +46,7 @@ export async function POST(request: Request) {
       scheduled_date: body.scheduledDate,
       status: body.status || 'scheduled',
       season: body.season || 'Preseason 1',
+      week: body.week,
       home_score: body.homeScore,
       away_score: body.awayScore,
     };
@@ -108,6 +110,7 @@ export async function PUT(request: Request) {
     if (updates.status !== undefined) updateData.status = updates.status;
     if (updates.scheduledDate !== undefined) updateData.scheduled_date = updates.scheduledDate;
     if (updates.season !== undefined) updateData.season = updates.season;
+    if (updates.week !== undefined) updateData.week = updates.week;
     if (updates.isForfeit !== undefined) updateData.is_forfeit = updates.isForfeit;
     if (updates.forfeitWinner !== undefined) updateData.forfeit_winner = updates.forfeitWinner;
 

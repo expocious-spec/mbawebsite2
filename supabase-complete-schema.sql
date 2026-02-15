@@ -91,6 +91,7 @@ CREATE TABLE IF NOT EXISTS games (
   played_at TIMESTAMPTZ DEFAULT NOW(),  -- Bot field
   status TEXT CHECK (status IN ('scheduled', 'live', 'completed')) DEFAULT 'scheduled',
   season INTEGER DEFAULT 0,  -- Website field (season number)
+  week INTEGER,  -- Week number (1, 2, 3, etc.)
   recorded_by TEXT,  -- Bot field (who recorded the game)
   vod_url TEXT,  -- Bot field
   notes TEXT,  -- Bot field

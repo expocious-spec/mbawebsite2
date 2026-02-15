@@ -20,6 +20,7 @@ export default function GamesAdmin() {
   const [homeScore, setHomeScore] = useState<number | string>(0);
   const [awayScore, setAwayScore] = useState<number | string>(0);
   const [season, setSeason] = useState<string>('Preseason 1');
+  const [week, setWeek] = useState<number | string>('');
   const [isForfeit, setIsForfeit] = useState(false);
   const [forfeitWinner, setForfeitWinner] = useState<'home' | 'away'>('home');
   
@@ -133,6 +134,7 @@ export default function GamesAdmin() {
           homeScore: homeScore ? parseInt(homeScore.toString()) : undefined,
           awayScore: awayScore ? parseInt(awayScore.toString()) : undefined,
           season,
+          week: week ? parseInt(week.toString()) : undefined,
           isForfeit: status === 'completed' ? isForfeit : false,
           forfeitWinner: isForfeit ? forfeitWinner : undefined,
         }),
@@ -192,6 +194,7 @@ export default function GamesAdmin() {
     setHomeScore('');
     setAwayScore('');
     setSeason(currentSeasonName);
+    setWeek('');
     setIsForfeit(false);
     setForfeitWinner('home');
     setShowForm(false);
@@ -214,6 +217,7 @@ export default function GamesAdmin() {
     setHomeScore(game.homeScore?.toString() || '');
     setAwayScore(game.awayScore?.toString() || '');
     setSeason(game.season || currentSeasonName);
+    setWeek(game.week?.toString() || '');
     setIsForfeit(game.isForfeit || false);
     setForfeitWinner(game.forfeitWinner || 'home');
     setShowForm(true);
@@ -333,6 +337,21 @@ export default function GamesAdmin() {
                   </option>
                 ))}
               </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                Week (Optional)
+              </label>
+              <input
+                type="number"
+                value={week}
+                onChange={(e) => setWeek(e.target.value)}
+                placeholder="e.g., 1, 2, 3..."
+                min="1"
+                className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
+              />
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Leave blank for games without a specific week</p>
             </div>
 
             {(status === 'live' || status === 'completed') && (
@@ -491,6 +510,11 @@ export default function GamesAdmin() {
                     <span className="px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
                       {game.season || 'Season 1'}
                     </span>
+                    {game.week && (
+                      <span className="px-2 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200">
+                        Week {game.week}
+                      </span>
+                    )}
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-8">
