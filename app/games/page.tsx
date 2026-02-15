@@ -62,8 +62,8 @@ export default function GamesPage() {
       setTeams(teamsData);
       
       // Extract unique weeks from games
-      const weeks = Array.from(new Set(gamesData.map((g: any) => g.week).filter((w: any) => w !== null && w !== undefined)));
-      setAvailableWeeks(weeks.sort((a: number, b: number) => a - b));
+      const weeks = Array.from(new Set(gamesData.map((g: any) => g.week).filter((w: any) => w !== null && w !== undefined))) as number[];
+      setAvailableWeeks(weeks.sort((a, b) => a - b));
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
