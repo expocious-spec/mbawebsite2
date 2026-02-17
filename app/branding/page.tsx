@@ -185,11 +185,7 @@ export default function BrandingPage() {
               <div className="absolute z-10 mt-1 w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-y-auto">
                 {availableSeasons.map(season => (
                   <label
-                    key={season}{
-          const capInfo = getTeamCapSpace(team.id);
-          const capPercentage = (capInfo.totalSpent / capInfo.salaryCap) * 100;
-          
-          return 
+                    key={season}
                     className="flex items-center px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
                   >
                     <input
@@ -319,6 +315,10 @@ export default function BrandingPage() {
                     <div className="text-sm text-gray-600 dark:text-gray-400">Seasons</div>
                     <div className="font-medium text-gray-900 dark:text-white">
                       {team.seasons.join(', ')}
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Salary Cap Space */}
               <div className="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
