@@ -280,12 +280,12 @@ export default function StatsPage() {
     
     // Percentages should not be multiplied by games played
     if (stat === 'fgPercentage' || stat === 'threeFgPercentage') {
-      return seasonStats[stat];
+      return seasonStats[stat] ?? 0;
     }
     if (statMode === 'totals') {
-      return seasonStats[stat] * seasonStats.gamesPlayed;
+      return (seasonStats[stat] ?? 0) * seasonStats.gamesPlayed;
     }
-    return seasonStats[stat];
+    return seasonStats[stat] ?? 0;
   };
 
   const getLeaders = (stat: StatCategory) => {
