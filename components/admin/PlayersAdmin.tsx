@@ -398,7 +398,10 @@ export default function PlayersAdmin() {
               <input
                 type="number"
                 value={coinWorth}
-                onChange={(e) => setCoinWorth(parseInt(e.target.value) || 0)}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setCoinWorth(val === '' ? 0 : parseInt(val));
+                }}
                 placeholder="Enter coin worth"
                 min="0"
                 step="1000"
