@@ -208,12 +208,16 @@ export default function BrandingPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {filteredTeams.map((team) => (
-          <Link
-            key={team.id}
-            href={`/teams/${team.id}`}
-            className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700 hover:border-mba-blue dark:hover:border-mba-blue transition-colors shadow-sm cursor-pointer"
-          >
+        {filteredTeams.map((team) => {
+          const capInfo = getTeamCapSpace(team.id);
+          const capPercentage = (capInfo.totalSpent / capInfo.salaryCap) * 100;
+          
+          return (
+            <Link
+              key={team.id}
+              href={`/teams/${team.id}`}
+              className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700 hover:border-mba-blue dark:hover:border-mba-blue transition-colors shadow-sm cursor-pointer"
+            >
             {/* Team Header */}
             <div className="flex items-center space-x-4 mb-6">
               <div
@@ -338,11 +342,7 @@ export default function BrandingPage() {
             </div>
           </Link>
           );
-        }       </div>
-              )}
-            </div>
-          </Link>
-        ))}
+        })}
       </div>
 
       {/* Add Team Button (for admins) */}
