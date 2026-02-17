@@ -5,6 +5,6 @@ WHERE minecraft_username = 'sflucx'
   AND 'Rookie' = ANY(roles);
 
 -- Verify the update
-SELECT minecraft_username, display_name, coin_worth, roles 
+SELECT minecraft_username, username, coin_worth, roles 
 FROM users 
 WHERE minecraft_username = 'sflucx';

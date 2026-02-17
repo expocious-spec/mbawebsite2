@@ -210,7 +210,7 @@ export async function GET() {
         teamId: user.team_id || null,
         roles: user.roles || ['Player'],
         stars: user.stars || 1,
-        coinWorth: user.coin_worth || 1000,
+        coinWorth: user.coin_worth ?? 1000,
         stats: {
           gamesPlayed: currentStats.games_played || 0,
           points: parseFloat(currentStats.points || 0),

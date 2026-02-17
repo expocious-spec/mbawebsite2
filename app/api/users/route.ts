@@ -186,7 +186,7 @@ export async function GET() {
         teamLogo: user.teams?.team_logo_url || user.teams?.team_logo_emoji,
         roles: user.roles || ['Player'],
         stars: user.stars || 1,
-        coinWorth: user.coin_worth || 1000,
+        coinWorth: user.coin_worth ?? 1000,
         stats: {
           gamesPlayed: stats.gamesPlayed,
           points: parseFloat((stats.totalPoints / gp).toFixed(1)),
