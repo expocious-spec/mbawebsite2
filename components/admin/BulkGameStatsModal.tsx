@@ -114,6 +114,15 @@ export default function BulkGameStatsModal({ onClose, onSave }: BulkGameStatsMod
     return match ? { made: parseInt(match[1]), attempted: parseInt(match[2]) } : { made: 0, attempted: 0 };
   };
 
+  const extractAssists = (line: string): number => {
+    // New format: AST/PASS 6/15 - extract just the first number (assists)
+    const astPassMatch = line.match(/AST\/PASS\s+(\d+)\/(\d+)/i);
+    if (astPassMatch) return parseInt(astPassMatch[1]);
+    
+    // Fallback to regular AST format
+    return extractStat(line, 'AST') || extractStat(line, 'Assists');
+  };
+
   const parseBulkStats = () => {
     setProcessing(true);
     const newErrors: string[] = [];
@@ -145,12 +154,17 @@ export default function BulkGameStatsModal({ onClose, onSave }: BulkGameStatsMod
         const fg = extractFraction(line, 'FG');
         const threeFg = extractFraction(line, '3FG');
 
+        // Calculate total rebounds from OREB + DREB if both present, otherwise use REB
+        const oreb = extractStat(line, 'OREB');
+        const dreb = extractStat(line, 'DREB');
+        const totalReb = (oreb || dreb) ? oreb + dreb : (extractStat(line, 'REB') || extractStat(line, 'Rebounds'));
+
         const playerStat: ParsedPlayerStat = {
           username,
           minutes: extractTime(line, 'MIN'),
           points: extractStat(line, 'PTS') || extractStat(line, 'Points'),
-          assists: extractStat(line, 'AST') || extractStat(line, 'Assists'),
-          rebounds: extractStat(line, 'REB') || extractStat(line, 'Rebounds'),
+          assists: extractAssists(line),
+          rebounds: totalReb,
           steals: extractStat(line, 'STL') || extractStat(line, 'Steals'),
           blocks: extractStat(line, 'BLK') || extractStat(line, 'Blocks'),
           turnovers: extractStat(line, 'TOV') || extractStat(line, 'Turnovers'),

@@ -573,7 +573,7 @@ export default function TeamsAdmin() {
                     const isOverCap = currentSalary >= salaryCap;
                     return (
                       <span className={`font-medium ${isOverCap ? 'text-red-600 dark:text-red-500' : 'text-green-600 dark:text-green-500'}`}>
-                        ${(currentSalary / 1000).toFixed(1)}k / ${(salaryCap / 1000).toFixed(1)}k
+                        ${currentSalary.toLocaleString()} / ${salaryCap.toLocaleString()}
                       </span>
                     );
                   })()}

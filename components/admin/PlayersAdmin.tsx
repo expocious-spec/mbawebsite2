@@ -104,7 +104,7 @@ export default function PlayersAdmin() {
           discordUsername,
           teamId,
           roles,
-          coinWorth,
+          coinWorth: roles.includes('Rookie') ? 0 : coinWorth,
           stats: {
             gamesPlayed: parseInt(gamesPlayed) || 0,
             points: parseFloat(points) || 0,
@@ -149,7 +149,7 @@ export default function PlayersAdmin() {
           discordUsername,
           teamId,
           roles,
-          coinWorth,
+          coinWorth: roles.includes('Rookie') ? 0 : coinWorth,
         }),
       });
 
