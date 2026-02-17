@@ -359,14 +359,19 @@ export default function PlayersAdmin() {
                 Roles
               </label>
               <div className="space-y-2">
-                {['Player', 'Franchise Owner', 'General Manager', 'Head Coach', 'Assistant Coach'].map((role) => (
+                {['Player', 'Rookie', 'Franchise Owner', 'General Manager', 'Head Coach', 'Assistant Coach'].map((role) => (
                   <label key={role} className="flex items-center space-x-2">
                     <input
                       type="checkbox"
                       checked={roles.includes(role)}
                       onChange={(e) => {
                         if (e.target.checked) {
-                          setRoles([...roles, role]);
+                          const newRoles = [...roles, role];
+                          setRoles(newRoles);
+                          // If Rookie is selected, set coin worth to 0
+                          if (role === 'Rookie') {
+                            setCoinWorth(0);
+                          }
                         } else {
                           setRoles(roles.filter(r => r !== role));
                         }
@@ -390,10 +395,11 @@ export default function PlayersAdmin() {
                 placeholder="Enter coin worth"
                 min="0"
                 step="1000"
-                className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
+                disabled={roles.includes('Rookie')}
+                className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
               />
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                Common values: 1,000-12,000 coins
+                {roles.includes('Rookie') ? 'Rookies are worth $0 MBA coins' : 'Common values: 1,000-12,000 coins'}
               </p>
             </div>
           </div>

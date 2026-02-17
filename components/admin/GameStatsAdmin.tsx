@@ -23,12 +23,14 @@ export default function GameStatsAdmin() {
     gameId: '',
     date: '',
     opponent: '',
+    minutes: '',
     points: '',
     rebounds: '',
     assists: '',
     steals: '',
     blocks: '',
     turnovers: '',
+    missesForced: '',
     fieldGoalsMade: '',
     fieldGoalsAttempted: '',
     threePointersMade: '',
@@ -86,15 +88,38 @@ export default function GameStatsAdmin() {
 
     try {
       // Parse the pasted text
-      // Format: ElfFoxy | Points: 12 | Assists: 3 | Rebounds: 14 | Steals: 0 | Turnovers: 3 | Possession: 120 sec | FG: 5/10 | 3FG: 2/5
+      // New format: Jigglebutt67 | MIN 0:00 | PTS 0 | FG 0/0 | 3FG 0/0 | AST/PASS 0/0 | OREB 0 | DREB 0 | REB 0 | STL 0 | BLK 0 | TOV 0 | MISS-AG 0 | POSS 0s
+      // Old format: ElfFoxy | Points: 12 | Assists: 3 | Rebounds: 14 | Steals: 0 | Turnovers: 3 | Possession: 120 sec | FG: 5/10 | 3FG: 2/5
+      
       const extractValue = (text: string, key: string) => {
-        const regex = new RegExp(`${key}:\\s*([\\d.]+)`, 'i');
+        const regex = new RegExp(`${key}[:\\s]+(\\d+)`, 'i');
         const match = text.match(regex);
         return match ? match[1] : '';
       };
 
+      const extractTime = (text: string, key: string) => {
+        // Format: MIN 0:00 (MM:SS)
+        const regex = new RegExp(`${key}\\s+(\\d+):(\\d+)`, 'i');
+        const match = text.match(regex);
+        if (match) {
+          const minutes = parseInt(match[1]);
+          const seconds = parseInt(match[2]);
+          return (minutes * 60 + seconds).toString();
+        }
+        return '0';
+      };
+
+      const extractPossession = (text: string) => {
+        // New format: POSS 0s or old format: Possession: 120 sec
+        const newFormat = text.match(/POSS\s+(\d+)s/i);
+        if (newFormat) return newFormat[1];
+        
+        const oldFormat = text.match(/Possession[:\s]+(\d+)/i);
+        return oldFormat ? oldFormat[1] : '';
+      };
+
       const extractFraction = (text: string, key: string) => {
-        const regex = new RegExp(`${key}:\\s*(\\d+)/(\\d+)`, 'i');
+        const regex = new RegExp(`${key}[:\\s]*(\\d+)/(\\d+)`, 'i');
         const match = text.match(regex);
         return match ? { made: match[1], attempted: match[2] } : { attempted: '', made: '' };
       };
@@ -104,13 +129,15 @@ export default function GameStatsAdmin() {
 
       setFormData(prev => ({
         ...prev,
-        points: extractValue(pasteText, 'Points'),
-        assists: extractValue(pasteText, 'Assists'),
-        rebounds: extractValue(pasteText, 'Rebounds'),
-        steals: extractValue(pasteText, 'Steals'),
-        blocks: extractValue(pasteText, 'Blocks'),
-        turnovers: extractValue(pasteText, 'Turnovers'),
-        possessionTime: extractValue(pasteText, 'Possession'),
+        minutes: extractTime(pasteText, 'MIN'),
+        points: extractValue(pasteText, 'PTS') || extractValue(pasteText, 'Points'),
+        assists: extractValue(pasteText, 'AST') || extractValue(pasteText, 'Assists'),
+        rebounds: extractValue(pasteText, 'REB') || extractValue(pasteText, 'Rebounds'),
+        steals: extractValue(pasteText, 'STL') || extractValue(pasteText, 'Steals'),
+        blocks: extractValue(pasteText, 'BLK') || extractValue(pasteText, 'Blocks'),
+        turnovers: extractValue(pasteText, 'TOV') || extractValue(pasteText, 'Turnovers'),
+        missesForced: extractValue(pasteText, 'MISS-AG'),
+        possessionTime: extractPossession(pasteText),
         fieldGoalsAttempted: fg.attempted,
         fieldGoalsMade: fg.made,
         threePointersAttempted: threeFg.attempted,
@@ -132,12 +159,14 @@ export default function GameStatsAdmin() {
       // Convert empty strings to 0 for numeric fields
       const dataToSubmit = {
         ...formData,
+        minutes: Number(formData.minutes) || 0,
         points: Number(formData.points) || 0,
         rebounds: Number(formData.rebounds) || 0,
         assists: Number(formData.assists) || 0,
         steals: Number(formData.steals) || 0,
         blocks: Number(formData.blocks) || 0,
         turnovers: Number(formData.turnovers) || 0,
+        missesForced: Number(formData.missesForced) || 0,
         fieldGoalsMade: Number(formData.fieldGoalsMade) || 0,
         fieldGoalsAttempted: Number(formData.fieldGoalsAttempted) || 0,
         threePointersMade: Number(formData.threePointersMade) || 0,
@@ -201,12 +230,14 @@ export default function GameStatsAdmin() {
       gameId: stat.gameId || '',
       date: stat.date,
       opponent: stat.opponent,
+      minutes: stat.minutes || 0,
       points: stat.points,
       rebounds: stat.rebounds,
       assists: stat.assists,
       steals: stat.steals,
       blocks: stat.blocks || 0,
       turnovers: stat.turnovers,
+      missesForced: stat.missesForced || 0,
       fieldGoalsMade: stat.fieldGoalsMade,
       fieldGoalsAttempted: stat.fieldGoalsAttempted,
       threePointersMade: stat.threePointersMade,
@@ -223,12 +254,14 @@ export default function GameStatsAdmin() {
       gameId: '',
       date: '',
       opponent: '',
+      minutes: '',
       points: '',
       rebounds: '',
       assists: '',
       steals: '',
       blocks: '',
       turnovers: '',
+      missesForced: '',
       fieldGoalsMade: '',
       fieldGoalsAttempted: '',
       threePointersMade: '',
@@ -580,7 +613,7 @@ export default function GameStatsAdmin() {
                 <textarea
                   value={pasteText}
                   onChange={(e) => setPasteText(e.target.value)}
-                  placeholder="posterizing | Points: 14 | Assists: 7 | Rebounds: 22 | Steals: 0 | Blocks: 5 | Turnovers: 5 | Possession: 246 sec | Defended By: AshtonJeanty | DR: 108  | Pass Attempts: 25 | Misses Forced: 5 | FG: 6/13 | 3FG: 2/8 | FG%: 46.2 | 3FG%: 25.0 | eFG%: 53.8 | 3PT Rate: 61.5% | Assists/Pass: 0.3 | Fantasy Points: 61"
+                  placeholder="Jigglebutt67 | MIN 5:30 | PTS 14 | FG 6/13 | 3FG 2/8 | AST/PASS 7/25 | OREB 3 | DREB 19 | REB 22 | STL 2 | BLK 5 | TOV 5 | MISS-AG 5 | POSS 246s"
                   rows={3}
                   className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
                 />
@@ -592,7 +625,7 @@ export default function GameStatsAdmin() {
                   Import Stats from Paste
                 </button>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Paste stats in format: Points: X | Assists: X | Rebounds: X | Steals: X | Blocks: X | Turnovers: X | Possession: X sec | FG: X/X | 3FG: X/X
+                  Paste stats in format: MIN 0:00 | PTS X | FG X/X | 3FG X/X | AST/PASS X/X | OREB X | DREB X | REB X | STL X | BLK X | TOV X | MISS-AG X | POSS Xs
                 </p>
               </div>
             </div>
@@ -601,6 +634,21 @@ export default function GameStatsAdmin() {
           <div className="border-t border-gray-300 dark:border-gray-600 pt-6">
             <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Statistics</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {/* Minutes */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Minutes (seconds)
+                </label>
+                <input
+                  type="number"
+                  name="minutes"
+                  value={formData.minutes}
+                  onChange={handleChange}
+                  min="0"
+                  placeholder="e.g., 330 for 5:30"
+                  className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
+                />
+              </div>
               {/* Points */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -680,6 +728,20 @@ export default function GameStatsAdmin() {
                   type="number"
                   name="turnovers"
                   value={formData.turnovers}
+                  onChange={handleChange}
+                  min="0"
+                  className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
+                />
+              </div>
+              {/* Misses Forced */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Misses Forced
+                </label>
+                <input
+                  type="number"
+                  name="missesForced"
+                  value={formData.missesForced}
                   onChange={handleChange}
                   min="0"
                   className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"

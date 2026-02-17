@@ -5,16 +5,18 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
 
-type StatCategory = 'points' | 'rebounds' | 'assists' | 'steals' | 'blocks' | 'turnovers' | 'possessionTime' | 'efficiency' | 'fgPercentage' | 'threeFgPercentage';
+type StatCategory = 'minutes' | 'points' | 'rebounds' | 'assists' | 'steals' | 'blocks' | 'turnovers' | 'missesForced' | 'possessionTime' | 'efficiency' | 'fgPercentage' | 'threeFgPercentage';
 type StatMode = 'averages' | 'totals';
 
 const statCategories = [
+  { key: 'minutes' as StatCategory, label: 'Minutes', abbr: 'MIN' },
   { key: 'points' as StatCategory, label: 'Points', abbr: 'PTS' },
   { key: 'rebounds' as StatCategory, label: 'Rebounds', abbr: 'REB' },
   { key: 'assists' as StatCategory, label: 'Assists', abbr: 'AST' },
   { key: 'steals' as StatCategory, label: 'Steals', abbr: 'STL' },
   { key: 'blocks' as StatCategory, label: 'Blocks', abbr: 'BLK' },
   { key: 'turnovers' as StatCategory, label: 'Turnovers', abbr: 'TOV' },
+  { key: 'missesForced' as StatCategory, label: 'Misses Forced', abbr: 'MISS-AG' },
   { key: 'possessionTime' as StatCategory, label: 'Possession Time', abbr: 'PT' },
   { key: 'fgPercentage' as StatCategory, label: 'Field Goal %', abbr: 'FG%' },
   { key: 'threeFgPercentage' as StatCategory, label: '3-Point %', abbr: '3FG%' },
@@ -22,7 +24,7 @@ const statCategories = [
 ];
 
 export default function StatsPage() {
-  const [selectedStat, setSelectedStat] = useState<StatCategory>('points');
+  const [selectedStat, setSelectedStat] = useState<StatCategory>('minutes');
   const [statMode, setStatMode] = useState<StatMode>('averages');
   const [selectedSeasons, setSelectedSeasons] = useState<string[]>(['All-Time']);
   const [availableSeasons, setAvailableSeasons] = useState<string[]>(['All-Time']);
@@ -139,18 +141,20 @@ export default function StatsPage() {
 
       const gamesPlayed = player.gameStats.length;
       const totals = player.gameStats.reduce((acc: any, gs: any) => ({
+        minutes: acc.minutes + (gs.minutes || 0),
         points: acc.points + (gs.points || 0),
         rebounds: acc.rebounds + (gs.rebounds || 0),
         assists: acc.assists + (gs.assists || 0),
         steals: acc.steals + (gs.steals || 0),
         blocks: acc.blocks + (gs.blocks || 0),
         turnovers: acc.turnovers + (gs.turnovers || 0),
+        missesForced: acc.missesForced + (gs.missesForced || gs.misses_forced || 0),
         possessionTime: acc.possessionTime + (gs.possessionTime || gs.possession_time || 0),
         fieldGoalsMade: acc.fieldGoalsMade + (gs.fieldGoalsMade || gs.field_goals_made || 0),
         fieldGoalsAttempted: acc.fieldGoalsAttempted + (gs.fieldGoalsAttempted || gs.field_goals_attempted || 0),
         threePointersMade: acc.threePointersMade + (gs.threePointersMade || gs.three_pointers_made || 0),
         threePointersAttempted: acc.threePointersAttempted + (gs.threePointersAttempted || gs.three_pointers_attempted || 0),
-      }), { points: 0, rebounds: 0, assists: 0, steals: 0, blocks: 0, turnovers: 0, possessionTime: 0, fieldGoalsMade: 0, fieldGoalsAttempted: 0, threePointersMade: 0, threePointersAttempted: 0 });
+      }), { minutes: 0, points: 0, rebounds: 0, assists: 0, steals: 0, blocks: 0, turnovers: 0, missesForced: 0, possessionTime: 0, fieldGoalsMade: 0, fieldGoalsAttempted: 0, threePointersMade: 0, threePointersAttempted: 0 });
 
       const missedFG = totals.fieldGoalsAttempted - totals.fieldGoalsMade;
       const efficiency = gamesPlayed > 0 ? (totals.points + totals.rebounds + totals.assists + totals.steals - missedFG - totals.turnovers) / gamesPlayed : 0;
@@ -159,12 +163,14 @@ export default function StatsPage() {
 
       return {
         gamesPlayed,
+        minutes: gamesPlayed > 0 ? totals.minutes / gamesPlayed : 0,
         points: gamesPlayed > 0 ? totals.points / gamesPlayed : 0,
         rebounds: gamesPlayed > 0 ? totals.rebounds / gamesPlayed : 0,
         assists: gamesPlayed > 0 ? totals.assists / gamesPlayed : 0,
         steals: gamesPlayed > 0 ? totals.steals / gamesPlayed : 0,
         blocks: gamesPlayed > 0 ? totals.blocks / gamesPlayed : 0,
         turnovers: gamesPlayed > 0 ? totals.turnovers / gamesPlayed : 0,
+        missesForced: gamesPlayed > 0 ? totals.missesForced / gamesPlayed : 0,
         possessionTime: gamesPlayed > 0 ? totals.possessionTime / gamesPlayed : 0,
         efficiency,
         totalEfficiency: efficiency,
@@ -180,12 +186,14 @@ export default function StatsPage() {
     if (!player.gameStats || player.gameStats.length === 0) {
       return {
         gamesPlayed: 0,
+        minutes: 0,
         points: 0,
         rebounds: 0,
         assists: 0,
         steals: 0,
         blocks: 0,
         turnovers: 0,
+        missesForced: 0,
         possessionTime: 0,
         efficiency: 0,
         totalEfficiency: 0,
@@ -203,12 +211,14 @@ export default function StatsPage() {
       // No games in these seasons
       return {
         gamesPlayed: 0,
+        minutes: 0,
         points: 0,
         rebounds: 0,
         assists: 0,
         steals: 0,
         blocks: 0,
         turnovers: 0,
+        missesForced: 0,
         possessionTime: 0,
         efficiency: 0,
         totalEfficiency: 0,
@@ -220,18 +230,20 @@ export default function StatsPage() {
     // Calculate averages from season game stats
     const gamesPlayed = seasonGameStats.length;
     const totals = seasonGameStats.reduce((acc: any, gs: any) => ({
+      minutes: acc.minutes + (gs.minutes || 0),
       points: acc.points + (gs.points || 0),
       rebounds: acc.rebounds + (gs.rebounds || 0),
       assists: acc.assists + (gs.assists || 0),
       steals: acc.steals + (gs.steals || 0),
       blocks: acc.blocks + (gs.blocks || 0),
       turnovers: acc.turnovers + (gs.turnovers || 0),
+      missesForced: acc.missesForced + (gs.missesForced || gs.misses_forced || 0),
       possessionTime: acc.possessionTime + (gs.possessionTime || gs.possession_time || 0),
       fieldGoalsMade: acc.fieldGoalsMade + (gs.fieldGoalsMade || gs.field_goals_made || 0),
       fieldGoalsAttempted: acc.fieldGoalsAttempted + (gs.fieldGoalsAttempted || gs.field_goals_attempted || 0),
       threePointersMade: acc.threePointersMade + (gs.threePointersMade || gs.three_pointers_made || 0),
       threePointersAttempted: acc.threePointersAttempted + (gs.threePointersAttempted || gs.three_pointers_attempted || 0),
-    }), { points: 0, rebounds: 0, assists: 0, steals: 0, blocks: 0, turnovers: 0, possessionTime: 0, fieldGoalsMade: 0, fieldGoalsAttempted: 0, threePointersMade: 0, threePointersAttempted: 0 });
+    }), { minutes: 0, points: 0, rebounds: 0, assists: 0, steals: 0, blocks: 0, turnovers: 0, missesForced: 0, possessionTime: 0, fieldGoalsMade: 0, fieldGoalsAttempted: 0, threePointersMade: 0, threePointersAttempted: 0 });
 
     // Calculate efficiency: (PTS + REB + AST + STL - Missed FG - TOV) / GP
     const missedFG = totals.fieldGoalsAttempted - totals.fieldGoalsMade;
@@ -242,12 +254,14 @@ export default function StatsPage() {
 
     return {
       gamesPlayed,
+      minutes: gamesPlayed > 0 ? totals.minutes / gamesPlayed : 0,
       points: gamesPlayed > 0 ? totals.points / gamesPlayed : 0,
       rebounds: gamesPlayed > 0 ? totals.rebounds / gamesPlayed : 0,
       assists: gamesPlayed > 0 ? totals.assists / gamesPlayed : 0,
       steals: gamesPlayed > 0 ? totals.steals / gamesPlayed : 0,
       blocks: gamesPlayed > 0 ? totals.blocks / gamesPlayed : 0,
       turnovers: gamesPlayed > 0 ? totals.turnovers / gamesPlayed : 0,
+      missesForced: gamesPlayed > 0 ? totals.missesForced / gamesPlayed : 0,
       possessionTime: gamesPlayed > 0 ? totals.possessionTime / gamesPlayed : 0,
       efficiency,
       totalEfficiency,
@@ -462,6 +476,9 @@ export default function StatsPage() {
                   GP
                 </th>
                 <th className="px-4 py-4 text-center text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                  {statMode === 'totals' ? 'MIN' : 'MPG'}
+                </th>
+                <th className="px-4 py-4 text-center text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
                   {statMode === 'totals' ? 'PTS' : 'PPG'}
                 </th>
                 <th className="px-4 py-4 text-center text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
@@ -478,6 +495,9 @@ export default function StatsPage() {
                 </th>
                 <th className="px-4 py-4 text-center text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
                   {statMode === 'totals' ? 'TOV' : 'TPG'}
+                </th>
+                <th className="px-4 py-4 text-center text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                  {statMode === 'totals' ? 'MISS-AG' : 'MFPG'}
                 </th>
                 <th className="px-4 py-4 text-center text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
                   {statMode === 'totals' ? 'PT' : 'PTPG'}
@@ -567,6 +587,18 @@ export default function StatsPage() {
                       {player.seasonStats.gamesPlayed || 0}
                     </td>
                     <td className={`px-4 py-4 whitespace-nowrap text-center ${
+                      selectedStat === 'minutes' ? 'font-bold text-mba-blue' : 'text-gray-900 dark:text-white'
+                    }`}>
+                      {(() => {
+                        const totalMinutes = statMode === 'totals' 
+                          ? (player.seasonStats.minutes || 0) * (player.seasonStats.gamesPlayed || 0)
+                          : (player.seasonStats.minutes || 0);
+                        const mins = Math.floor(totalMinutes / 60);
+                        const secs = Math.round(totalMinutes % 60);
+                        return `${mins}:${secs.toString().padStart(2, '0')}`;
+                      })()}
+                    </td>
+                    <td className={`px-4 py-4 whitespace-nowrap text-center ${
                       selectedStat === 'points' ? 'font-bold text-mba-blue' : 'text-gray-900 dark:text-white'
                     }`}>
                       {(statMode === 'totals' 
@@ -609,6 +641,13 @@ export default function StatsPage() {
                         : (player.seasonStats.turnovers || 0)).toFixed(1)}
                     </td>
                     <td className={`px-4 py-4 whitespace-nowrap text-center ${
+                      selectedStat === 'missesForced' ? 'font-bold text-mba-blue' : 'text-gray-900 dark:text-white'
+                    }`}>
+                      {(statMode === 'totals' 
+                        ? (player.seasonStats.missesForced || 0) * (player.seasonStats.gamesPlayed || 0)
+                        : (player.seasonStats.missesForced || 0)).toFixed(1)}
+                    </td>
+                    <td className={`px-4 py-4 whitespace-nowrap text-center ${
                       selectedStat === 'possessionTime' ? 'font-bold text-mba-blue' : 'text-gray-900 dark:text-white'
                     }`}>
                       {(statMode === 'totals' 
@@ -637,7 +676,7 @@ export default function StatsPage() {
                 })
               ) : (
                 <tr>
-                  <td colSpan={14} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                  <td colSpan={16} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
                     <TrendingUp className="w-12 h-12 mx-auto mb-3 opacity-50" />
                     <p>No player statistics available yet.</p>
                     <p className="text-sm mt-1">Stats will appear once games are played!</p>

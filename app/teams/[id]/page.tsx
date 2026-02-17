@@ -3,7 +3,7 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowLeft, Users, Trophy, TrendingUp } from 'lucide-react';
+import { ArrowLeft, Users, Trophy, TrendingUp, DollarSign } from 'lucide-react';
 import { useEffect, useState } from 'react';
 // import TeamWall from '@/components/TeamWall'; // DISABLED - Team wall removed
 
@@ -164,6 +164,12 @@ export default function TeamPage({ params }: { params: { id: string } }) {
   const avgPointsFor = gamesPlayed > 0 ? (totalPointsFor / gamesPlayed).toFixed(1) : '0.0';
   const avgPointsAgainst = gamesPlayed > 0 ? (totalPointsAgainst / gamesPlayed).toFixed(1) : '0.0';
 
+  // Calculate salary cap usage
+  const totalCapSpent = teamPlayers.reduce((sum, player) => sum + (player.coinWorth || 0), 0);
+  const salaryCap = team.salaryCap || 19000;
+  const capRemaining = salaryCap - totalCapSpent;
+  const capPercentage = (totalCapSpent / salaryCap) * 100;
+
   // Get game IDs from filtered games by season
   const seasonGameIds = new Set(filteredGamesBySeason.map(game => game.id));
 
@@ -320,6 +326,51 @@ export default function TeamPage({ params }: { params: { id: string } }) {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column - Stats */}
           <div className="lg:col-span-2 space-y-6">
+            {/* Salary Cap Card */}
+            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border-2 border-green-200 dark:border-green-800">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center">
+                <DollarSign className="w-6 h-6 mr-2 text-green-600 dark:text-green-400" />
+                Salary Cap Status
+              </h2>
+              
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-lg font-semibold text-gray-700 dark:text-gray-300">Cap Space</span>
+                  <span className={`text-2xl font-bold ${capRemaining >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                    ${(capRemaining / 1000).toFixed(1)}k
+                  </span>
+                </div>
+                
+                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4">
+                  <div
+                    className={`h-4 rounded-full transition-all ${capPercentage > 100 ? 'bg-red-500' : capPercentage > 90 ? 'bg-yellow-500' : 'bg-green-500'}`}
+                    style={{ width: `${Math.min(capPercentage, 100)}%` }}
+                  />
+                </div>
+                
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+                    <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Spent</div>
+                    <div className="text-lg font-bold text-gray-900 dark:text-white">
+                      ${(totalCapSpent / 1000).toFixed(1)}k
+                    </div>
+                  </div>
+                  <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+                    <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Salary Cap</div>
+                    <div className="text-lg font-bold text-gray-900 dark:text-white">
+                      ${(salaryCap / 1000).toFixed(1)}k
+                    </div>
+                  </div>
+                  <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+                    <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Usage</div>
+                    <div className={`text-lg font-bold ${capPercentage > 100 ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-white'}`}>
+                      {capPercentage.toFixed(1)}%
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* Team Stats */}
             <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center">

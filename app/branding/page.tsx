@@ -9,6 +9,7 @@ type ConferenceFilter = 'all' | 'Western' | 'Eastern';
 
 export default function BrandingPage() {
   const [teams, setTeams] = useState<any[]>([]);
+  const [players, setPlayers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [conferenceFilter, setConferenceFilter] = useState<ConferenceFilter>('all');
   const [selectedSeasons, setSelectedSeasons] = useState<string[]>(['All-Time']);
@@ -17,6 +18,7 @@ export default function BrandingPage() {
 
   useEffect(() => {
     fetchTeams();
+    fetchPlayers();
     fetchSeasons();
   }, []);
 
@@ -79,6 +81,25 @@ export default function BrandingPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchPlayers = async () => {
+    try {
+      const res = await fetch('/api/players');
+      const data = await res.json();
+      setPlayers(data);
+    } catch (error) {
+      console.error('Error fetching players:', error);
+    }
+  };
+
+  // Calculate team cap space
+  const getTeamCapSpace = (teamId: string) => {
+    const teamPlayers = players.filter(p => p.teamId === teamId);
+    const totalSpent = teamPlayers.reduce((sum, p) => sum + (p.coinWorth || 0), 0);
+    const salaryCap = 19000; // Default salary cap
+    const remaining = salaryCap - totalSpent;
+    return { totalSpent, salaryCap, remaining };
   };
 
   // Filter teams by conference and season
@@ -164,7 +185,11 @@ export default function BrandingPage() {
               <div className="absolute z-10 mt-1 w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-y-auto">
                 {availableSeasons.map(season => (
                   <label
-                    key={season}
+                    key={season}{
+          const capInfo = getTeamCapSpace(team.id);
+          const capPercentage = (capInfo.totalSpent / capInfo.salaryCap) * 100;
+          
+          return 
                     className="flex items-center px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
                   >
                     <input
@@ -290,9 +315,30 @@ export default function BrandingPage() {
                     <div className="text-sm text-gray-600 dark:text-gray-400">Seasons</div>
                     <div className="font-medium text-gray-900 dark:text-white">
                       {team.seasons.join(', ')}
-                    </div>
-                  </div>
+
+              {/* Salary Cap Space */}
+              <div className="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Salary Cap</span>
+                  <span className={`text-sm font-bold ${capInfo.remaining >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                    ${(capInfo.remaining / 1000).toFixed(1)}k remaining
+                  </span>
                 </div>
+                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-2">
+                  <div
+                    className={`h-2 rounded-full transition-all ${capPercentage > 100 ? 'bg-red-500' : capPercentage > 90 ? 'bg-yellow-500' : 'bg-green-500'}`}
+                    style={{ width: `${Math.min(capPercentage, 100)}%` }}
+                  />
+                </div>
+                <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400">
+                  <span>${(capInfo.totalSpent / 1000).toFixed(1)}k spent</span>
+                  <span>${(capInfo.salaryCap / 1000).toFixed(1)}k cap</span>
+                </div>
+              </div>
+            </div>
+          </Link>
+          );
+        }       </div>
               )}
             </div>
           </Link>

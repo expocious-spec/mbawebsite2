@@ -70,12 +70,14 @@ export interface GameStats {
   gameId: string;
   date: string;
   opponent: string;
+  minutes: number;
   points: number;
   rebounds: number;
   assists: number;
   steals: number;
   blocks: number;
   turnovers: number;
+  missesForced: number;
   fieldGoalsMade: number;
   fieldGoalsAttempted: number;
   threePointersMade: number;

@@ -129,6 +129,14 @@ export default function PlayersPage() {
                   </div>
                 )}
 
+                {/* Salary Cap Worth */}
+                <div className="mb-2 flex items-center justify-between px-2">
+                  <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Cap Value:</span>
+                  <span className="text-sm font-bold text-green-600 dark:text-green-400">
+                    ${(player.coinWorth || 0).toLocaleString()}
+                  </span>
+                </div>
+
                 {/* Quick Stats */}
                 <div className="grid grid-cols-3 gap-2 pt-3 border-t border-gray-200 dark:border-gray-700">
                   <div className="text-center">

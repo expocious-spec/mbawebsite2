@@ -11,16 +11,19 @@ interface BulkGameStatsModalProps {
 interface ParsedPlayerStat {
   username: string;
   playerId?: string;
+  minutes: number;
   points: number;
   assists: number;
   rebounds: number;
   steals: number;
   blocks: number;
   turnovers: number;
+  missesForced: number;
   fgm: number;
   fga: number;
   tpm: number;
   tpa: number;
+  possessionTime: number;
 }
 
 export default function BulkGameStatsModal({ onClose, onSave }: BulkGameStatsModalProps) {
@@ -71,13 +74,42 @@ export default function BulkGameStatsModal({ onClose, onSave }: BulkGameStatsMod
   };
 
   const extractStat = (line: string, statName: string): number => {
-    const regex = new RegExp(`${statName}:\\s*(\\d+(?:\\.\\d+)?)`, 'i');
+    // New format: PTS 0, REB 0, etc. (with space)
+    const newFormatRegex = new RegExp(`${statName}\\s+(\\d+(?:\\.\\d+)?)`, 'i');
+    const newMatch = line.match(newFormatRegex);
+    if (newMatch) return parseFloat(newMatch[1]);
+    
+    // Old format: Points: 0, Rebounds: 0, etc. (with colon)
+    const oldFormatRegex = new RegExp(`${statName}:\\s*(\\d+(?:\\.\\d+)?)`, 'i');
+    const oldMatch = line.match(oldFormatRegex);
+    return oldMatch ? parseFloat(oldMatch[1]) : 0;
+  };
+
+  const extractTime = (line: string, key: string): number => {
+    // Format: MIN 0:00 (MM:SS) - convert to seconds
+    const regex = new RegExp(`${key}\\s+(\\d+):(\\d+)`, 'i');
     const match = line.match(regex);
-    return match ? parseFloat(match[1]) : 0;
+    if (match) {
+      const minutes = parseInt(match[1]);
+      const seconds = parseInt(match[2]);
+      return minutes * 60 + seconds;
+    }
+    return 0;
+  };
+
+  const extractPossession = (line: string): number => {
+    // New format: POSS 0s
+    const newFormat = line.match(/POSS\\s+(\\d+)s/i);
+    if (newFormat) return parseInt(newFormat[1]);
+    
+    // Old format: Possession: 120 sec
+    const oldFormat = line.match(/Possession[:\\s]+(\\d+)/i);
+    return oldFormat ? parseInt(oldFormat[1]) : 0;
   };
 
   const extractFraction = (line: string, statName: string): { made: number; attempted: number } => {
-    const regex = new RegExp(`${statName}:\\s*(\\d+)/(\\d+)`, 'i');
+    // Both formats use the same pattern: FG: 0/0 or FG 0/0
+    const regex = new RegExp(`${statName}[:\\s]*(\\d+)/(\\d+)`, 'i');
     const match = line.match(regex);
     return match ? { made: parseInt(match[1]), attempted: parseInt(match[2]) } : { made: 0, attempted: 0 };
   };
@@ -109,18 +141,21 @@ export default function BulkGameStatsModal({ onClose, onSave }: BulkGameStatsMod
           continue;
         }
 
-        // Extract stats
+        // Extract stats (support both new and old formats)
         const fg = extractFraction(line, 'FG');
         const threeFg = extractFraction(line, '3FG');
 
         const playerStat: ParsedPlayerStat = {
           username,
-          points: extractStat(line, 'Points'),
-          assists: extractStat(line, 'Assists'),
-          rebounds: extractStat(line, 'Rebounds'),
-          steals: extractStat(line, 'Steals'),
-          blocks: extractStat(line, 'Blocks'),
-          turnovers: extractStat(line, 'Turnovers'),
+          minutes: extractTime(line, 'MIN'),
+          points: extractStat(line, 'PTS') || extractStat(line, 'Points'),
+          assists: extractStat(line, 'AST') || extractStat(line, 'Assists'),
+          rebounds: extractStat(line, 'REB') || extractStat(line, 'Rebounds'),
+          steals: extractStat(line, 'STL') || extractStat(line, 'Steals'),
+          blocks: extractStat(line, 'BLK') || extractStat(line, 'Blocks'),
+          turnovers: extractStat(line, 'TOV') || extractStat(line, 'Turnovers'),
+          missesForced: extractStat(line, 'MISS-AG'),
+          possessionTime: extractPossession(line),
           fgm: fg.made,
           fga: fg.attempted,
           tpm: threeFg.made,
@@ -167,16 +202,19 @@ export default function BulkGameStatsModal({ onClose, onSave }: BulkGameStatsMod
       date: date || new Date().toISOString(),
       opponent: '', // Will be filled by parent component based on game
       result: 'W' as 'W' | 'L',
+      minutes: stat.minutes,
       points: stat.points,
       rebounds: stat.rebounds,
       assists: stat.assists,
       steals: stat.steals,
       blocks: stat.blocks,
       turnovers: stat.turnovers,
+      missesForced: stat.missesForced,
       fieldGoalsMade: stat.fgm,
       fieldGoalsAttempted: stat.fga,
       threePointersMade: stat.tpm,
       threePointersAttempted: stat.tpa,
+      possessionTime: stat.possessionTime,
       freeThrowsMade: 0,
       freeThrowsAttempted: 0,
       fouls: 0,
@@ -253,14 +291,16 @@ export default function BulkGameStatsModal({ onClose, onSave }: BulkGameStatsMod
           {/* Bulk Text Input */}
           <div className="mb-6">
             <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
-              Paste Stats (Format: username | Points: X | Assists: Y | ...)
+              Paste Stats (New Format: username | MIN 0:00 | PTS X | ...)
             </label>
             <textarea
               value={bulkText}
               onChange={(e) => setBulkText(e.target.value)}
-              placeholder={`=== Team Name ===
-username1 | Points: 18 | Assists: 4 | Rebounds: 8 | Steals: 14 | Blocks: 0 | Turnovers: 5 | FG: 7/26 | 3FG: 4/13
-username2 | Points: 31 | Assists: 7 | Rebounds: 21 | Steals: 12 | Blocks: 1 | Turnovers: 8 | FG: 13/25 | 3FG: 5/12`}
+              placeholder={`=== Atlanta Hawks ===
+Jigglebutt67 | MIN 0:00 | PTS 0 | FG 0/0 | 3FG 0/0 | AST/PASS 0/0 | OREB 0 | DREB 0 | REB 0 | STL 0 | BLK 0 | TOV 0 | MISS-AG 0 | POSS 0s
+player2 | MIN 12:30 | PTS 24 | FG 10/18 | 3FG 4/9 | AST/PASS 6/15 | OREB 2 | DREB 5 | REB 7 | STL 3 | BLK 1 | TOV 2 | MISS-AG 5 | POSS 245s
+=== Chicago Bulls ===
+player3 | MIN 15:00 | PTS 18 | FG 7/14 | 3FG 2/5 | AST/PASS 4/10 | OREB 1 | DREB 3 | REB 4 | STL 2 | BLK 0 | TOV 1 | MISS-AG 3 | POSS 180s`}
               rows={10}
               className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white font-mono text-sm"
             />

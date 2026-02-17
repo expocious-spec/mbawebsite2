@@ -492,6 +492,17 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
               ))}
             </div>
 
+            {/* Salary Cap Worth */}
+            <div className="mt-4 inline-flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 rounded-lg border border-green-200 dark:border-green-800">
+              <DollarSign className="w-5 h-5 text-green-600 dark:text-green-400" />
+              <div>
+                <div className="text-xs font-medium text-gray-600 dark:text-gray-400">Cap Value</div>
+                <div className="text-lg font-bold text-green-600 dark:text-green-400">
+                  ${(player.coinWorth || 0).toLocaleString()}
+                </div>
+              </div>
+            </div>
+
             {/* Accolades */}
             {accolades.length > 0 && (
               <div className="mt-4">
