@@ -84,7 +84,7 @@ export default function TeamsAdmin() {
   const calculateTeamSalary = (teamId: string): number => {
     return players
       .filter(p => p.teamId === teamId)
-      .reduce((total, player) => total + (player.coinWorth || 1000), 0);
+      .reduce((total, player) => total + (player.coinWorth ?? 1000), 0);
   };
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
