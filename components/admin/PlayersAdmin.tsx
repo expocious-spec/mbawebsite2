@@ -613,7 +613,7 @@ export default function PlayersAdmin() {
                       </span>
                       <span className="text-sm text-gray-500 dark:text-gray-400">•</span>
                       <span className="text-sm font-medium text-green-600 dark:text-green-500">
-                        ${((player.coinWorth || 1000) / 1000).toFixed(1)}k
+                        ${(player.coinWorth ?? 1000).toLocaleString()}
                       </span>
                     </div>
                   </div>

@@ -604,7 +604,7 @@ export default function TeamsAdmin() {
                       <div key={player.id} className="flex justify-between items-center py-1 px-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded text-sm">
                         <span className="text-gray-900 dark:text-white truncate flex-1">{player.displayName}</span>
                         <span className="text-green-600 dark:text-green-400 font-medium ml-2">
-                          ${(player.coinWorth || 0).toLocaleString()}
+                          ${(player.coinWorth ?? 1000).toLocaleString()}
                         </span>
                       </div>
                     ))
