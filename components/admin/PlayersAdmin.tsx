@@ -43,6 +43,13 @@ export default function PlayersAdmin() {
     fetchSeasons();
   }, []);
 
+  // Auto-update coin worth when Rookie role is toggled
+  useEffect(() => {
+    if (roles.includes('Rookie')) {
+      setCoinWorth(0);
+    }
+  }, [roles]);
+
   const fetchPlayers = async () => {
     try {
       const response = await fetch('/api/players');
@@ -222,7 +229,7 @@ export default function PlayersAdmin() {
     setDiscordUsername(player.discordUsername || '');
     setTeamId(player.teamId || '');
     setRoles(player.roles || ['Player']);
-    setCoinWorth(player.coinWorth || 1000);
+    setCoinWorth(player.coinWorth ?? 1000);
     setGamesPlayed(player.stats?.gamesPlayed?.toString() || '0');
     setPoints(player.stats?.points?.toString() || '0');
     setRebounds(player.stats?.rebounds?.toString() || '0');
