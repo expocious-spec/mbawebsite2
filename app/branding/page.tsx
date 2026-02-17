@@ -95,9 +95,10 @@ export default function BrandingPage() {
 
   // Calculate team cap space
   const getTeamCapSpace = (teamId: string) => {
+    const team = teams.find(t => t.id === teamId);
     const teamPlayers = players.filter(p => p.teamId === teamId);
     const totalSpent = teamPlayers.reduce((sum, p) => sum + (p.coinWorth || 0), 0);
-    const salaryCap = 19000; // Default salary cap
+    const salaryCap = team?.salaryCap || 19000; // Use team's salary cap or default to 19000
     const remaining = salaryCap - totalSpent;
     return { totalSpent, salaryCap, remaining };
   };

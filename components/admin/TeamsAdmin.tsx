@@ -594,10 +594,25 @@ export default function TeamsAdmin() {
                   </div>
                 </div>
               </div>
-            </div>
-          ))
-        )}
-      </div>
+
+              {/* Player Roster */}
+              <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Roster ({players.filter(p => p.teamId === team.id).length} players)</h4>
+                <div className="space-y-1 max-h-48 overflow-y-auto">
+                  {players.filter(p => p.teamId === team.id).length > 0 ? (
+                    players.filter(p => p.teamId === team.id).map((player) => (
+                      <div key={player.id} className="flex justify-between items-center py-1 px-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded text-sm">
+                        <span className="text-gray-900 dark:text-white truncate flex-1">{player.displayName}</span>
+                        <span className="text-green-600 dark:text-green-400 font-medium ml-2">
+                          ${(player.coinWorth || 0).toLocaleString()}
+                        </span>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-xs text-gray-500 dark:text-gray-400 italic">No players assigned</p>
+                  )}
+                </div>
+              </div>
     </div>
   );
 }
