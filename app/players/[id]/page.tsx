@@ -443,7 +443,14 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
 
           {/* Player Info */}
           <div className="flex-1 text-center md:text-left">
-            <h1 className="text-3xl font-minecraft mb-3 text-gray-900 dark:text-white leading-relaxed">{player.displayName}</h1>
+            <div className="flex items-center justify-center md:justify-start gap-3 mb-3">
+              <h1 className="text-3xl font-minecraft text-gray-900 dark:text-white leading-relaxed">{player.displayName}</h1>
+              {player.roles?.includes('Rookie') && (
+                <span className="px-3 py-1 text-sm font-bold bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 rounded-lg">
+                  ROOKIE
+                </span>
+              )}
+            </div>
             
             {/* Usernames */}
             <div className="space-y-1 mb-4">

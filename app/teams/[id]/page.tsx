@@ -703,16 +703,29 @@ export default function TeamPage({ params }: { params: { id: string } }) {
                         className="w-10 h-10 rounded-full"
                       />
                       <div className="flex-1">
-                        <div className="font-semibold text-gray-900 dark:text-white">
-                          {player.displayName}
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-gray-900 dark:text-white">
+                            {player.displayName}
+                          </span>
+                          {player.roles?.includes('Rookie') && (
+                            <span className="px-2 py-0.5 text-xs font-bold bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 rounded">
+                              ROOKIE
+                            </span>
+                          )}
                         </div>
-                        <div className="text-sm text-gray-600 dark:text-gray-400">
-                          {(() => {
-                            const seasonStats = getSeasonStats(player);
-                            const total = seasonStats.reduce((sum: number, game: any) => sum + (game.points || 0), 0);
-                            const avg = seasonStats.length > 0 ? total / seasonStats.length : 0;
-                            return avg.toFixed(1);
-                          })()} PPG
+                        <div className="flex items-center gap-2 text-sm">
+                          <span className="text-gray-600 dark:text-gray-400">
+                            {(() => {
+                              const seasonStats = getSeasonStats(player);
+                              const total = seasonStats.reduce((sum: number, game: any) => sum + (game.points || 0), 0);
+                              const avg = seasonStats.length > 0 ? total / seasonStats.length : 0;
+                              return avg.toFixed(1);
+                            })()} PPG
+                          </span>
+                          <span className="text-gray-500 dark:text-gray-500">•</span>
+                          <span className="text-green-600 dark:text-green-400 font-medium">
+                            ${(player.coinWorth ?? 1000).toLocaleString()}
+                          </span>
                         </div>
                       </div>
                     </Link>
