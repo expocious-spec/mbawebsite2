@@ -276,6 +276,8 @@ export default function StatsPage() {
 
   const getStatValue = (player: any, stat: StatCategory) => {
     const seasonStats = getPlayerSeasonStats(player);
+    if (!seasonStats) return 0;
+    
     // Percentages should not be multiplied by games played
     if (stat === 'fgPercentage' || stat === 'threeFgPercentage') {
       return seasonStats[stat];
