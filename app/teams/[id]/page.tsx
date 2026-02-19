@@ -337,7 +337,7 @@ export default function TeamPage({ params }: { params: { id: string } }) {
                 <div className="flex items-center justify-between">
                   <span className="text-lg font-semibold text-gray-700 dark:text-gray-300">Cap Space</span>
                   <span className={`text-2xl font-bold ${capRemaining >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                    ${(capRemaining / 1000).toFixed(1)}k
+                    ${(capRemaining / 1000).toFixed(2)}k
                   </span>
                 </div>
                 
@@ -352,13 +352,13 @@ export default function TeamPage({ params }: { params: { id: string } }) {
                   <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
                     <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Spent</div>
                     <div className="text-lg font-bold text-gray-900 dark:text-white">
-                      ${(totalCapSpent / 1000).toFixed(1)}k
+                      ${(totalCapSpent / 1000).toFixed(2)}k
                     </div>
                   </div>
                   <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
                     <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Salary Cap</div>
                     <div className="text-lg font-bold text-gray-900 dark:text-white">
-                      ${(salaryCap / 1000).toFixed(1)}k
+                      ${(salaryCap / 1000).toFixed(2)}k
                     </div>
                   </div>
                   <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">

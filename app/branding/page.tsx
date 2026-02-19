@@ -326,7 +326,7 @@ export default function BrandingPage() {
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Salary Cap</span>
                   <span className={`text-sm font-bold ${capInfo.remaining >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                    ${(capInfo.remaining / 1000).toFixed(1)}k remaining
+                    ${(capInfo.remaining / 1000).toFixed(2)}k remaining
                   </span>
                 </div>
                 <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-2">
@@ -336,8 +336,8 @@ export default function BrandingPage() {
                   />
                 </div>
                 <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400">
-                  <span>${(capInfo.totalSpent / 1000).toFixed(1)}k spent</span>
-                  <span>${(capInfo.salaryCap / 1000).toFixed(1)}k cap</span>
+                  <span>${(capInfo.totalSpent / 1000).toFixed(2)}k spent</span>
+                  <span>${(capInfo.salaryCap / 1000).toFixed(2)}k cap</span>
                 </div>
               </div>
             </div>
