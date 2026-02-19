@@ -105,6 +105,8 @@ export default function GameDetailPage({ params }: { params: { id: string } }) {
     return stats.reduce((acc, gs) => ({
       points: acc.points + (gs.points || 0),
       rebounds: acc.rebounds + (gs.rebounds || 0),
+      offensiveRebounds: acc.offensiveRebounds + (gs.offensiveRebounds || gs.offensive_rebounds || 0),
+      defensiveRebounds: acc.defensiveRebounds + (gs.defensiveRebounds || gs.defensive_rebounds || 0),
       assists: acc.assists + (gs.assists || 0),
       steals: acc.steals + (gs.steals || 0),
       blocks: acc.blocks + (gs.blocks || 0),
@@ -117,7 +119,7 @@ export default function GameDetailPage({ params }: { params: { id: string } }) {
       freeThrowsMade: acc.freeThrowsMade + (gs.freeThrowsMade || 0),
       freeThrowsAttempted: acc.freeThrowsAttempted + (gs.freeThrowsAttempted || 0),
     }), {
-      points: 0, rebounds: 0, assists: 0, steals: 0, blocks: 0, turnovers: 0, missesForced: 0,
+      points: 0, rebounds: 0, offensiveRebounds: 0, defensiveRebounds: 0, assists: 0, steals: 0, blocks: 0, turnovers: 0, missesForced: 0,
       fieldGoalsMade: 0, fieldGoalsAttempted: 0, threePointersMade: 0,
       threePointersAttempted: 0, freeThrowsMade: 0, freeThrowsAttempted: 0
     });
@@ -241,6 +243,8 @@ export default function GameDetailPage({ params }: { params: { id: string } }) {
                     <th className="text-center py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">MIN</th>
                     <th className="text-center py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">PT</th>
                     <th className="text-center py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">PTS</th>
+                    <th className="text-center py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">OREB</th>
+                    <th className="text-center py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">DREB</th>
                     <th className="text-center py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">REB</th>
                     <th className="text-center py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">AST</th>
                     <th className="text-center py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">STL</th>
@@ -259,10 +263,18 @@ export default function GameDetailPage({ params }: { params: { id: string } }) {
                           {stat.player?.displayName || 'Unknown'}
                         </Link>
                       </td>
-                      <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{stat.minutes || 0}</td>
+                      <td className="text-center py-3 px-2 text-gray-900 dark:text-white">
+                        {(() => {
+                          const mins = Math.floor((stat.minutes || 0) / 60);
+                          const secs = Math.round((stat.minutes || 0) % 60);
+                          return `${mins}:${secs.toString().padStart(2, '0')}`;
+                        })()}
+                      </td>
                       <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{stat.possessionTime || 0}</td>
                       <td className="text-center py-3 px-2 text-gray-900 dark:text-white font-semibold">{stat.points || 0}</td>
-                      <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{stat.rebounds || 0}</td>
+                      <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{stat.offensiveRebounds || stat.offensive_rebounds || 0}</td>
+                      <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{stat.defensiveRebounds || stat.defensive_rebounds || 0}</td>
+                      <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{(stat.offensiveRebounds || stat.offensive_rebounds || 0) + (stat.defensiveRebounds || stat.defensive_rebounds || 0)}</td>
                       <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{stat.assists || 0}</td>
                       <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{stat.steals || 0}</td>
                       <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{stat.blocks || 0}</td>
@@ -281,6 +293,8 @@ export default function GameDetailPage({ params }: { params: { id: string } }) {
                     <td className="text-center py-3 px-2 text-gray-900 dark:text-white">-</td>
                     <td className="text-center py-3 px-2 text-gray-900 dark:text-white">-</td>
                     <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{awayTotals.points}</td>
+                    <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{awayTotals.offensiveRebounds}</td>
+                    <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{awayTotals.defensiveRebounds}</td>
                     <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{awayTotals.rebounds}</td>
                     <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{awayTotals.assists}</td>
                     <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{awayTotals.steals}</td>
@@ -313,6 +327,8 @@ export default function GameDetailPage({ params }: { params: { id: string } }) {
                     <th className="text-center py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">MIN</th>
                     <th className="text-center py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">PT</th>
                     <th className="text-center py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">PTS</th>
+                    <th className="text-center py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">OREB</th>
+                    <th className="text-center py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">DREB</th>
                     <th className="text-center py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">REB</th>
                     <th className="text-center py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">AST</th>
                     <th className="text-center py-3 px-2 text-sm font-semibold text-gray-700 dark:text-gray-300">STL</th>
@@ -331,10 +347,18 @@ export default function GameDetailPage({ params }: { params: { id: string } }) {
                           {stat.player?.displayName || 'Unknown'}
                         </Link>
                       </td>
-                      <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{stat.minutes || 0}</td>
+                      <td className="text-center py-3 px-2 text-gray-900 dark:text-white">
+                        {(() => {
+                          const mins = Math.floor((stat.minutes || 0) / 60);
+                          const secs = Math.round((stat.minutes || 0) % 60);
+                          return `${mins}:${secs.toString().padStart(2, '0')}`;
+                        })()}
+                      </td>
                       <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{stat.possessionTime || 0}</td>
                       <td className="text-center py-3 px-2 text-gray-900 dark:text-white font-semibold">{stat.points || 0}</td>
-                      <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{stat.rebounds || 0}</td>
+                      <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{stat.offensiveRebounds || stat.offensive_rebounds || 0}</td>
+                      <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{stat.defensiveRebounds || stat.defensive_rebounds || 0}</td>
+                      <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{(stat.offensiveRebounds || stat.offensive_rebounds || 0) + (stat.defensiveRebounds || stat.defensive_rebounds || 0)}</td>
                       <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{stat.assists || 0}</td>
                       <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{stat.steals || 0}</td>
                       <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{stat.blocks || 0}</td>
@@ -353,6 +377,8 @@ export default function GameDetailPage({ params }: { params: { id: string } }) {
                     <td className="text-center py-3 px-2 text-gray-900 dark:text-white">-</td>
                     <td className="text-center py-3 px-2 text-gray-900 dark:text-white">-</td>
                     <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{homeTotals.points}</td>
+                    <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{homeTotals.offensiveRebounds}</td>
+                    <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{homeTotals.defensiveRebounds}</td>
                     <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{homeTotals.rebounds}</td>
                     <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{homeTotals.assists}</td>
                     <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{homeTotals.steals}</td>

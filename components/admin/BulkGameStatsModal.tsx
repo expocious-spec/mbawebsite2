@@ -15,6 +15,8 @@ interface ParsedPlayerStat {
   points: number;
   assists: number;
   rebounds: number;
+  offensiveRebounds: number;
+  defensiveRebounds: number;
   steals: number;
   blocks: number;
   turnovers: number;
@@ -154,7 +156,7 @@ export default function BulkGameStatsModal({ onClose, onSave }: BulkGameStatsMod
         const fg = extractFraction(line, 'FG');
         const threeFg = extractFraction(line, '3FG');
 
-        // Calculate total rebounds from OREB + DREB if both present, otherwise use REB
+        // Extract OREB and DREB separately
         const oreb = extractStat(line, 'OREB');
         const dreb = extractStat(line, 'DREB');
         const totalReb = (oreb || dreb) ? oreb + dreb : (extractStat(line, 'REB') || extractStat(line, 'Rebounds'));
@@ -165,6 +167,8 @@ export default function BulkGameStatsModal({ onClose, onSave }: BulkGameStatsMod
           points: extractStat(line, 'PTS') || extractStat(line, 'Points'),
           assists: extractAssists(line),
           rebounds: totalReb,
+          offensiveRebounds: oreb,
+          defensiveRebounds: dreb,
           steals: extractStat(line, 'STL') || extractStat(line, 'Steals'),
           blocks: extractStat(line, 'BLK') || extractStat(line, 'Blocks'),
           turnovers: extractStat(line, 'TOV') || extractStat(line, 'Turnovers'),
@@ -219,6 +223,8 @@ export default function BulkGameStatsModal({ onClose, onSave }: BulkGameStatsMod
       minutes: stat.minutes,
       points: stat.points,
       rebounds: stat.rebounds,
+      offensiveRebounds: stat.offensiveRebounds,
+      defensiveRebounds: stat.defensiveRebounds,
       assists: stat.assists,
       steals: stat.steals,
       blocks: stat.blocks,
@@ -364,6 +370,8 @@ player3 | MIN 15:00 | PTS 18 | FG 7/14 | 3FG 2/5 | AST/PASS 4/10 | OREB 1 | DREB
                     <tr>
                       <th className="px-3 py-2 text-left text-gray-700 dark:text-gray-300">Player</th>
                       <th className="px-3 py-2 text-center text-gray-700 dark:text-gray-300">PTS</th>
+                      <th className="px-3 py-2 text-center text-gray-700 dark:text-gray-300">OREB</th>
+                      <th className="px-3 py-2 text-center text-gray-700 dark:text-gray-300">DREB</th>
                       <th className="px-3 py-2 text-center text-gray-700 dark:text-gray-300">REB</th>
                       <th className="px-3 py-2 text-center text-gray-700 dark:text-gray-300">AST</th>
                       <th className="px-3 py-2 text-center text-gray-700 dark:text-gray-300">STL</th>
@@ -379,6 +387,8 @@ player3 | MIN 15:00 | PTS 18 | FG 7/14 | 3FG 2/5 | AST/PASS 4/10 | OREB 1 | DREB
                       <tr key={i} className="border-t border-gray-200 dark:border-gray-700">
                         <td className="px-3 py-2 text-gray-900 dark:text-white font-medium">{stat.username}</td>
                         <td className="px-3 py-2 text-center text-gray-900 dark:text-white">{stat.points}</td>
+                        <td className="px-3 py-2 text-center text-gray-900 dark:text-white">{stat.offensiveRebounds}</td>
+                        <td className="px-3 py-2 text-center text-gray-900 dark:text-white">{stat.defensiveRebounds}</td>
                         <td className="px-3 py-2 text-center text-gray-900 dark:text-white">{stat.rebounds}</td>
                         <td className="px-3 py-2 text-center text-gray-900 dark:text-white">{stat.assists}</td>
                         <td className="px-3 py-2 text-center text-gray-900 dark:text-white">{stat.steals}</td>

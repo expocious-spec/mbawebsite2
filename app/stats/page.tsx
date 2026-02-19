@@ -129,6 +129,8 @@ export default function StatsPage() {
           gamesPlayed: 0,
           points: 0,
           rebounds: 0,
+          offensiveRebounds: 0,
+          defensiveRebounds: 0,
           assists: 0,
           steals: 0,
           blocks: 0,
@@ -144,6 +146,8 @@ export default function StatsPage() {
         minutes: acc.minutes + (gs.minutes || 0),
         points: acc.points + (gs.points || 0),
         rebounds: acc.rebounds + (gs.rebounds || 0),
+        offensiveRebounds: acc.offensiveRebounds + (gs.offensiveRebounds || gs.offensive_rebounds || 0),
+        defensiveRebounds: acc.defensiveRebounds + (gs.defensiveRebounds || gs.defensive_rebounds || 0),
         assists: acc.assists + (gs.assists || 0),
         steals: acc.steals + (gs.steals || 0),
         blocks: acc.blocks + (gs.blocks || 0),
@@ -154,7 +158,7 @@ export default function StatsPage() {
         fieldGoalsAttempted: acc.fieldGoalsAttempted + (gs.fieldGoalsAttempted || gs.field_goals_attempted || 0),
         threePointersMade: acc.threePointersMade + (gs.threePointersMade || gs.three_pointers_made || 0),
         threePointersAttempted: acc.threePointersAttempted + (gs.threePointersAttempted || gs.three_pointers_attempted || 0),
-      }), { minutes: 0, points: 0, rebounds: 0, assists: 0, steals: 0, blocks: 0, turnovers: 0, missesForced: 0, possessionTime: 0, fieldGoalsMade: 0, fieldGoalsAttempted: 0, threePointersMade: 0, threePointersAttempted: 0 });
+      }), { minutes: 0, points: 0, rebounds: 0, offensiveRebounds: 0, defensiveRebounds: 0, assists: 0, steals: 0, blocks: 0, turnovers: 0, missesForced: 0, possessionTime: 0, fieldGoalsMade: 0, fieldGoalsAttempted: 0, threePointersMade: 0, threePointersAttempted: 0 });
 
       const missedFG = totals.fieldGoalsAttempted - totals.fieldGoalsMade;
       const efficiency = gamesPlayed > 0 ? (totals.points + totals.rebounds + totals.assists + totals.steals - missedFG - totals.turnovers) / gamesPlayed : 0;
@@ -166,6 +170,8 @@ export default function StatsPage() {
         minutes: gamesPlayed > 0 ? totals.minutes / gamesPlayed : 0,
         points: gamesPlayed > 0 ? totals.points / gamesPlayed : 0,
         rebounds: gamesPlayed > 0 ? totals.rebounds / gamesPlayed : 0,
+        offensiveRebounds: gamesPlayed > 0 ? totals.offensiveRebounds / gamesPlayed : 0,
+        defensiveRebounds: gamesPlayed > 0 ? totals.defensiveRebounds / gamesPlayed : 0,
         assists: gamesPlayed > 0 ? totals.assists / gamesPlayed : 0,
         steals: gamesPlayed > 0 ? totals.steals / gamesPlayed : 0,
         blocks: gamesPlayed > 0 ? totals.blocks / gamesPlayed : 0,
@@ -189,6 +195,8 @@ export default function StatsPage() {
         minutes: 0,
         points: 0,
         rebounds: 0,
+        offensiveRebounds: 0,
+        defensiveRebounds: 0,
         assists: 0,
         steals: 0,
         blocks: 0,
@@ -214,6 +222,8 @@ export default function StatsPage() {
         minutes: 0,
         points: 0,
         rebounds: 0,
+        offensiveRebounds: 0,
+        defensiveRebounds: 0,
         assists: 0,
         steals: 0,
         blocks: 0,
@@ -233,6 +243,8 @@ export default function StatsPage() {
       minutes: acc.minutes + (gs.minutes || 0),
       points: acc.points + (gs.points || 0),
       rebounds: acc.rebounds + (gs.rebounds || 0),
+      offensiveRebounds: acc.offensiveRebounds + (gs.offensiveRebounds || gs.offensive_rebounds || 0),
+      defensiveRebounds: acc.defensiveRebounds + (gs.defensiveRebounds || gs.defensive_rebounds || 0),
       assists: acc.assists + (gs.assists || 0),
       steals: acc.steals + (gs.steals || 0),
       blocks: acc.blocks + (gs.blocks || 0),
@@ -243,7 +255,7 @@ export default function StatsPage() {
       fieldGoalsAttempted: acc.fieldGoalsAttempted + (gs.fieldGoalsAttempted || gs.field_goals_attempted || 0),
       threePointersMade: acc.threePointersMade + (gs.threePointersMade || gs.three_pointers_made || 0),
       threePointersAttempted: acc.threePointersAttempted + (gs.threePointersAttempted || gs.three_pointers_attempted || 0),
-    }), { minutes: 0, points: 0, rebounds: 0, assists: 0, steals: 0, blocks: 0, turnovers: 0, missesForced: 0, possessionTime: 0, fieldGoalsMade: 0, fieldGoalsAttempted: 0, threePointersMade: 0, threePointersAttempted: 0 });
+    }), { minutes: 0, points: 0, rebounds: 0, offensiveRebounds: 0, defensiveRebounds: 0, assists: 0, steals: 0, blocks: 0, turnovers: 0, missesForced: 0, possessionTime: 0, fieldGoalsMade: 0, fieldGoalsAttempted: 0, threePointersMade: 0, threePointersAttempted: 0 });
 
     // Calculate efficiency: (PTS + REB + AST + STL - Missed FG - TOV) / GP
     const missedFG = totals.fieldGoalsAttempted - totals.fieldGoalsMade;
@@ -257,6 +269,8 @@ export default function StatsPage() {
       minutes: gamesPlayed > 0 ? totals.minutes / gamesPlayed : 0,
       points: gamesPlayed > 0 ? totals.points / gamesPlayed : 0,
       rebounds: gamesPlayed > 0 ? totals.rebounds / gamesPlayed : 0,
+      offensiveRebounds: gamesPlayed > 0 ? totals.offensiveRebounds / gamesPlayed : 0,
+      defensiveRebounds: gamesPlayed > 0 ? totals.defensiveRebounds / gamesPlayed : 0,
       assists: gamesPlayed > 0 ? totals.assists / gamesPlayed : 0,
       steals: gamesPlayed > 0 ? totals.steals / gamesPlayed : 0,
       blocks: gamesPlayed > 0 ? totals.blocks / gamesPlayed : 0,
@@ -484,6 +498,12 @@ export default function StatsPage() {
                   {statMode === 'totals' ? 'PTS' : 'PPG'}
                 </th>
                 <th className="px-4 py-4 text-center text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                  {statMode === 'totals' ? 'OREB' : 'ORPG'}
+                </th>
+                <th className="px-4 py-4 text-center text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
+                  {statMode === 'totals' ? 'DREB' : 'DRPG'}
+                </th>
+                <th className="px-4 py-4 text-center text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
                   {statMode === 'totals' ? 'REB' : 'RPG'}
                 </th>
                 <th className="px-4 py-4 text-center text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
@@ -606,6 +626,16 @@ export default function StatsPage() {
                       {(statMode === 'totals' 
                         ? (player.seasonStats.points || 0) * (player.seasonStats.gamesPlayed || 0)
                         : (player.seasonStats.points || 0)).toFixed(1)}
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap text-center text-gray-900 dark:text-white">
+                      {(statMode === 'totals' 
+                        ? (player.seasonStats.offensiveRebounds || 0) * (player.seasonStats.gamesPlayed || 0)
+                        : (player.seasonStats.offensiveRebounds || 0)).toFixed(1)}
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap text-center text-gray-900 dark:text-white">
+                      {(statMode === 'totals' 
+                        ? (player.seasonStats.defensiveRebounds || 0) * (player.seasonStats.gamesPlayed || 0)
+                        : (player.seasonStats.defensiveRebounds || 0)).toFixed(1)}
                     </td>
                     <td className={`px-4 py-4 whitespace-nowrap text-center ${
                       selectedStat === 'rebounds' ? 'font-bold text-mba-blue' : 'text-gray-900 dark:text-white'

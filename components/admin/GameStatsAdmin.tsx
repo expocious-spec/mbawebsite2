@@ -25,7 +25,8 @@ export default function GameStatsAdmin() {
     opponent: '',
     minutes: '',
     points: '',
-    rebounds: '',
+    offensiveRebounds: '',
+    defensiveRebounds: '',
     assists: '',
     steals: '',
     blocks: '',
@@ -132,7 +133,8 @@ export default function GameStatsAdmin() {
         minutes: extractTime(pasteText, 'MIN'),
         points: extractValue(pasteText, 'PTS') || extractValue(pasteText, 'Points'),
         assists: extractValue(pasteText, 'AST') || extractValue(pasteText, 'Assists'),
-        rebounds: extractValue(pasteText, 'REB') || extractValue(pasteText, 'Rebounds'),
+        offensiveRebounds: extractValue(pasteText, 'OREB'),
+        defensiveRebounds: extractValue(pasteText, 'DREB'),
         steals: extractValue(pasteText, 'STL') || extractValue(pasteText, 'Steals'),
         blocks: extractValue(pasteText, 'BLK') || extractValue(pasteText, 'Blocks'),
         turnovers: extractValue(pasteText, 'TOV') || extractValue(pasteText, 'Turnovers'),
@@ -161,7 +163,9 @@ export default function GameStatsAdmin() {
         ...formData,
         minutes: Number(formData.minutes) || 0,
         points: Number(formData.points) || 0,
-        rebounds: Number(formData.rebounds) || 0,
+        offensiveRebounds: Number(formData.offensiveRebounds) || 0,
+        defensiveRebounds: Number(formData.defensiveRebounds) || 0,
+        rebounds: (Number(formData.offensiveRebounds) || 0) + (Number(formData.defensiveRebounds) || 0),
         assists: Number(formData.assists) || 0,
         steals: Number(formData.steals) || 0,
         blocks: Number(formData.blocks) || 0,
@@ -232,7 +236,8 @@ export default function GameStatsAdmin() {
       opponent: stat.opponent,
       minutes: stat.minutes || 0,
       points: stat.points,
-      rebounds: stat.rebounds,
+      offensiveRebounds: stat.offensiveRebounds || 0,
+      defensiveRebounds: stat.defensiveRebounds || 0,
       assists: stat.assists,
       steals: stat.steals,
       blocks: stat.blocks || 0,
@@ -256,7 +261,8 @@ export default function GameStatsAdmin() {
       opponent: '',
       minutes: '',
       points: '',
-      rebounds: '',
+      offensiveRebounds: '',
+      defensiveRebounds: '',
       assists: '',
       steals: '',
       blocks: '',
@@ -305,7 +311,7 @@ export default function GameStatsAdmin() {
     
     setFormData(prev => ({
       ...prev,
-      [name]: ['points', 'rebounds', 'assists', 'steals', 'blocks', 'turnovers', 
+      [name]: ['points', 'offensiveRebounds', 'defensiveRebounds', 'assists', 'steals', 'blocks', 'turnovers', 
                'fieldGoalsMade', 'fieldGoalsAttempted', 'threePointersMade', 
                'threePointersAttempted', 'possessionTime'].includes(name)
         ? value
@@ -677,15 +683,29 @@ export default function GameStatsAdmin() {
                   className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
                 />
               </div>
-              {/* Rebounds */}
+              {/* Offensive Rebounds */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Rebounds
+                  Offensive Rebounds
                 </label>
                 <input
                   type="number"
-                  name="rebounds"
-                  value={formData.rebounds}
+                  name="offensiveRebounds"
+                  value={formData.offensiveRebounds}
+                  onChange={handleChange}
+                  min="0"
+                  className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
+                />
+              </div>
+              {/* Defensive Rebounds */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Defensive Rebounds
+                </label>
+                <input
+                  type="number"
+                  name="defensiveRebounds"
+                  value={formData.defensiveRebounds}
                   onChange={handleChange}
                   min="0"
                   className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
@@ -972,13 +992,21 @@ export default function GameStatsAdmin() {
                                 </div>
                               </div>
                               
-                              <div className="grid grid-cols-3 sm:grid-cols-6 lg:grid-cols-8 gap-3 text-center text-sm">
+                              <div className="grid grid-cols-3 sm:grid-cols-6 lg:grid-cols-10 gap-3 text-center text-sm">
                                 <div>
                                   <div className="font-bold text-gray-900 dark:text-white">{stat.points}</div>
                                   <div className="text-xs text-gray-500">PTS</div>
                                 </div>
                                 <div>
-                                  <div className="font-bold text-gray-900 dark:text-white">{stat.rebounds}</div>
+                                  <div className="font-bold text-gray-900 dark:text-white">{stat.offensiveRebounds || 0}</div>
+                                  <div className="text-xs text-gray-500">OREB</div>
+                                </div>
+                                <div>
+                                  <div className="font-bold text-gray-900 dark:text-white">{stat.defensiveRebounds || 0}</div>
+                                  <div className="text-xs text-gray-500">DREB</div>
+                                </div>
+                                <div>
+                                  <div className="font-bold text-gray-900 dark:text-white">{(stat.offensiveRebounds || 0) + (stat.defensiveRebounds || 0)}</div>
                                   <div className="text-xs text-gray-500">REB</div>
                                 </div>
                                 <div>
@@ -1099,13 +1127,21 @@ export default function GameStatsAdmin() {
                             </div>
                           </div>
                           
-                          <div className="grid grid-cols-3 sm:grid-cols-6 lg:grid-cols-8 gap-3 text-center text-sm">
+                          <div className="grid grid-cols-3 sm:grid-cols-6 lg:grid-cols-10 gap-3 text-center text-sm">
                             <div>
                               <div className="font-bold text-gray-900 dark:text-white">{stat.points}</div>
                               <div className="text-xs text-gray-500">PTS</div>
                             </div>
                             <div>
-                              <div className="font-bold text-gray-900 dark:text-white">{stat.rebounds}</div>
+                              <div className="font-bold text-gray-900 dark:text-white">{stat.offensiveRebounds || 0}</div>
+                              <div className="text-xs text-gray-500">OREB</div>
+                            </div>
+                            <div>
+                              <div className="font-bold text-gray-900 dark:text-white">{stat.defensiveRebounds || 0}</div>
+                              <div className="text-xs text-gray-500">DREB</div>
+                            </div>
+                            <div>
+                              <div className="font-bold text-gray-900 dark:text-white">{(stat.offensiveRebounds || 0) + (stat.defensiveRebounds || 0)}</div>
                               <div className="text-xs text-gray-500">REB</div>
                             </div>
                             <div>

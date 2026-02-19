@@ -10,6 +10,8 @@ CREATE TABLE IF NOT EXISTS game_stats (
   minutes INTEGER DEFAULT 0,
   points INTEGER DEFAULT 0,
   rebounds INTEGER DEFAULT 0,
+  offensive_rebounds INTEGER DEFAULT 0,
+  defensive_rebounds INTEGER DEFAULT 0,
   assists INTEGER DEFAULT 0,
   steals INTEGER DEFAULT 0,
   blocks INTEGER DEFAULT 0,
