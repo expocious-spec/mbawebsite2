@@ -11,9 +11,9 @@ type StatMode = 'averages' | 'totals';
 const statCategories = [
   { key: 'minutes' as StatCategory, label: 'Minutes', abbr: 'MIN' },
   { key: 'points' as StatCategory, label: 'Points', abbr: 'PTS' },
-  { key: 'rebounds' as StatCategory, label: 'Rebounds', abbr: 'REB' },
   { key: 'offensiveRebounds' as StatCategory, label: 'Offensive Rebounds', abbr: 'OREB' },
   { key: 'defensiveRebounds' as StatCategory, label: 'Defensive Rebounds', abbr: 'DREB' },
+  { key: 'rebounds' as StatCategory, label: 'Rebounds', abbr: 'REB' },
   { key: 'assists' as StatCategory, label: 'Assists', abbr: 'AST' },
   { key: 'steals' as StatCategory, label: 'Steals', abbr: 'STL' },
   { key: 'blocks' as StatCategory, label: 'Blocks', abbr: 'BLK' },
@@ -313,11 +313,6 @@ export default function StatsPage() {
       .filter(p => {
         // Basic filter: must have played at least one game
         if (p.seasonStats.gamesPlayed === 0) return false;
-        
-        // For shooting percentages, require minimum 40 field goal attempts
-        if (stat === 'fgPercentage' || stat === 'threeFgPercentage') {
-          return p.seasonStats.fieldGoalsAttempted >= 40;
-        }
         
         return true;
       })
@@ -629,12 +624,16 @@ export default function StatsPage() {
                         ? (player.seasonStats.points || 0) * (player.seasonStats.gamesPlayed || 0)
                         : (player.seasonStats.points || 0)).toFixed(1)}
                     </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-center text-gray-900 dark:text-white">
+                    <td className={`px-4 py-4 whitespace-nowrap text-center ${
+                      selectedStat === 'offensiveRebounds' ? 'font-bold text-mba-blue' : 'text-gray-900 dark:text-white'
+                    }`}>
                       {(statMode === 'totals' 
                         ? (player.seasonStats.offensiveRebounds || 0) * (player.seasonStats.gamesPlayed || 0)
                         : (player.seasonStats.offensiveRebounds || 0)).toFixed(1)}
                     </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-center text-gray-900 dark:text-white">
+                    <td className={`px-4 py-4 whitespace-nowrap text-center ${
+                      selectedStat === 'defensiveRebounds' ? 'font-bold text-mba-blue' : 'text-gray-900 dark:text-white'
+                    }`}>
                       {(statMode === 'totals' 
                         ? (player.seasonStats.defensiveRebounds || 0) * (player.seasonStats.gamesPlayed || 0)
                         : (player.seasonStats.defensiveRebounds || 0)).toFixed(1)}
