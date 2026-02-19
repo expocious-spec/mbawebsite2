@@ -5,13 +5,15 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
 
-type StatCategory = 'minutes' | 'points' | 'rebounds' | 'assists' | 'steals' | 'blocks' | 'turnovers' | 'missesForced' | 'possessionTime' | 'efficiency' | 'fgPercentage' | 'threeFgPercentage';
+type StatCategory = 'minutes' | 'points' | 'rebounds' | 'offensiveRebounds' | 'defensiveRebounds' | 'assists' | 'steals' | 'blocks' | 'turnovers' | 'missesForced' | 'possessionTime' | 'efficiency' | 'fgPercentage' | 'threeFgPercentage';
 type StatMode = 'averages' | 'totals';
 
 const statCategories = [
   { key: 'minutes' as StatCategory, label: 'Minutes', abbr: 'MIN' },
   { key: 'points' as StatCategory, label: 'Points', abbr: 'PTS' },
   { key: 'rebounds' as StatCategory, label: 'Rebounds', abbr: 'REB' },
+  { key: 'offensiveRebounds' as StatCategory, label: 'Offensive Rebounds', abbr: 'OREB' },
+  { key: 'defensiveRebounds' as StatCategory, label: 'Defensive Rebounds', abbr: 'DREB' },
   { key: 'assists' as StatCategory, label: 'Assists', abbr: 'AST' },
   { key: 'steals' as StatCategory, label: 'Steals', abbr: 'STL' },
   { key: 'blocks' as StatCategory, label: 'Blocks', abbr: 'BLK' },
