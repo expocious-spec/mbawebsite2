@@ -125,6 +125,15 @@ export default function GameStatsAdmin() {
         return match ? { made: match[1], attempted: match[2] } : { attempted: '', made: '' };
       };
 
+      const extractAssists = (text: string) => {
+        // New format: AST/PASS 6/15 - extract just the first number (assists)
+        const astPassMatch = text.match(/AST\/PASS\s+(\d+)\/(\d+)/i);
+        if (astPassMatch) return astPassMatch[1];
+        
+        // Fallback to regular AST format
+        return extractValue(text, 'AST') || extractValue(text, 'Assists');
+      };
+
       const fg = extractFraction(pasteText, 'FG');
       const threeFg = extractFraction(pasteText, '3FG');
 
@@ -132,7 +141,7 @@ export default function GameStatsAdmin() {
         ...prev,
         minutes: extractTime(pasteText, 'MIN'),
         points: extractValue(pasteText, 'PTS') || extractValue(pasteText, 'Points'),
-        assists: extractValue(pasteText, 'AST') || extractValue(pasteText, 'Assists'),
+        assists: extractAssists(pasteText),
         offensiveRebounds: extractValue(pasteText, 'OREB'),
         defensiveRebounds: extractValue(pasteText, 'DREB'),
         steals: extractValue(pasteText, 'STL') || extractValue(pasteText, 'Steals'),
