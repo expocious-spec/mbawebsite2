@@ -213,32 +213,54 @@ export default function BulkGameStatsModal({ onClose, onSave }: BulkGameStatsMod
       return;
     }
 
-    const allGameStats = validStats.map(stat => ({
-      id: `${Date.now()}-${stat.playerId}`,
-      playerId: stat.playerId,
-      gameId: selectedGameId || `game-${Date.now()}`,
-      date: date || new Date().toISOString(),
-      opponent: '', // Will be filled by parent component based on game
-      result: 'W' as 'W' | 'L',
-      minutes: stat.minutes,
-      points: stat.points,
-      rebounds: stat.rebounds,
-      offensiveRebounds: stat.offensiveRebounds,
-      defensiveRebounds: stat.defensiveRebounds,
-      assists: stat.assists,
-      steals: stat.steals,
-      blocks: stat.blocks,
-      turnovers: stat.turnovers,
-      missesForced: stat.missesForced,
-      fieldGoalsMade: stat.fgm,
-      fieldGoalsAttempted: stat.fga,
-      threePointersMade: stat.tpm,
-      threePointersAttempted: stat.tpa,
-      possessionTime: stat.possessionTime,
-      freeThrowsMade: 0,
-      freeThrowsAttempted: 0,
-      fouls: 0,
-    }));
+    // Get the selected game details to determine win/loss for each player
+    const selectedGame = selectedGameId ? games.find(g => g.id === selectedGameId) : null;
+    
+    const allGameStats = validStats.map(stat => {
+      // Determine win/loss based on player's team and game outcome
+      let result: 'W' | 'L' = 'W'; // Default to win if no game selected
+      
+      if (selectedGame && selectedGame.homeScore !== undefined && selectedGame.awayScore !== undefined) {
+        // Find the player to get their team
+        const player = players.find(p => p.id === stat.playerId);
+        
+        if (player && player.teamId) {
+          // Check if player's team won
+          if (player.teamId === selectedGame.homeTeamId) {
+            result = selectedGame.homeScore > selectedGame.awayScore ? 'W' : 'L';
+          } else if (player.teamId === selectedGame.awayTeamId) {
+            result = selectedGame.awayScore > selectedGame.homeScore ? 'W' : 'L';
+          }
+        }
+      }
+      
+      return {
+        id: `${Date.now()}-${stat.playerId}`,
+        playerId: stat.playerId,
+        gameId: selectedGameId || `game-${Date.now()}`,
+        date: date || new Date().toISOString(),
+        opponent: '', // Will be filled by parent component based on game
+        result,
+        minutes: stat.minutes,
+        points: stat.points,
+        rebounds: stat.rebounds,
+        offensiveRebounds: stat.offensiveRebounds,
+        defensiveRebounds: stat.defensiveRebounds,
+        assists: stat.assists,
+        steals: stat.steals,
+        blocks: stat.blocks,
+        turnovers: stat.turnovers,
+        missesForced: stat.missesForced,
+        fieldGoalsMade: stat.fgm,
+        fieldGoalsAttempted: stat.fga,
+        threePointersMade: stat.tpm,
+        threePointersAttempted: stat.tpa,
+        possessionTime: stat.possessionTime,
+        freeThrowsMade: 0,
+        freeThrowsAttempted: 0,
+        fouls: 0,
+      };
+    });
 
     onSave(allGameStats);
   };
