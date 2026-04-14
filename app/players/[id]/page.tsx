@@ -197,7 +197,7 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
     offensiveRebounds: actualGamesPlayed > 0 ? seasonTotals.offensiveRebounds / actualGamesPlayed : 0,
     defensiveRebounds: actualGamesPlayed > 0 ? seasonTotals.defensiveRebounds / actualGamesPlayed : 0,
     fouls: actualGamesPlayed > 0 ? seasonTotals.fouls / actualGamesPlayed : 0,
-    minutes: actualGamesPlayed > 0 ? seasonTotals.minutes / actualGamesPlayed : 0,
+    minutes: actualGamesPlayed > 0 ? (seasonTotals.minutes / 60) / actualGamesPlayed : 0,
     missesForced: actualGamesPlayed > 0 ? seasonTotals.missesForced / actualGamesPlayed : 0,
     possessionTime: actualGamesPlayed > 0 ? seasonTotals.possessionTime / actualGamesPlayed : 0,
     fieldGoalPercentage: seasonTotals.fieldGoalsAttempted > 0 ? (seasonTotals.fieldGoalsMade / seasonTotals.fieldGoalsAttempted * 100) : 0,
@@ -470,7 +470,7 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
                 </div>
                 <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                   <div className="text-3xl font-bold text-mba-blue">
-                    {showTotals ? seasonTotals.minutes.toFixed(0) : stats.minutes.toFixed(1)}
+                    {showTotals ? (seasonTotals.minutes / 60).toFixed(0) : stats.minutes.toFixed(1)}
                   </div>
                   <div className="text-xs text-gray-600 dark:text-gray-400 mt-1 uppercase">{showTotals ? 'MIN' : 'MPG'}</div>
                 </div>

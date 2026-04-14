@@ -213,7 +213,8 @@ export async function GET() {
         discordUsername: user.discord_username || '',
         teamId: user.team_id || null,
         roles: user.roles || ['Player'],
-        stars: user.stars || 1,
+        starRating: user.star_rating ?? 0,
+        playerLevel: user.player_level ?? 'mba',
         coinWorth: user.coin_worth ?? 1000,
         stats: {
           gamesPlayed: currentStats.games_played || 0,

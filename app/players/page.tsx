@@ -1,6 +1,6 @@
 'use client';
 
-import { Search, User } from 'lucide-react';
+import { Search, User, Star } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 
@@ -75,6 +75,9 @@ export default function PlayersPage() {
         {filteredPlayers.length > 0 ? (
           filteredPlayers.map((player) => {
             const team = teams.find(t => t.id === player.teamId);
+            const starRating = player.starRating ?? 0;
+            const playerLevel = player.playerLevel ?? 'mba';
+            const starTitle = playerLevel === 'mba' ? 'Player' : 'Recruit';
             
             return (
               <Link
@@ -99,6 +102,16 @@ export default function PlayersPage() {
                     <p className="text-sm text-gray-600 dark:text-gray-400 truncate">@{player.minecraftUsername}</p>
                   </div>
                 </div>
+
+                {/* Star Rating */}
+                {starRating > 0 && (
+                  <div className="flex items-center gap-1 mb-3">
+                    {[...Array(starRating)].map((_, i) => (
+                      <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                    ))}
+                    <span className="text-yellow-400 font-bold text-sm ml-1">{starRating}-Star {starTitle}</span>
+                  </div>
+                )}
 
                 {/* Team Badge */}
                 {team && (
