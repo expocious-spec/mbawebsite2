@@ -23,8 +23,8 @@ const themes: { value: Theme; label: string; icon: React.ReactNode; description:
     value: 'black',
     label: 'True Black',
     icon: <Circle className="w-6 h-6 fill-current" />,
-    description: 'Pure black for OLED displays',
-    preview: 'bg-black text-white'
+    description: 'Soft black for OLED displays',
+    preview: 'bg-[#0B0F14] text-gray-200'
   },
   {
     value: 'blue',

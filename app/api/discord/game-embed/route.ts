@@ -61,21 +61,28 @@ export async function POST(req: NextRequest) {
     let potgPlayer = null;
     let potgStats = null;
     if (game.player_of_game_id) {
-      const { data: player } = await supabase
+      console.log('POTG ID found:', game.player_of_game_id);
+      
+      const { data: player, error: playerError } = await supabase
         .from('players')
-        .select('name, teamId')
+        .select('name, team_id')
         .eq('id', game.player_of_game_id)
         .single();
 
-      const { data: stats } = await supabase
+      const { data: stats, error: statsError } = await supabase
         .from('game_stats')
         .select('*')
         .eq('game_id', gameId)
         .eq('player_id', game.player_of_game_id)
         .single();
 
+      console.log('POTG Player:', player, 'Error:', playerError);
+      console.log('POTG Stats:', stats, 'Error:', statsError);
+
       potgPlayer = player;
       potgStats = stats;
+    } else {
+      console.log('No POTG ID found for game:', gameId);
     }
 
     // Format the date
