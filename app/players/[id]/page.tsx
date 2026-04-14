@@ -20,6 +20,7 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
   const [contractOffers, setContractOffers] = useState<any[]>([]);
   const [accolades, setAccolades] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<TabType>('overview');
+  const [showTotals, setShowTotals] = useState(false); // Toggle for totals vs averages
   const { data: session } = useSession();
 
   useEffect(() => {
@@ -162,25 +163,30 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
     freeThrowsAttempted: acc.freeThrowsAttempted + (game.free_throws_attempted || 0),
     fouls: acc.fouls + (game.fouls || 0),
     minutes: acc.minutes + (game.minutes_played || game.minutes || 0),
+    missesForced: acc.missesForced + (game.misses_forced || 0),
+    possessionTime: acc.possessionTime + (game.possession_time || 0),
   }), {
     points: 0, rebounds: 0, assists: 0, steals: 0, blocks: 0, turnovers: 0, 
     offensiveRebounds: 0, defensiveRebounds: 0,
     fieldGoalsMade: 0, fieldGoalsAttempted: 0,
     threePointersMade: 0, threePointersAttempted: 0,
     freeThrowsMade: 0, freeThrowsAttempted: 0,
-    fouls: 0,
-    minutes: 0,
+    fouls: 0, minutes: 0, missesForced: 0, possessionTime: 0,
   }) || {
     points: 0, rebounds: 0, assists: 0, steals: 0, blocks: 0, turnovers: 0,
     offensiveRebounds: 0, defensiveRebounds: 0,
     fieldGoalsMade: 0, fieldGoalsAttempted: 0,
     threePointersMade: 0, threePointersAttempted: 0,
     freeThrowsMade: 0, freeThrowsAttempted: 0,
-    fouls: 0,
-    minutes: 0,
+    fouls: 0, minutes: 0, missesForced: 0, possessionTime: 0,
   };
   
   // Calculate averages
+  const missedFieldGoals = seasonTotals.fieldGoalsAttempted - seasonTotals.fieldGoalsMade;
+  const efficiency = actualGamesPlayed > 0 
+    ? (seasonTotals.points + seasonTotals.rebounds + seasonTotals.assists + seasonTotals.steals - missedFieldGoals - seasonTotals.turnovers) / actualGamesPlayed 
+    : 0;
+
   const stats = {
     points: actualGamesPlayed > 0 ? seasonTotals.points / actualGamesPlayed : 0,
     rebounds: actualGamesPlayed > 0 ? seasonTotals.rebounds / actualGamesPlayed : 0,
@@ -192,6 +198,8 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
     defensiveRebounds: actualGamesPlayed > 0 ? seasonTotals.defensiveRebounds / actualGamesPlayed : 0,
     fouls: actualGamesPlayed > 0 ? seasonTotals.fouls / actualGamesPlayed : 0,
     minutes: actualGamesPlayed > 0 ? seasonTotals.minutes / actualGamesPlayed : 0,
+    missesForced: actualGamesPlayed > 0 ? seasonTotals.missesForced / actualGamesPlayed : 0,
+    possessionTime: actualGamesPlayed > 0 ? seasonTotals.possessionTime / actualGamesPlayed : 0,
     fieldGoalPercentage: seasonTotals.fieldGoalsAttempted > 0 ? (seasonTotals.fieldGoalsMade / seasonTotals.fieldGoalsAttempted * 100) : 0,
     threePointPercentage: seasonTotals.threePointersAttempted > 0 ? (seasonTotals.threePointersMade / seasonTotals.threePointersAttempted * 100) : 0,
     freeThrowPercentage: seasonTotals.freeThrowsAttempted > 0 ? (seasonTotals.freeThrowsMade / seasonTotals.freeThrowsAttempted * 100) : 0,
@@ -201,17 +209,27 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
     threePointersAttempted: actualGamesPlayed > 0 ? seasonTotals.threePointersAttempted / actualGamesPlayed : 0,
     freeThrowsMade: actualGamesPlayed > 0 ? seasonTotals.freeThrowsMade / actualGamesPlayed : 0,
     freeThrowsAttempted: actualGamesPlayed > 0 ? seasonTotals.freeThrowsAttempted / actualGamesPlayed : 0,
+    efficiency,
   };
 
   // Get star rating from player data (defaults to 0)
   const starRating = player.starRating ?? 0;
+  
+  // Get player level and determine title
+  const playerLevel = player.playerLevel ?? 'mba';
+  const starTitle = playerLevel === 'mba' ? 'Player' : 'Recruit';
+  const levelTitle = playerLevel === 'highschool' 
+    ? 'Highschool Athlete' 
+    : playerLevel === 'collegiate' 
+    ? 'Collegiate Athlete' 
+    : 'MBA Athlete';
 
   return (
     <div className="min-h-screen bg-white dark:bg-mba-dark">
       {/* Header Bar */}
       <div className="bg-gradient-to-r from-mba-blue to-mba-red py-3 px-6">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <span className="text-white font-bold text-sm uppercase tracking-wider">MBA Athlete</span>
+          <span className="text-white font-bold text-sm uppercase tracking-wider">{levelTitle}</span>
           <Link href={`/players/${params.id}`} className="text-white hover:text-gray-200 text-sm font-medium flex items-center gap-2">
             <User className="w-4 h-4" />
             PLAYER PROFILE
@@ -241,9 +259,6 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
               <div>
                 <h1 className="text-4xl md:text-5xl font-bold mb-2">{player.displayName}</h1>
                 <div className="flex items-center gap-4 flex-wrap">
-                  <span className="px-3 py-1 bg-mba-blue text-white font-bold text-sm rounded">
-                    LB {/* Position - you can make this dynamic */}
-                  </span>
                   <span className="text-gray-400 text-sm">@{player.minecraftUsername || player.discordUsername}</span>
                 </div>
               </div>
@@ -253,16 +268,23 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
                 {[...Array(starRating)].map((_, i) => (
                   <Star key={i} className="w-6 h-6 fill-yellow-400 text-yellow-400" />
                 ))}
-                <span className="text-yellow-400 font-bold ml-2">{starRating}-Star Recruit</span>
+                {starRating > 0 && (
+                  <span className="text-yellow-400 font-bold ml-2">{starRating}-Star {starTitle}</span>
+                )}
               </div>
 
               {/* Team Info */}
               {team && (
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-4 p-4 bg-gray-800/50 rounded-lg border border-gray-700">
                   {team.logo && (
-                    <Image src={team.logo} alt={team.name} width={32} height={32} className="w-8 h-8 object-contain" />
+                    <div className="w-16 h-16 flex items-center justify-center bg-white rounded-lg p-2">
+                      <Image src={team.logo} alt={team.name} width={64} height={64} className="w-full h-full object-contain" />
+                    </div>
                   )}
-                  <span className="text-lg font-semibold">{team.name}</span>
+                  <div>
+                    <div className="text-xs text-gray-400 uppercase tracking-wide">Current Team</div>
+                    <span className="text-xl font-bold">{team.name}</span>
+                  </div>
                 </div>
               )}
 
@@ -393,104 +415,136 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
 
         {activeTab === 'stats' && (
           <div className="space-y-6">
-            {/* Season Selector */}
+            {/* Controls Row */}
             <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Filter by Season
-              </label>
-              <select
-                value={selectedSeasons[0] || 'All-Time'}
-                onChange={(e) => setSelectedSeasons([e.target.value])}
-                className="w-full md:w-64 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
-              >
-                {availableSeasons.map((season) => (
-                  <option key={season} value={season}>{season}</option>
-                ))}
-              </select>
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Filter by Season
+                  </label>
+                  <select
+                    value={selectedSeasons[0] || 'All-Time'}
+                    onChange={(e) => setSelectedSeasons([e.target.value])}
+                    className="w-full md:w-64 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
+                  >
+                    {availableSeasons.map((season) => (
+                      <option key={season} value={season}>{season}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setShowTotals(false)}
+                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                      !showTotals
+                        ? 'bg-mba-blue text-white'
+                        : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                    }`}
+                  >
+                    Averages
+                  </button>
+                  <button
+                    onClick={() => setShowTotals(true)}
+                    className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                      showTotals
+                        ? 'bg-mba-blue text-white'
+                        : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+                    }`}
+                  >
+                    Totals
+                  </button>
+                </div>
+              </div>
             </div>
 
-            {/* Season Averages */}
+            {/* Comprehensive Stats Grid */}
             <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Season Averages</h2>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+                {showTotals ? 'Season Totals' : 'Season Averages'}
+              </h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                 <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                  <div className="text-3xl font-bold text-mba-blue">{stats.points.toFixed(1)}</div>
-                  <div className="text-xs text-gray-600 dark:text-gray-400 mt-1 uppercase">PPG</div>
+                  <div className="text-3xl font-bold text-mba-blue">{actualGamesPlayed}</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400 mt-1 uppercase">GP</div>
                 </div>
                 <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                  <div className="text-3xl font-bold text-mba-blue">{stats.rebounds.toFixed(1)}</div>
-                  <div className="text-xs text-gray-600 dark:text-gray-400 mt-1 uppercase">RPG</div>
+                  <div className="text-3xl font-bold text-mba-blue">
+                    {showTotals ? seasonTotals.minutes.toFixed(0) : stats.minutes.toFixed(1)}
+                  </div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400 mt-1 uppercase">{showTotals ? 'MIN' : 'MPG'}</div>
                 </div>
                 <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                  <div className="text-3xl font-bold text-mba-blue">{stats.assists.toFixed(1)}</div>
-                  <div className="text-xs text-gray-600 dark:text-gray-400 mt-1 uppercase">APG</div>
+                  <div className="text-3xl font-bold text-mba-blue">
+                    {showTotals ? seasonTotals.points.toFixed(0) : stats.points.toFixed(1)}
+                  </div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400 mt-1 uppercase">{showTotals ? 'PTS' : 'PPG'}</div>
                 </div>
                 <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                  <div className="text-3xl font-bold text-mba-blue">{stats.steals.toFixed(1)}</div>
-                  <div className="text-xs text-gray-600 dark:text-gray-400 mt-1 uppercase">SPG</div>
+                  <div className="text-3xl font-bold text-mba-blue">
+                    {showTotals ? seasonTotals.offensiveRebounds.toFixed(0) : stats.offensiveRebounds.toFixed(1)}
+                  </div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400 mt-1 uppercase">{showTotals ? 'OREB' : 'ORPG'}</div>
                 </div>
                 <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                  <div className="text-3xl font-bold text-mba-blue">{stats.blocks.toFixed(1)}</div>
-                  <div className="text-xs text-gray-600 dark:text-gray-400 mt-1 uppercase">BPG</div>
+                  <div className="text-3xl font-bold text-mba-blue">
+                    {showTotals ? seasonTotals.defensiveRebounds.toFixed(0) : stats.defensiveRebounds.toFixed(1)}
+                  </div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400 mt-1 uppercase">{showTotals ? 'DREB' : 'DRPG'}</div>
+                </div>
+                <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  <div className="text-3xl font-bold text-mba-blue">
+                    {showTotals ? seasonTotals.rebounds.toFixed(0) : stats.rebounds.toFixed(1)}
+                  </div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400 mt-1 uppercase">{showTotals ? 'REB' : 'RPG'}</div>
+                </div>
+                <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  <div className="text-3xl font-bold text-mba-blue">
+                    {showTotals ? seasonTotals.assists.toFixed(0) : stats.assists.toFixed(1)}
+                  </div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400 mt-1 uppercase">{showTotals ? 'AST' : 'APG'}</div>
+                </div>
+                <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  <div className="text-3xl font-bold text-mba-blue">
+                    {showTotals ? seasonTotals.steals.toFixed(0) : stats.steals.toFixed(1)}
+                  </div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400 mt-1 uppercase">{showTotals ? 'STL' : 'SPG'}</div>
+                </div>
+                <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  <div className="text-3xl font-bold text-mba-blue">
+                    {showTotals ? seasonTotals.blocks.toFixed(0) : stats.blocks.toFixed(1)}
+                  </div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400 mt-1 uppercase">{showTotals ? 'BLK' : 'BPG'}</div>
+                </div>
+                <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  <div className="text-3xl font-bold text-mba-blue">
+                    {showTotals ? seasonTotals.turnovers.toFixed(0) : stats.turnovers.toFixed(1)}
+                  </div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400 mt-1 uppercase">{showTotals ? 'TOV' : 'TPG'}</div>
+                </div>
+                <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  <div className="text-3xl font-bold text-mba-blue">
+                    {showTotals ? seasonTotals.missesForced.toFixed(0) : stats.missesForced.toFixed(1)}
+                  </div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400 mt-1 uppercase">{showTotals ? 'MF' : 'MFPG'}</div>
+                </div>
+                <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  <div className="text-3xl font-bold text-mba-blue">
+                    {showTotals ? seasonTotals.possessionTime.toFixed(0) : stats.possessionTime.toFixed(1)}
+                  </div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400 mt-1 uppercase">{showTotals ? 'PT' : 'PTPG'}</div>
                 </div>
                 <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                   <div className="text-3xl font-bold text-mba-blue">{stats.fieldGoalPercentage.toFixed(1)}%</div>
                   <div className="text-xs text-gray-600 dark:text-gray-400 mt-1 uppercase">FG%</div>
                 </div>
-              </div>
-            </div>
-
-            {/* Detailed Stats */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Detailed Statistics</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
-                <div className="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-700">
-                  <span className="text-gray-700 dark:text-gray-300 font-medium">Minutes Per Game</span>
-                  <span className="text-gray-900 dark:text-white font-bold">{stats.minutes.toFixed(1)}</span>
+                <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  <div className="text-3xl font-bold text-mba-blue">{stats.threePointPercentage.toFixed(1)}%</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400 mt-1 uppercase">3FG%</div>
                 </div>
-                <div className="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-700">
-                  <span className="text-gray-700 dark:text-gray-300 font-medium">Games Played</span>
-                  <span className="text-gray-900 dark:text-white font-bold">{actualGamesPlayed}</span>
-                </div>
-                <div className="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-700">
-                  <span className="text-gray-700 dark:text-gray-300 font-medium">Field Goals</span>
-                  <span className="text-gray-900 dark:text-white font-bold">{stats.fieldGoalsMade.toFixed(1)}/{stats.fieldGoalsAttempted.toFixed(1)}</span>
-                </div>
-                <div className="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-700">
-                  <span className="text-gray-700 dark:text-gray-300 font-medium">Field Goal %</span>
-                  <span className="text-gray-900 dark:text-white font-bold">{stats.fieldGoalPercentage.toFixed(1)}%</span>
-                </div>
-                <div className="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-700">
-                  <span className="text-gray-700 dark:text-gray-300 font-medium">3-Pointers</span>
-                  <span className="text-gray-900 dark:text-white font-bold">{stats.threePointersMade.toFixed(1)}/{stats.threePointersAttempted.toFixed(1)}</span>
-                </div>
-                <div className="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-700">
-                  <span className="text-gray-700 dark:text-gray-300 font-medium">3-Point %</span>
-                  <span className="text-gray-900 dark:text-white font-bold">{stats.threePointPercentage.toFixed(1)}%</span>
-                </div>
-                <div className="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-700">
-                  <span className="text-gray-700 dark:text-gray-300 font-medium">Free Throws</span>
-                  <span className="text-gray-900 dark:text-white font-bold">{stats.freeThrowsMade.toFixed(1)}/{stats.freeThrowsAttempted.toFixed(1)}</span>
-                </div>
-                <div className="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-700">
-                  <span className="text-gray-700 dark:text-gray-300 font-medium">Free Throw %</span>
-                  <span className="text-gray-900 dark:text-white font-bold">{stats.freeThrowPercentage.toFixed(1)}%</span>
-                </div>
-                <div className="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-700">
-                  <span className="text-gray-700 dark:text-gray-300 font-medium">Offensive Rebounds</span>
-                  <span className="text-gray-900 dark:text-white font-bold">{stats.offensiveRebounds.toFixed(1)}</span>
-                </div>
-                <div className="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-700">
-                  <span className="text-gray-700 dark:text-gray-300 font-medium">Defensive Rebounds</span>
-                  <span className="text-gray-900 dark:text-white font-bold">{stats.defensiveRebounds.toFixed(1)}</span>
-                </div>
-                <div className="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-700">
-                  <span className="text-gray-700 dark:text-gray-300 font-medium">Turnovers Per Game</span>
-                  <span className="text-gray-900 dark:text-white font-bold">{stats.turnovers.toFixed(1)}</span>
-                </div>
-                <div className="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-700">
-                  <span className="text-gray-700 dark:text-gray-300 font-medium">Fouls Per Game</span>
-                  <span className="text-gray-900 dark:text-white font-bold">{stats.fouls.toFixed(1)}</span>
+                <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  <div className="text-3xl font-bold text-mba-blue">{stats.efficiency.toFixed(1)}</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400 mt-1 uppercase">EFF</div>
                 </div>
               </div>
             </div>

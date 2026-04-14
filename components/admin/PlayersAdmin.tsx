@@ -27,6 +27,7 @@ export default function PlayersAdmin() {
   const [showStats, setShowStats] = useState(false);
   const [coinWorth, setCoinWorth] = useState<number>(1000);
   const [starRating, setStarRating] = useState<number>(0);
+  const [playerLevel, setPlayerLevel] = useState<string>('mba');
   
   // Stats state
   const [gamesPlayed, setGamesPlayed] = useState('0');
@@ -114,6 +115,7 @@ export default function PlayersAdmin() {
           roles,
           coinWorth: roles.includes('Rookie') ? 0 : coinWorth,
           starRating,
+          playerLevel,
           stats: {
             gamesPlayed: parseInt(gamesPlayed) || 0,
             points: parseFloat(points) || 0,
@@ -160,6 +162,7 @@ export default function PlayersAdmin() {
           roles,
           coinWorth: roles.includes('Rookie') ? 0 : coinWorth,
           starRating,
+          playerLevel,
         }),
       });
 
@@ -213,6 +216,7 @@ export default function PlayersAdmin() {
     setRoles(['Player']);
     setCoinWorth(1000);
     setStarRating(0);
+    setPlayerLevel('mba');
     setGamesPlayed('0');
     setPoints('0');
     setRebounds('0');
@@ -235,6 +239,7 @@ export default function PlayersAdmin() {
     setRoles(player.roles || ['Player']);
     setCoinWorth(player.coinWorth ?? 1000);
     setStarRating(player.starRating ?? 0);
+    setPlayerLevel(player.playerLevel ?? 'mba');
     setGamesPlayed(player.stats?.gamesPlayed?.toString() || '0');
     setPoints(player.stats?.points?.toString() || '0');
     setRebounds(player.stats?.rebounds?.toString() || '0');
@@ -436,6 +441,24 @@ export default function PlayersAdmin() {
               </select>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 Recruit star rating (0-5 stars)
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                Player Level
+              </label>
+              <select
+                value={playerLevel}
+                onChange={(e) => setPlayerLevel(e.target.value)}
+                className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
+              >
+                <option value="highschool">🏫 Highschool Athlete</option>
+                <option value="collegiate">🎓 Collegiate Athlete</option>
+                <option value="mba">🏀 MBA Athlete</option>
+              </select>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Competition level (affects star display)
               </p>
             </div>
           </div>

@@ -258,7 +258,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { minecraftUsername, discordUsername, teamId, roles, stars, coinWorth, starRating } = body;
+    const { minecraftUsername, discordUsername, teamId, roles, stars, coinWorth, starRating, playerLevel } = body;
 
     if (!minecraftUsername) {
       return NextResponse.json({ error: 'Minecraft username is required' }, { status: 400 });
@@ -308,7 +308,8 @@ export async function POST(request: Request) {
         roles: roles || ['Player'],
         stars: stars || 1,
         coin_worth: coinWorth || 1000,
-        star_rating: starRating !== undefined ? starRating : 0
+        star_rating: starRating !== undefined ? starRating : 0,
+        player_level: playerLevel || 'mba'
       })
       .select()
       .single();

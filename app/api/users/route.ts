@@ -301,6 +301,7 @@ export async function PUT(request: Request) {
     if (body.stars !== undefined) updates.stars = body.stars;
     if (body.coinWorth !== undefined) updates.coin_worth = body.coinWorth;
     if (body.starRating !== undefined) updates.star_rating = body.starRating;
+    if (body.playerLevel !== undefined) updates.player_level = body.playerLevel;
 
     const { data, error } = await supabaseAdmin
       .from('users')
