@@ -238,7 +238,12 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
       </div>
 
       {/* Main Profile Header */}
-      <div className="bg-gray-900 dark:bg-black">
+      <div
+        style={team ? {
+          background: `linear-gradient(135deg, ${team.colors.primary}dd 0%, ${team.colors.secondary || team.colors.primary}99 60%, #111827 100%)`
+        } : undefined}
+        className={!team ? 'bg-gray-900 dark:bg-black' : undefined}
+      >
         <div className="max-w-7xl mx-auto px-6 py-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             {/* Player Image */}
