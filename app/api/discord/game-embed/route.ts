@@ -64,13 +64,13 @@ export async function POST(req: NextRequest) {
       console.log('POTG ID found:', game.player_of_game_id);
       
       const { data: player, error: playerError } = await supabase
-        .from('players')
-        .select('name, team_id')
+        .from('users')
+        .select('username, minecraft_username, team_id')
         .eq('id', game.player_of_game_id)
         .single();
 
       const { data: stats, error: statsError } = await supabase
-        .from('game_stats')
+        .from('player_game_stats')
         .select('*')
         .eq('game_id', gameId)
         .eq('player_id', game.player_of_game_id)
@@ -114,9 +114,10 @@ export async function POST(req: NextRequest) {
 
     // Add Player of the Game if exists
     if (potgPlayer && potgStats) {
+      const playerName = potgPlayer.minecraft_username || potgPlayer.username;
       embed.fields.push({
         name: '🏆 Player of the Game',
-        value: `**${potgPlayer.name}**\n${potgStats.points || 0} PTS • ${potgStats.rebounds || 0} REB • ${potgStats.assists || 0} AST • ${potgStats.steals || 0} STL • ${potgStats.blocks || 0} BLK • ${potgStats.field_goals_made || 0}/${potgStats.field_goals_attempted || 0} FG`,
+        value: `**${playerName}**\n${potgStats.points || 0} PTS • ${potgStats.rebounds || 0} REB • ${potgStats.assists || 0} AST • ${potgStats.steals || 0} STL • ${potgStats.blocks || 0} BLK`,
         inline: false
       });
     }
