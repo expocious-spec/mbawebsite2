@@ -27,6 +27,7 @@ const statCategories = [
 
 export default function StatsPage() {
   const [selectedStat, setSelectedStat] = useState<StatCategory>('minutes');
+  const [sortDirection, setSortDirection] = useState<'desc' | 'asc'>('desc');
   const [statMode, setStatMode] = useState<StatMode>('averages');
   const [selectedSeasons, setSelectedSeasons] = useState<string[]>(['All-Time']);
   const [availableSeasons, setAvailableSeasons] = useState<string[]>(['All-Time']);
@@ -325,8 +326,22 @@ export default function StatsPage() {
         const bValue = (statMode === 'totals' && !isPercentage)
           ? b.seasonStats[stat] * b.seasonStats.gamesPlayed
           : b.seasonStats[stat];
-        return bValue - aValue;
+        
+        // Apply sort direction
+        return sortDirection === 'desc' ? bValue - aValue : aValue - bValue;
       });
+  };
+
+  const handleColumnClick = (stat: StatCategory) => {
+    if (selectedStat === stat) {
+      // Toggle sort direction if clicking the same column
+      setSortDirection(sortDirection === 'desc' ? 'asc' : 'desc');
+    } else {
+      // New column selected, default to descending
+      setSelectedStat(stat);
+      setSortDirection('desc');
+      setCurrentPage(1);
+    }
   };
 
   const allLeaders = getLeaders(selectedStat);
@@ -418,28 +433,6 @@ export default function StatsPage() {
         </div>
       </div>
 
-      {/* Category Tabs */}
-      <div className="mb-6 overflow-x-auto">
-        <div className="flex space-x-2 min-w-max">
-          {statCategories.map((category) => (
-            <button
-              key={category.key}
-              onClick={() => {
-                setSelectedStat(category.key);
-                setCurrentPage(1);
-              }}
-              className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-                selectedStat === category.key
-                  ? 'bg-mba-blue text-white'
-                  : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-              }`}
-            >
-              {category.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
       {/* Pagination Info */}
       {allLeaders.length > 0 && (
         <div className="mb-4 flex items-center justify-between">
@@ -488,47 +481,187 @@ export default function StatsPage() {
                 <th className="px-4 py-4 text-center text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
                   GP
                 </th>
-                <th className="px-4 py-4 text-center text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-                  {statMode === 'totals' ? 'MIN' : 'MPG'}
+                <th 
+                  onClick={() => handleColumnClick('minutes')}
+                  className="px-4 py-4 text-center text-xs font-medium uppercase tracking-wider cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors select-none"
+                >
+                  <div className="flex items-center justify-center space-x-1">
+                    <span className={selectedStat === 'minutes' ? 'text-mba-blue font-bold' : 'text-gray-600 dark:text-gray-400'}>
+                      {statMode === 'totals' ? 'MIN' : 'MPG'}
+                    </span>
+                    {selectedStat === 'minutes' && (
+                      <span className="text-mba-blue">{sortDirection === 'desc' ? '▼' : '▲'}</span>
+                    )}
+                  </div>
                 </th>
-                <th className="px-4 py-4 text-center text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-                  {statMode === 'totals' ? 'PTS' : 'PPG'}
+                <th 
+                  onClick={() => handleColumnClick('points')}
+                  className="px-4 py-4 text-center text-xs font-medium uppercase tracking-wider cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors select-none"
+                >
+                  <div className="flex items-center justify-center space-x-1">
+                    <span className={selectedStat === 'points' ? 'text-mba-blue font-bold' : 'text-gray-600 dark:text-gray-400'}>
+                      {statMode === 'totals' ? 'PTS' : 'PPG'}
+                    </span>
+                    {selectedStat === 'points' && (
+                      <span className="text-mba-blue">{sortDirection === 'desc' ? '▼' : '▲'}</span>
+                    )}
+                  </div>
                 </th>
-                <th className="px-4 py-4 text-center text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-                  {statMode === 'totals' ? 'OREB' : 'ORPG'}
+                <th 
+                  onClick={() => handleColumnClick('offensiveRebounds')}
+                  className="px-4 py-4 text-center text-xs font-medium uppercase tracking-wider cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors select-none"
+                >
+                  <div className="flex items-center justify-center space-x-1">
+                    <span className={selectedStat === 'offensiveRebounds' ? 'text-mba-blue font-bold' : 'text-gray-600 dark:text-gray-400'}>
+                      {statMode === 'totals' ? 'OREB' : 'ORPG'}
+                    </span>
+                    {selectedStat === 'offensiveRebounds' && (
+                      <span className="text-mba-blue">{sortDirection === 'desc' ? '▼' : '▲'}</span>
+                    )}
+                  </div>
                 </th>
-                <th className="px-4 py-4 text-center text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-                  {statMode === 'totals' ? 'DREB' : 'DRPG'}
+                <th 
+                  onClick={() => handleColumnClick('defensiveRebounds')}
+                  className="px-4 py-4 text-center text-xs font-medium uppercase tracking-wider cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors select-none"
+                >
+                  <div className="flex items-center justify-center space-x-1">
+                    <span className={selectedStat === 'defensiveRebounds' ? 'text-mba-blue font-bold' : 'text-gray-600 dark:text-gray-400'}>
+                      {statMode === 'totals' ? 'DREB' : 'DRPG'}
+                    </span>
+                    {selectedStat === 'defensiveRebounds' && (
+                      <span className="text-mba-blue">{sortDirection === 'desc' ? '▼' : '▲'}</span>
+                    )}
+                  </div>
                 </th>
-                <th className="px-4 py-4 text-center text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-                  {statMode === 'totals' ? 'REB' : 'RPG'}
+                <th 
+                  onClick={() => handleColumnClick('rebounds')}
+                  className="px-4 py-4 text-center text-xs font-medium uppercase tracking-wider cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors select-none"
+                >
+                  <div className="flex items-center justify-center space-x-1">
+                    <span className={selectedStat === 'rebounds' ? 'text-mba-blue font-bold' : 'text-gray-600 dark:text-gray-400'}>
+                      {statMode === 'totals' ? 'REB' : 'RPG'}
+                    </span>
+                    {selectedStat === 'rebounds' && (
+                      <span className="text-mba-blue">{sortDirection === 'desc' ? '▼' : '▲'}</span>
+                    )}
+                  </div>
                 </th>
-                <th className="px-4 py-4 text-center text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-                  {statMode === 'totals' ? 'AST' : 'APG'}
+                <th 
+                  onClick={() => handleColumnClick('assists')}
+                  className="px-4 py-4 text-center text-xs font-medium uppercase tracking-wider cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors select-none"
+                >
+                  <div className="flex items-center justify-center space-x-1">
+                    <span className={selectedStat === 'assists' ? 'text-mba-blue font-bold' : 'text-gray-600 dark:text-gray-400'}>
+                      {statMode === 'totals' ? 'AST' : 'APG'}
+                    </span>
+                    {selectedStat === 'assists' && (
+                      <span className="text-mba-blue">{sortDirection === 'desc' ? '▼' : '▲'}</span>
+                    )}
+                  </div>
                 </th>
-                <th className="px-4 py-4 text-center text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-                  {statMode === 'totals' ? 'STL' : 'SPG'}
+                <th 
+                  onClick={() => handleColumnClick('steals')}
+                  className="px-4 py-4 text-center text-xs font-medium uppercase tracking-wider cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors select-none"
+                >
+                  <div className="flex items-center justify-center space-x-1">
+                    <span className={selectedStat === 'steals' ? 'text-mba-blue font-bold' : 'text-gray-600 dark:text-gray-400'}>
+                      {statMode === 'totals' ? 'STL' : 'SPG'}
+                    </span>
+                    {selectedStat === 'steals' && (
+                      <span className="text-mba-blue">{sortDirection === 'desc' ? '▼' : '▲'}</span>
+                    )}
+                  </div>
                 </th>
-                <th className="px-4 py-4 text-center text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-                  {statMode === 'totals' ? 'BLK' : 'BPG'}
+                <th 
+                  onClick={() => handleColumnClick('blocks')}
+                  className="px-4 py-4 text-center text-xs font-medium uppercase tracking-wider cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors select-none"
+                >
+                  <div className="flex items-center justify-center space-x-1">
+                    <span className={selectedStat === 'blocks' ? 'text-mba-blue font-bold' : 'text-gray-600 dark:text-gray-400'}>
+                      {statMode === 'totals' ? 'BLK' : 'BPG'}
+                    </span>
+                    {selectedStat === 'blocks' && (
+                      <span className="text-mba-blue">{sortDirection === 'desc' ? '▼' : '▲'}</span>
+                    )}
+                  </div>
                 </th>
-                <th className="px-4 py-4 text-center text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-                  {statMode === 'totals' ? 'TOV' : 'TPG'}
+                <th 
+                  onClick={() => handleColumnClick('turnovers')}
+                  className="px-4 py-4 text-center text-xs font-medium uppercase tracking-wider cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors select-none"
+                >
+                  <div className="flex items-center justify-center space-x-1">
+                    <span className={selectedStat === 'turnovers' ? 'text-mba-blue font-bold' : 'text-gray-600 dark:text-gray-400'}>
+                      {statMode === 'totals' ? 'TOV' : 'TPG'}
+                    </span>
+                    {selectedStat === 'turnovers' && (
+                      <span className="text-mba-blue">{sortDirection === 'desc' ? '▼' : '▲'}</span>
+                    )}
+                  </div>
                 </th>
-                <th className="px-4 py-4 text-center text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-                  {statMode === 'totals' ? 'MISS-AG' : 'MFPG'}
+                <th 
+                  onClick={() => handleColumnClick('missesForced')}
+                  className="px-4 py-4 text-center text-xs font-medium uppercase tracking-wider cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors select-none"
+                >
+                  <div className="flex items-center justify-center space-x-1">
+                    <span className={selectedStat === 'missesForced' ? 'text-mba-blue font-bold' : 'text-gray-600 dark:text-gray-400'}>
+                      {statMode === 'totals' ? 'MISS-AG' : 'MFPG'}
+                    </span>
+                    {selectedStat === 'missesForced' && (
+                      <span className="text-mba-blue">{sortDirection === 'desc' ? '▼' : '▲'}</span>
+                    )}
+                  </div>
                 </th>
-                <th className="px-4 py-4 text-center text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-                  {statMode === 'totals' ? 'PT' : 'PTPG'}
+                <th 
+                  onClick={() => handleColumnClick('possessionTime')}
+                  className="px-4 py-4 text-center text-xs font-medium uppercase tracking-wider cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors select-none"
+                >
+                  <div className="flex items-center justify-center space-x-1">
+                    <span className={selectedStat === 'possessionTime' ? 'text-mba-blue font-bold' : 'text-gray-600 dark:text-gray-400'}>
+                      {statMode === 'totals' ? 'PT' : 'PTPG'}
+                    </span>
+                    {selectedStat === 'possessionTime' && (
+                      <span className="text-mba-blue">{sortDirection === 'desc' ? '▼' : '▲'}</span>
+                    )}
+                  </div>
                 </th>
-                <th className="px-4 py-4 text-center text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-                  FG%
+                <th 
+                  onClick={() => handleColumnClick('fgPercentage')}
+                  className="px-4 py-4 text-center text-xs font-medium uppercase tracking-wider cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors select-none"
+                >
+                  <div className="flex items-center justify-center space-x-1">
+                    <span className={selectedStat === 'fgPercentage' ? 'text-mba-blue font-bold' : 'text-gray-600 dark:text-gray-400'}>
+                      FG%
+                    </span>
+                    {selectedStat === 'fgPercentage' && (
+                      <span className="text-mba-blue">{sortDirection === 'desc' ? '▼' : '▲'}</span>
+                    )}
+                  </div>
                 </th>
-                <th className="px-4 py-4 text-center text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-                  3FG%
+                <th 
+                  onClick={() => handleColumnClick('threeFgPercentage')}
+                  className="px-4 py-4 text-center text-xs font-medium uppercase tracking-wider cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors select-none"
+                >
+                  <div className="flex items-center justify-center space-x-1">
+                    <span className={selectedStat === 'threeFgPercentage' ? 'text-mba-blue font-bold' : 'text-gray-600 dark:text-gray-400'}>
+                      3FG%
+                    </span>
+                    {selectedStat === 'threeFgPercentage' && (
+                      <span className="text-mba-blue">{sortDirection === 'desc' ? '▼' : '▲'}</span>
+                    )}
+                  </div>
                 </th>
-                <th className="px-4 py-4 text-center text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-                  EFF
+                <th 
+                  onClick={() => handleColumnClick('efficiency')}
+                  className="px-4 py-4 text-center text-xs font-medium uppercase tracking-wider cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors select-none"
+                >
+                  <div className="flex items-center justify-center space-x-1">
+                    <span className={selectedStat === 'efficiency' ? 'text-mba-blue font-bold' : 'text-gray-600 dark:text-gray-400'}>
+                      EFF
+                    </span>
+                    {selectedStat === 'efficiency' && (
+                      <span className="text-mba-blue">{sortDirection === 'desc' ? '▼' : '▲'}</span>
+                    )}
+                  </div>
                 </th>
               </tr>
             </thead>
