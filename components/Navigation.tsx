@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { Home, Users, Link2, TrendingUp, Calendar, Search, Shield, Sun, Moon, Trophy, Briefcase, Award, User, FileText } from 'lucide-react';
+import { Home, Users, Link2, TrendingUp, Calendar, Search, Shield, Sun, Moon, Trophy, Briefcase, Award, User, FileText, Settings } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
 import { useSession, signIn, signOut } from 'next-auth/react';
 
@@ -74,13 +74,17 @@ export default function Navigation() {
               })}
             </div>
             
-            <button
-              onClick={toggleTheme}
-              className="ml-2 p-2 minecraft-button border-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 border-gray-400 dark:border-gray-600"
-              aria-label="Toggle theme"
+            <Link
+              href="/settings"
+              className={`ml-2 p-2 minecraft-button border-2 ${
+                pathname === '/settings'
+                  ? 'bg-gradient-to-r from-mba-blue to-mba-red text-white border-blue-800'
+                  : 'text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 border-gray-400 dark:border-gray-600'
+              }`}
+              title="Settings"
             >
-              {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            </button>
+              <Settings className="w-5 h-5" />
+            </Link>
           </div>
         </div>
       </div>

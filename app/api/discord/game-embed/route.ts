@@ -33,21 +33,29 @@ export async function POST(req: NextRequest) {
     }
 
     // Fetch teams
-    const { data: homeTeam } = await supabase
+    const { data: homeTeam, error: homeError } = await supabase
       .from('teams')
-      .select('name, abbreviation, logo_url')
+      .select('name, logo')
       .eq('id', game.home_team_id)
       .single();
 
-    const { data: awayTeam } = await supabase
+    const { data: awayTeam, error: awayError } = await supabase
       .from('teams')
-      .select('name, abbreviation, logo_url')
+      .select('name, logo')
       .eq('id', game.away_team_id)
       .single();
 
     if (!homeTeam || !awayTeam) {
-      return NextResponse.json({ error: 'Teams not found' }, { status: 404 });
+      console.error('Teams fetch error:', { homeError, awayError, homeTeamId: game.home_team_id, awayTeamId: game.away_team_id });
+      return NextResponse.json({ 
+        error: 'Teams not found',
+        details: { homeFound: !!homeTeam, awayFound: !!awayTeam }
+      }, { status: 404 });
     }
+
+    // Generate abbreviations from team names
+    const homeAbbr = homeTeam.name.substring(0, 3).toUpperCase();
+    const awayAbbr = awayTeam.name.substring(0, 3).toUpperCase();
 
     // Fetch player of the game if exists
     let potgPlayer = null;
@@ -80,7 +88,7 @@ export async function POST(req: NextRequest) {
     // Build Discord embed
     const embed: any = {
       title: '🏀 MBA Scores',
-      description: `**${awayTeam.abbreviation} ${game.away_score} — ${game.home_score} ${homeTeam.abbreviation}**\n\n${game.is_forfeit ? '⚠️ **FORFEIT**' : '✅ **FINAL**'} • ${gameDate}`,
+      description: `**${awayAbbr} ${game.away_score} — ${game.home_score} ${homeAbbr}**\n\n${game.is_forfeit ? '⚠️ **FORFEIT**' : '✅ **FINAL**'} • ${gameDate}`,
       color: 0x1E40AF, // Blue color
       fields: [],
       timestamp: new Date().toISOString(),
@@ -91,9 +99,9 @@ export async function POST(req: NextRequest) {
 
     // Add team info as thumbnail (use winner's logo)
     const winningTeam = game.home_score > game.away_score ? homeTeam : awayTeam;
-    if (winningTeam.logo_url) {
+    if (winningTeam.logo) {
       embed.thumbnail = {
-        url: winningTeam.logo_url
+        url: winningTeam.logo
       };
     }
 

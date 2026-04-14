@@ -28,6 +28,26 @@ h1, h2, h3, h4, h5, h6 {
   --foreground: #F5F5F5;
 }
 
+.black {
+  --background: #000000;
+  --foreground: #FFFFFF;
+}
+
+.blue {
+  --background: #0A1628;
+  --foreground: #E0F2FE;
+}
+
+.red {
+  --background: #1A0A0A;
+  --foreground: #FEE2E2;
+}
+
+.green {
+  --background: #0A1A0F;
+  --foreground: #D1FAE5;
+}
+
 body {
   color: var(--foreground);
   background: var(--background);
