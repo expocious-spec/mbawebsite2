@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Calendar } from 'lucide-react';
+import { Plus, Edit2, Trash2, Calendar, Send } from 'lucide-react';
 
 export default function GamesAdmin() {
   const [showForm, setShowForm] = useState(false);
@@ -103,7 +103,30 @@ export default function GamesAdmin() {
       console.error('Failed to fetch game stats:', error);
     }
   };
+  const handleSendEmbed = async (gameId: string) => {
+    if (!confirm('Send this game to Discord?')) return;
 
+    setLoading(true);
+    try {
+      const response = await fetch('/api/discord/game-embed', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ gameId })
+      });
+
+      if (response.ok) {
+        alert('✅ Embed sent to Discord successfully!');
+      } else {
+        const error = await response.json();
+        alert(`❌ Failed to send embed: ${error.error}`);
+      }
+    } catch (error) {
+      console.error('Error sending embed:', error);
+      alert('❌ Failed to send embed to Discord');
+    } finally {
+      setLoading(false);
+    }
+  };
   const filteredGames = [...games]
     .filter(game => {
       // Status filter
@@ -610,6 +633,16 @@ export default function GamesAdmin() {
                 </div>
 
                 <div className="flex items-center space-x-2 ml-4">
+                  {game.status === 'completed' && (
+                    <button
+                      onClick={() => handleSendEmbed(game.id)}
+                      className="p-2 text-green-600 hover:bg-green-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                      title="Send to Discord"
+                      disabled={loading}
+                    >
+                      <Send className="w-5 h-5" />
+                    </button>
+                  )}
                   <button
                     onClick={() => openEditForm(game)}
                     className="p-2 text-mba-blue hover:bg-blue-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
