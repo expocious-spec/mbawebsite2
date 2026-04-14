@@ -21,6 +21,7 @@ interface Transaction {
   status: 'pending' | 'completed' | 'rejected' | 'cancelled';
   createdAt: string;
   completedAt?: string;
+  seasonId?: string;
   player: {
     id: string;
     username: string;
@@ -51,16 +52,19 @@ export default function TransactionsPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [seasonFilter, setSeasonFilter] = useState<string>('all');
+  const [seasons, setSeasons] = useState<any[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     fetchTransactions();
+    fetchSeasons();
     checkAdminStatus();
   }, []);
 
   useEffect(() => {
     filterTransactions();
-  }, [transactions, searchTerm, typeFilter]);
+  }, [transactions, searchTerm, typeFilter, seasonFilter]);
 
   const fetchTransactions = async () => {
     try {
@@ -90,6 +94,7 @@ export default function TransactionsPage() {
             status: offer.status === 'accepted' ? 'completed' : (offer.status === 'expired' ? 'cancelled' : offer.status),
             createdAt: offer.createdAt,
             completedAt: offer.acceptedAt,
+            seasonId: offer.seasonId,
             player: offer.player,
             team: offer.team,
             fromUser: offer.franchiseOwner
@@ -124,6 +129,21 @@ export default function TransactionsPage() {
       filtered = filtered.filter(t => t.type === typeFilter);
     }
 
+    // Apply season filter
+    if (seasonFilter !== 'all') {
+      filtered = filtered.filter(t => {
+        // For contract offers, check seasonId
+        if (t.type === 'contract' && 'seasonId' in t) {
+          return (t as any).seasonId === seasonFilter;
+        }
+        // For other transactions, also check seasonId if available
+        if ('seasonId' in t) {
+          return (t as any).seasonId === seasonFilter;
+        }
+        return false;
+      });
+    }
+
     // Apply search filter
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
@@ -137,6 +157,17 @@ export default function TransactionsPage() {
     }
 
     setFilteredTransactions(filtered);
+  };
+
+  const fetchSeasons = async () => {
+    try {
+      const response = await fetch('/api/seasons');
+      const data = await response.json();
+      setSeasons(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('Failed to fetch seasons:', error);
+      setSeasons([]);
+    }
   };
 
   const checkAdminStatus = async () => {
@@ -267,7 +298,7 @@ export default function TransactionsPage() {
 
       {/* Filters */}
       <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700 mb-6 shadow-sm">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Search */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -292,6 +323,22 @@ export default function TransactionsPage() {
               <option value="role_assignment">Role Changes</option>
               <option value="trade">Trades</option>
               <option value="release">Releases</option>
+            </select>
+          </div>
+
+          {/* Season Filter */}
+          <div className="relative">
+            <select
+              value={seasonFilter}
+              onChange={(e) => setSeasonFilter(e.target.value)}
+              className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-mba-blue dark:focus:border-mba-blue"
+            >
+              <option value="all">All Seasons</option>
+              {seasons.map((season) => (
+                <option key={season.id} value={season.id}>
+                  {season.name}
+                </option>
+              ))}
             </select>
           </div>
         </div>
