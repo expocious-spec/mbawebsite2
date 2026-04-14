@@ -26,6 +26,7 @@ export default function PlayersAdmin() {
   const [roles, setRoles] = useState<string[]>(['Player']);
   const [showStats, setShowStats] = useState(false);
   const [coinWorth, setCoinWorth] = useState<number>(1000);
+  const [starRating, setStarRating] = useState<number>(0);
   
   // Stats state
   const [gamesPlayed, setGamesPlayed] = useState('0');
@@ -112,6 +113,7 @@ export default function PlayersAdmin() {
           teamId,
           roles,
           coinWorth: roles.includes('Rookie') ? 0 : coinWorth,
+          starRating,
           stats: {
             gamesPlayed: parseInt(gamesPlayed) || 0,
             points: parseFloat(points) || 0,
@@ -157,6 +159,7 @@ export default function PlayersAdmin() {
           teamId,
           roles,
           coinWorth: roles.includes('Rookie') ? 0 : coinWorth,
+          starRating,
         }),
       });
 
@@ -209,6 +212,7 @@ export default function PlayersAdmin() {
     setTeamId('');
     setRoles(['Player']);
     setCoinWorth(1000);
+    setStarRating(0);
     setGamesPlayed('0');
     setPoints('0');
     setRebounds('0');
@@ -230,6 +234,7 @@ export default function PlayersAdmin() {
     setTeamId(player.teamId || '');
     setRoles(player.roles || ['Player']);
     setCoinWorth(player.coinWorth ?? 1000);
+    setStarRating(player.starRating ?? 0);
     setGamesPlayed(player.stats?.gamesPlayed?.toString() || '0');
     setPoints(player.stats?.points?.toString() || '0');
     setRebounds(player.stats?.rebounds?.toString() || '0');
@@ -410,6 +415,27 @@ export default function PlayersAdmin() {
               />
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 {roles.includes('Rookie') ? 'Rookies are worth $0 MBA coins' : 'Common values: 1,000-12,000 coins'}
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                Star Rating
+              </label>
+              <select
+                value={starRating}
+                onChange={(e) => setStarRating(parseInt(e.target.value))}
+                className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
+              >
+                <option value="0">⭐ 0 Stars</option>
+                <option value="1">⭐ 1 Star</option>
+                <option value="2">⭐ 2 Stars</option>
+                <option value="3">⭐ 3 Stars</option>
+                <option value="4">⭐ 4 Stars</option>
+                <option value="5">⭐ 5 Stars</option>
+              </select>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Recruit star rating (0-5 stars)
               </p>
             </div>
           </div>

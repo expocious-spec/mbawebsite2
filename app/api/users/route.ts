@@ -300,6 +300,7 @@ export async function PUT(request: Request) {
     if (body.discordUsername !== undefined) updates.discord_username = body.discordUsername;
     if (body.stars !== undefined) updates.stars = body.stars;
     if (body.coinWorth !== undefined) updates.coin_worth = body.coinWorth;
+    if (body.starRating !== undefined) updates.star_rating = body.starRating;
 
     const { data, error } = await supabaseAdmin
       .from('users')

@@ -158,18 +158,25 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
     fieldGoalsAttempted: acc.fieldGoalsAttempted + (game.field_goals_attempted || 0),
     threePointersMade: acc.threePointersMade + (game.three_pointers_made || 0),
     threePointersAttempted: acc.threePointersAttempted + (game.three_pointers_attempted || 0),
-    minutes: acc.minutes + (game.minutes || 0),
+    freeThrowsMade: acc.freeThrowsMade + (game.free_throws_made || 0),
+    freeThrowsAttempted: acc.freeThrowsAttempted + (game.free_throws_attempted || 0),
+    fouls: acc.fouls + (game.fouls || 0),
+    minutes: acc.minutes + (game.minutes_played || game.minutes || 0),
   }), {
     points: 0, rebounds: 0, assists: 0, steals: 0, blocks: 0, turnovers: 0, 
     offensiveRebounds: 0, defensiveRebounds: 0,
     fieldGoalsMade: 0, fieldGoalsAttempted: 0,
     threePointersMade: 0, threePointersAttempted: 0,
+    freeThrowsMade: 0, freeThrowsAttempted: 0,
+    fouls: 0,
     minutes: 0,
   }) || {
     points: 0, rebounds: 0, assists: 0, steals: 0, blocks: 0, turnovers: 0,
     offensiveRebounds: 0, defensiveRebounds: 0,
     fieldGoalsMade: 0, fieldGoalsAttempted: 0,
     threePointersMade: 0, threePointersAttempted: 0,
+    freeThrowsMade: 0, freeThrowsAttempted: 0,
+    fouls: 0,
     minutes: 0,
   };
   
@@ -183,13 +190,21 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
     turnovers: actualGamesPlayed > 0 ? seasonTotals.turnovers / actualGamesPlayed : 0,
     offensiveRebounds: actualGamesPlayed > 0 ? seasonTotals.offensiveRebounds / actualGamesPlayed : 0,
     defensiveRebounds: actualGamesPlayed > 0 ? seasonTotals.defensiveRebounds / actualGamesPlayed : 0,
+    fouls: actualGamesPlayed > 0 ? seasonTotals.fouls / actualGamesPlayed : 0,
     minutes: actualGamesPlayed > 0 ? seasonTotals.minutes / actualGamesPlayed : 0,
     fieldGoalPercentage: seasonTotals.fieldGoalsAttempted > 0 ? (seasonTotals.fieldGoalsMade / seasonTotals.fieldGoalsAttempted * 100) : 0,
     threePointPercentage: seasonTotals.threePointersAttempted > 0 ? (seasonTotals.threePointersMade / seasonTotals.threePointersAttempted * 100) : 0,
+    freeThrowPercentage: seasonTotals.freeThrowsAttempted > 0 ? (seasonTotals.freeThrowsMade / seasonTotals.freeThrowsAttempted * 100) : 0,
+    fieldGoalsMade: actualGamesPlayed > 0 ? seasonTotals.fieldGoalsMade / actualGamesPlayed : 0,
+    fieldGoalsAttempted: actualGamesPlayed > 0 ? seasonTotals.fieldGoalsAttempted / actualGamesPlayed : 0,
+    threePointersMade: actualGamesPlayed > 0 ? seasonTotals.threePointersMade / actualGamesPlayed : 0,
+    threePointersAttempted: actualGamesPlayed > 0 ? seasonTotals.threePointersAttempted / actualGamesPlayed : 0,
+    freeThrowsMade: actualGamesPlayed > 0 ? seasonTotals.freeThrowsMade / actualGamesPlayed : 0,
+    freeThrowsAttempted: actualGamesPlayed > 0 ? seasonTotals.freeThrowsAttempted / actualGamesPlayed : 0,
   };
 
-  // Determine star rating (5-star recruit)
-  const starRating = 5; // You can calculate this based on player stats/value
+  // Get star rating from player data (defaults to 0)
+  const starRating = player.starRating ?? 0;
 
   return (
     <div className="min-h-screen bg-white dark:bg-mba-dark">
@@ -258,11 +273,11 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
               </div>
 
               {/* Salary Cap Value */}
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-900/30 border border-green-700 rounded">
-                <DollarSign className="w-5 h-5 text-green-400" />
-                <div>
-                  <div className="text-xs text-gray-400">Salary Cap Value</div>
-                  <div className="text-lg font-bold text-green-400">${(player.coinWorth || 0).toLocaleString()}</div>
+              <div className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-green-900/30 to-green-800/20 border border-green-700/50 rounded-lg">
+                <DollarSign className="w-6 h-6 text-green-400 flex-shrink-0" />
+                <div className="flex-1">
+                  <div className="text-xs text-green-400/80 font-medium uppercase tracking-wide">Salary Cap Value</div>
+                  <div className="text-2xl font-bold text-green-400">${(player.coinWorth || 0).toLocaleString()}</div>
                 </div>
               </div>
             </div>
@@ -378,6 +393,22 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
 
         {activeTab === 'stats' && (
           <div className="space-y-6">
+            {/* Season Selector */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Filter by Season
+              </label>
+              <select
+                value={selectedSeasons[0] || 'All-Time'}
+                onChange={(e) => setSelectedSeasons([e.target.value])}
+                className="w-full md:w-64 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
+              >
+                {availableSeasons.map((season) => (
+                  <option key={season} value={season}>{season}</option>
+                ))}
+              </select>
+            </div>
+
             {/* Season Averages */}
             <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Season Averages</h2>
@@ -412,18 +443,38 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
             {/* Detailed Stats */}
             <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Detailed Statistics</h2>
-              <div className="space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
                 <div className="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-700">
                   <span className="text-gray-700 dark:text-gray-300 font-medium">Minutes Per Game</span>
                   <span className="text-gray-900 dark:text-white font-bold">{stats.minutes.toFixed(1)}</span>
+                </div>
+                <div className="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-700">
+                  <span className="text-gray-700 dark:text-gray-300 font-medium">Games Played</span>
+                  <span className="text-gray-900 dark:text-white font-bold">{actualGamesPlayed}</span>
+                </div>
+                <div className="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-700">
+                  <span className="text-gray-700 dark:text-gray-300 font-medium">Field Goals</span>
+                  <span className="text-gray-900 dark:text-white font-bold">{stats.fieldGoalsMade.toFixed(1)}/{stats.fieldGoalsAttempted.toFixed(1)}</span>
                 </div>
                 <div className="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-700">
                   <span className="text-gray-700 dark:text-gray-300 font-medium">Field Goal %</span>
                   <span className="text-gray-900 dark:text-white font-bold">{stats.fieldGoalPercentage.toFixed(1)}%</span>
                 </div>
                 <div className="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-700">
+                  <span className="text-gray-700 dark:text-gray-300 font-medium">3-Pointers</span>
+                  <span className="text-gray-900 dark:text-white font-bold">{stats.threePointersMade.toFixed(1)}/{stats.threePointersAttempted.toFixed(1)}</span>
+                </div>
+                <div className="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-700">
                   <span className="text-gray-700 dark:text-gray-300 font-medium">3-Point %</span>
                   <span className="text-gray-900 dark:text-white font-bold">{stats.threePointPercentage.toFixed(1)}%</span>
+                </div>
+                <div className="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-700">
+                  <span className="text-gray-700 dark:text-gray-300 font-medium">Free Throws</span>
+                  <span className="text-gray-900 dark:text-white font-bold">{stats.freeThrowsMade.toFixed(1)}/{stats.freeThrowsAttempted.toFixed(1)}</span>
+                </div>
+                <div className="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-700">
+                  <span className="text-gray-700 dark:text-gray-300 font-medium">Free Throw %</span>
+                  <span className="text-gray-900 dark:text-white font-bold">{stats.freeThrowPercentage.toFixed(1)}%</span>
                 </div>
                 <div className="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-700">
                   <span className="text-gray-700 dark:text-gray-300 font-medium">Offensive Rebounds</span>
@@ -433,9 +484,13 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
                   <span className="text-gray-700 dark:text-gray-300 font-medium">Defensive Rebounds</span>
                   <span className="text-gray-900 dark:text-white font-bold">{stats.defensiveRebounds.toFixed(1)}</span>
                 </div>
-                <div className="flex items-center justify-between py-3">
+                <div className="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-700">
                   <span className="text-gray-700 dark:text-gray-300 font-medium">Turnovers Per Game</span>
                   <span className="text-gray-900 dark:text-white font-bold">{stats.turnovers.toFixed(1)}</span>
+                </div>
+                <div className="flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-700">
+                  <span className="text-gray-700 dark:text-gray-300 font-medium">Fouls Per Game</span>
+                  <span className="text-gray-900 dark:text-white font-bold">{stats.fouls.toFixed(1)}</span>
                 </div>
               </div>
             </div>
