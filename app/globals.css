@@ -21,31 +21,49 @@ h1, h2, h3, h4, h5, h6 {
 :root {
   --background: #F5F5F5;
   --foreground: #0A0E27;
+  --surface: #ffffff;
+  --surface-2: #f3f4f6;
+  --border: #d1d5db;
 }
 
 .dark {
   --background: #0A0E27;
   --foreground: #F5F5F5;
+  --surface: #1f2937;
+  --surface-2: #111827;
+  --border: #4b5563;
 }
 
 .black {
   --background: #0B0F14;
   --foreground: #E5E7EB;
+  --surface: #161b22;
+  --surface-2: #0d1117;
+  --border: #30363d;
 }
 
 .blue {
   --background: #0A1628;
   --foreground: #DBEAFE;
+  --surface: #0f2040;
+  --surface-2: #0a1830;
+  --border: #1e40af;
 }
 
 .red {
   --background: #1A0A0A;
   --foreground: #FECACA;
+  --surface: #2a1010;
+  --surface-2: #200c0c;
+  --border: #7f1d1d;
 }
 
 .green {
   --background: #0A1A0F;
   --foreground: #BBF7D0;
+  --surface: #0f2918;
+  --surface-2: #0a1f10;
+  --border: #14532d;
 }
 
 body {
@@ -54,6 +72,47 @@ body {
   font-family: Arial, Helvetica, sans-serif;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
+
+/* ================================================================
+   THEME OVERRIDES: remap hardcoded dark: bg classes per theme
+   so non-dark themes (black/blue/red/green) use their own colors
+   ================================================================ */
+
+/* Surface (card/panel background) = gray-800 equivalent */
+.black .dark\:bg-gray-800,
+.black .dark\:bg-mba-dark,
+.blue  .dark\:bg-gray-800,
+.blue  .dark\:bg-mba-dark,
+.red   .dark\:bg-gray-800,
+.red   .dark\:bg-mba-dark,
+.green .dark\:bg-gray-800,
+.green .dark\:bg-mba-dark { background-color: var(--surface) !important; }
+
+/* Surface-2 (inner/secondary panels) = gray-700 / gray-900 equivalent */
+.black .dark\:bg-gray-700,
+.black .dark\:bg-gray-900,
+.blue  .dark\:bg-gray-700,
+.blue  .dark\:bg-gray-900,
+.red   .dark\:bg-gray-700,
+.red   .dark\:bg-gray-900,
+.green .dark\:bg-gray-700,
+.green .dark\:bg-gray-900 { background-color: var(--surface-2) !important; }
+
+/* Full-page background overrides */
+.black .dark\:bg-black,
+.blue  .dark\:bg-black,
+.red   .dark\:bg-black,
+.green .dark\:bg-black { background-color: var(--background) !important; }
+
+/* Border color overrides */
+.black .dark\:border-gray-600,
+.black .dark\:border-gray-700,
+.blue  .dark\:border-gray-600,
+.blue  .dark\:border-gray-700,
+.red   .dark\:border-gray-600,
+.red   .dark\:border-gray-700,
+.green .dark\:border-gray-600,
+.green .dark\:border-gray-700 { border-color: var(--border) !important; }
 
 /* Minecraft-style pixelated borders and shadows */
 .minecraft-border {
