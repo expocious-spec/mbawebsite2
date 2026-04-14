@@ -23,6 +23,7 @@ export async function GET() {
     week: game.week,
     isForfeit: game.is_forfeit ?? false,
     forfeitWinner: game.forfeit_winner ?? null,
+    playerOfGameId: game.player_of_game_id ?? null,
   })) || [];
 
   return NextResponse.json(formattedGames);
@@ -54,6 +55,7 @@ export async function POST(request: Request) {
     // Only add forfeit fields if they're provided (for completed games)
     if (body.isForfeit !== undefined) insertData.is_forfeit = body.isForfeit;
     if (body.forfeitWinner !== undefined) insertData.forfeit_winner = body.forfeitWinner;
+    if (body.playerOfGameId !== undefined) insertData.player_of_game_id = body.playerOfGameId;
 
     const { data, error } = await supabaseAdmin
       .from('games')
@@ -113,6 +115,7 @@ export async function PUT(request: Request) {
     if (updates.week !== undefined) updateData.week = updates.week;
     if (updates.isForfeit !== undefined) updateData.is_forfeit = updates.isForfeit;
     if (updates.forfeitWinner !== undefined) updateData.forfeit_winner = updates.forfeitWinner;
+    if (updates.playerOfGameId !== undefined) updateData.player_of_game_id = updates.playerOfGameId;
 
     console.log('Update data:', updateData);
 

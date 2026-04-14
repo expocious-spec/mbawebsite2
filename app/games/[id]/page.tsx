@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { notFound, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowLeft, Calendar, Trophy, Users } from 'lucide-react';
+import { ArrowLeft, Calendar, Trophy, Users, Crown } from 'lucide-react';
 
 export default function GameDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
@@ -256,38 +256,49 @@ export default function GameDetailPage({ params }: { params: { id: string } }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {awayPlayerStats.map((stat) => (
-                    <tr key={stat.id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                  {awayPlayerStats.map((stat) => {
+                    const isPOTG = game.playerOfGameId === stat.playerId;
+                    return (
+                    <tr 
+                      key={stat.id} 
+                      className={`border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 ${
+                        isPOTG ? 'bg-yellow-50 dark:bg-yellow-900/20' : ''
+                      }`}
+                    >
                       <td className="py-3 px-2">
-                        <Link href={`/players/${stat.playerId}`} className="text-mba-blue hover:text-blue-600 dark:text-blue-400 font-medium">
-                          {stat.player?.displayName || 'Unknown'}
+                        <Link href={`/players/${stat.playerId}`} className={`font-medium flex items-center space-x-2 ${
+                          isPOTG ? 'text-yellow-600 dark:text-yellow-400' : 'text-mba-blue hover:text-blue-600 dark:text-blue-400'
+                        }`}>
+                          {isPOTG && <Crown className="w-4 h-4 fill-current" />}
+                          <span>{stat.player?.displayName || 'Unknown'}</span>
                         </Link>
                       </td>
-                      <td className="text-center py-3 px-2 text-gray-900 dark:text-white">
+                      <td className={`text-center py-3 px-2 ${isPOTG ? 'text-yellow-900 dark:text-yellow-100 font-semibold' : 'text-gray-900 dark:text-white'}`}>
                         {(() => {
                           const mins = Math.floor((stat.minutes || 0) / 60);
                           const secs = Math.round((stat.minutes || 0) % 60);
                           return `${mins}:${secs.toString().padStart(2, '0')}`;
                         })()}
                       </td>
-                      <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{stat.possessionTime || 0}</td>
-                      <td className="text-center py-3 px-2 text-gray-900 dark:text-white font-semibold">{stat.points || 0}</td>
-                      <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{stat.offensiveRebounds || stat.offensive_rebounds || 0}</td>
-                      <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{stat.defensiveRebounds || stat.defensive_rebounds || 0}</td>
-                      <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{(stat.offensiveRebounds || stat.offensive_rebounds || 0) + (stat.defensiveRebounds || stat.defensive_rebounds || 0)}</td>
-                      <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{stat.assists || 0}</td>
-                      <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{stat.steals || 0}</td>
-                      <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{stat.blocks || 0}</td>
-                      <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{stat.missesForced || stat.misses_forced || 0}</td>
-                      <td className="text-center py-3 px-2 text-gray-900 dark:text-white text-sm">
+                      <td className={`text-center py-3 px-2 ${isPOTG ? 'text-yellow-900 dark:text-yellow-100 font-semibold' : 'text-gray-900 dark:text-white'}`}>{stat.possessionTime || 0}</td>
+                      <td className={`text-center py-3 px-2 font-semibold ${isPOTG ? 'text-yellow-900 dark:text-yellow-100' : 'text-gray-900 dark:text-white'}`}>{stat.points || 0}</td>
+                      <td className={`text-center py-3 px-2 ${isPOTG ? 'text-yellow-900 dark:text-yellow-100 font-semibold' : 'text-gray-900 dark:text-white'}`}>{stat.offensiveRebounds || stat.offensive_rebounds || 0}</td>
+                      <td className={`text-center py-3 px-2 ${isPOTG ? 'text-yellow-900 dark:text-yellow-100 font-semibold' : 'text-gray-900 dark:text-white'}`}>{stat.defensiveRebounds || stat.defensive_rebounds || 0}</td>
+                      <td className={`text-center py-3 px-2 ${isPOTG ? 'text-yellow-900 dark:text-yellow-100 font-semibold' : 'text-gray-900 dark:text-white'}`}>{(stat.offensiveRebounds || stat.offensive_rebounds || 0) + (stat.defensiveRebounds || stat.defensive_rebounds || 0)}</td>
+                      <td className={`text-center py-3 px-2 ${isPOTG ? 'text-yellow-900 dark:text-yellow-100 font-semibold' : 'text-gray-900 dark:text-white'}`}>{stat.assists || 0}</td>
+                      <td className={`text-center py-3 px-2 ${isPOTG ? 'text-yellow-900 dark:text-yellow-100 font-semibold' : 'text-gray-900 dark:text-white'}`}>{stat.steals || 0}</td>
+                      <td className={`text-center py-3 px-2 ${isPOTG ? 'text-yellow-900 dark:text-yellow-100 font-semibold' : 'text-gray-900 dark:text-white'}`}>{stat.blocks || 0}</td>
+                      <td className={`text-center py-3 px-2 ${isPOTG ? 'text-yellow-900 dark:text-yellow-100 font-semibold' : 'text-gray-900 dark:text-white'}`}>{stat.missesForced || stat.misses_forced || 0}</td>
+                      <td className={`text-center py-3 px-2 text-sm ${isPOTG ? 'text-yellow-900 dark:text-yellow-100 font-semibold' : 'text-gray-900 dark:text-white'}`}>
                         {stat.fieldGoalsMade || 0}/{stat.fieldGoalsAttempted || 0}
                       </td>
-                      <td className="text-center py-3 px-2 text-gray-900 dark:text-white text-sm">
+                      <td className={`text-center py-3 px-2 text-sm ${isPOTG ? 'text-yellow-900 dark:text-yellow-100 font-semibold' : 'text-gray-900 dark:text-white'}`}>
                         {stat.threePointersMade || 0}/{stat.threePointersAttempted || 0}
                       </td>
-                      <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{stat.turnovers || 0}</td>
+                      <td className={`text-center py-3 px-2 ${isPOTG ? 'text-yellow-900 dark:text-yellow-100 font-semibold' : 'text-gray-900 dark:text-white'}`}>{stat.turnovers || 0}</td>
                     </tr>
-                  ))}
+                  );
+                  })}
                   <tr className="bg-gray-100 dark:bg-gray-700 font-bold">
                     <td className="py-3 px-2 text-gray-900 dark:text-white">Team Totals</td>
                     <td className="text-center py-3 px-2 text-gray-900 dark:text-white">-</td>
@@ -340,38 +351,49 @@ export default function GameDetailPage({ params }: { params: { id: string } }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {homePlayerStats.map((stat) => (
-                    <tr key={stat.id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                  {homePlayerStats.map((stat) => {
+                    const isPOTG = game.playerOfGameId === stat.playerId;
+                    return (
+                    <tr 
+                      key={stat.id} 
+                      className={`border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 ${
+                        isPOTG ? 'bg-yellow-50 dark:bg-yellow-900/20' : ''
+                      }`}
+                    >
                       <td className="py-3 px-2">
-                        <Link href={`/players/${stat.playerId}`} className="text-mba-blue hover:text-blue-600 dark:text-blue-400 font-medium">
-                          {stat.player?.displayName || 'Unknown'}
+                        <Link href={`/players/${stat.playerId}`} className={`font-medium flex items-center space-x-2 ${
+                          isPOTG ? 'text-yellow-600 dark:text-yellow-400' : 'text-mba-blue hover:text-blue-600 dark:text-blue-400'
+                        }`}>
+                          {isPOTG && <Crown className="w-4 h-4 fill-current" />}
+                          <span>{stat.player?.displayName || 'Unknown'}</span>
                         </Link>
                       </td>
-                      <td className="text-center py-3 px-2 text-gray-900 dark:text-white">
+                      <td className={`text-center py-3 px-2 ${isPOTG ? 'text-yellow-900 dark:text-yellow-100 font-semibold' : 'text-gray-900 dark:text-white'}`}>
                         {(() => {
                           const mins = Math.floor((stat.minutes || 0) / 60);
                           const secs = Math.round((stat.minutes || 0) % 60);
                           return `${mins}:${secs.toString().padStart(2, '0')}`;
                         })()}
                       </td>
-                      <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{stat.possessionTime || 0}</td>
-                      <td className="text-center py-3 px-2 text-gray-900 dark:text-white font-semibold">{stat.points || 0}</td>
-                      <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{stat.offensiveRebounds || stat.offensive_rebounds || 0}</td>
-                      <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{stat.defensiveRebounds || stat.defensive_rebounds || 0}</td>
-                      <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{(stat.offensiveRebounds || stat.offensive_rebounds || 0) + (stat.defensiveRebounds || stat.defensive_rebounds || 0)}</td>
-                      <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{stat.assists || 0}</td>
-                      <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{stat.steals || 0}</td>
-                      <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{stat.blocks || 0}</td>
-                      <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{stat.missesForced || stat.misses_forced || 0}</td>
-                      <td className="text-center py-3 px-2 text-gray-900 dark:text-white text-sm">
+                      <td className={`text-center py-3 px-2 ${isPOTG ? 'text-yellow-900 dark:text-yellow-100 font-semibold' : 'text-gray-900 dark:text-white'}`}>{stat.possessionTime || 0}</td>
+                      <td className={`text-center py-3 px-2 font-semibold ${isPOTG ? 'text-yellow-900 dark:text-yellow-100' : 'text-gray-900 dark:text-white'}`}>{stat.points || 0}</td>
+                      <td className={`text-center py-3 px-2 ${isPOTG ? 'text-yellow-900 dark:text-yellow-100 font-semibold' : 'text-gray-900 dark:text-white'}`}>{stat.offensiveRebounds || stat.offensive_rebounds || 0}</td>
+                      <td className={`text-center py-3 px-2 ${isPOTG ? 'text-yellow-900 dark:text-yellow-100 font-semibold' : 'text-gray-900 dark:text-white'}`}>{stat.defensiveRebounds || stat.defensive_rebounds || 0}</td>
+                      <td className={`text-center py-3 px-2 ${isPOTG ? 'text-yellow-900 dark:text-yellow-100 font-semibold' : 'text-gray-900 dark:text-white'}`}>{(stat.offensiveRebounds || stat.offensive_rebounds || 0) + (stat.defensiveRebounds || stat.defensive_rebounds || 0)}</td>
+                      <td className={`text-center py-3 px-2 ${isPOTG ? 'text-yellow-900 dark:text-yellow-100 font-semibold' : 'text-gray-900 dark:text-white'}`}>{stat.assists || 0}</td>
+                      <td className={`text-center py-3 px-2 ${isPOTG ? 'text-yellow-900 dark:text-yellow-100 font-semibold' : 'text-gray-900 dark:text-white'}`}>{stat.steals || 0}</td>
+                      <td className={`text-center py-3 px-2 ${isPOTG ? 'text-yellow-900 dark:text-yellow-100 font-semibold' : 'text-gray-900 dark:text-white'}`}>{stat.blocks || 0}</td>
+                      <td className={`text-center py-3 px-2 ${isPOTG ? 'text-yellow-900 dark:text-yellow-100 font-semibold' : 'text-gray-900 dark:text-white'}`}>{stat.missesForced || stat.misses_forced || 0}</td>
+                      <td className={`text-center py-3 px-2 text-sm ${isPOTG ? 'text-yellow-900 dark:text-yellow-100 font-semibold' : 'text-gray-900 dark:text-white'}`}>
                         {stat.fieldGoalsMade || 0}/{stat.fieldGoalsAttempted || 0}
                       </td>
-                      <td className="text-center py-3 px-2 text-gray-900 dark:text-white text-sm">
+                      <td className={`text-center py-3 px-2 text-sm ${isPOTG ? 'text-yellow-900 dark:text-yellow-100 font-semibold' : 'text-gray-900 dark:text-white'}`}>
                         {stat.threePointersMade || 0}/{stat.threePointersAttempted || 0}
                       </td>
-                      <td className="text-center py-3 px-2 text-gray-900 dark:text-white">{stat.turnovers || 0}</td>
+                      <td className={`text-center py-3 px-2 ${isPOTG ? 'text-yellow-900 dark:text-yellow-100 font-semibold' : 'text-gray-900 dark:text-white'}`}>{stat.turnovers || 0}</td>
                     </tr>
-                  ))}
+                  );
+                  })}
                   <tr className="bg-gray-100 dark:bg-gray-700 font-bold">
                     <td className="py-3 px-2 text-gray-900 dark:text-white">Team Totals</td>
                     <td className="text-center py-3 px-2 text-gray-900 dark:text-white">-</td>

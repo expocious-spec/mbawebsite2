@@ -8,6 +8,8 @@ export default function GamesAdmin() {
   const [editingGame, setEditingGame] = useState<any>(null);
   const [games, setGames] = useState<any[]>([]);
   const [teams, setTeams] = useState<any[]>([]);
+  const [players, setPlayers] = useState<any[]>([]);
+  const [gameStats, setGameStats] = useState<any[]>([]);
   const [availableSeasons, setAvailableSeasons] = useState<string[]>([]);
   const [currentSeasonName, setCurrentSeasonName] = useState<string>('Preseason 1');
   const [loading, setLoading] = useState(false);
@@ -23,6 +25,7 @@ export default function GamesAdmin() {
   const [week, setWeek] = useState<number | string>('');
   const [isForfeit, setIsForfeit] = useState(false);
   const [forfeitWinner, setForfeitWinner] = useState<'home' | 'away'>('home');
+  const [playerOfGameId, setPlayerOfGameId] = useState<string>('');
   
   // Search/filter state
   const [searchQuery, setSearchQuery] = useState('');
@@ -57,6 +60,8 @@ export default function GamesAdmin() {
   useEffect(() => {
     fetchGames();
     fetchTeams();
+    fetchPlayers();
+    fetchGameStats();
   }, []);
 
   const fetchGames = async () => {
@@ -76,6 +81,26 @@ export default function GamesAdmin() {
       setTeams(data);
     } catch (error) {
       console.error('Failed to fetch teams:', error);
+    }
+  };
+
+  const fetchPlayers = async () => {
+    try {
+      const response = await fetch('/api/players');
+      const data = await response.json();
+      setPlayers(data);
+    } catch (error) {
+      console.error('Failed to fetch players:', error);
+    }
+  };
+
+  const fetchGameStats = async () => {
+    try {
+      const response = await fetch('/api/players/game-stats');
+      const data = await response.json();
+      setGameStats(data);
+    } catch (error) {
+      console.error('Failed to fetch game stats:', error);
     }
   };
 
@@ -137,6 +162,7 @@ export default function GamesAdmin() {
           week: week ? parseInt(week.toString()) : undefined,
           isForfeit: status === 'completed' ? isForfeit : false,
           forfeitWinner: isForfeit ? forfeitWinner : undefined,
+          playerOfGameId: status === 'completed' && playerOfGameId ? playerOfGameId : undefined,
         }),
       });
 
@@ -197,6 +223,7 @@ export default function GamesAdmin() {
     setWeek('');
     setIsForfeit(false);
     setForfeitWinner('home');
+    setPlayerOfGameId('');
     setShowForm(false);
     setEditingGame(null);
   };
@@ -220,6 +247,7 @@ export default function GamesAdmin() {
     setWeek(game.week?.toString() || '');
     setIsForfeit(game.isForfeit || false);
     setForfeitWinner(game.forfeitWinner || 'home');
+    setPlayerOfGameId(game.playerOfGameId || '');
     setShowForm(true);
   };
 
@@ -418,6 +446,46 @@ export default function GamesAdmin() {
                         </p>
                       </div>
                     )}
+                    
+                    {/* Player of the Game Selection */}
+                    <div className="col-span-2">
+                      <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                        Player of the Game (Optional)
+                      </label>
+                      <select
+                        value={playerOfGameId}
+                        onChange={(e) => setPlayerOfGameId(e.target.value)}
+                        className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white"
+                      >
+                        <option value="">No POTG Selected</option>
+                        {(() => {
+                          // Get players who played in this game (have stats)
+                          const playersInGame = editingGame 
+                            ? gameStats.filter((gs: any) => gs.gameId === editingGame.id).map((gs: any) => gs.playerId)
+                            : [];
+                          
+                          // Determine winning team
+                          const homeScoreNum = Number(homeScore) || 0;
+                          const awayScoreNum = Number(awayScore) || 0;
+                          const winningTeamId = homeScoreNum > awayScoreNum ? homeTeamId : awayTeamId;
+                          
+                          // Filter players on winning team who played in the game
+                          return players
+                            .filter(p => 
+                              (editingGame ? playersInGame.includes(p.id) : p.teamId === winningTeamId) &&
+                              p.teamId === winningTeamId
+                            )
+                            .map(player => (
+                              <option key={player.id} value={player.id}>
+                                {player.displayName} ({teams.find(t => t.id === player.teamId)?.name || 'Unknown Team'})
+                              </option>
+                            ));
+                        })()}
+                      </select>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        Select the best performing player from the winning team. This will highlight them in the box score.
+                      </p>
+                    </div>
                   </>
                 )}
               </>
