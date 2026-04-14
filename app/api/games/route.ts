@@ -116,6 +116,7 @@ export async function PUT(request: Request) {
     if (updates.isForfeit !== undefined) updateData.is_forfeit = updates.isForfeit;
     if (updates.forfeitWinner !== undefined) updateData.forfeit_winner = updates.forfeitWinner;
     if (updates.playerOfGameId !== undefined) updateData.player_of_game_id = updates.playerOfGameId;
+    if (updates.playerOfGameId !== undefined) updateData.player_of_game_id = updates.playerOfGameId;
 
     console.log('Update data:', updateData);
 
