@@ -53,6 +53,22 @@ export default function Settings() {
   const { theme, setTheme } = useTheme();
   const [showNotifications, setShowNotifications] = useState(true);
 
+  const handleMouseEnter = (value: Theme) => {
+    // Preview the theme on hover without saving
+    document.documentElement.classList.remove('dark', 'black', 'blue', 'red', 'green');
+    if (value !== 'light') {
+      document.documentElement.classList.add(value);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    // Revert to the saved theme on mouse leave
+    document.documentElement.classList.remove('dark', 'black', 'blue', 'red', 'green');
+    if (theme !== 'light') {
+      document.documentElement.classList.add(theme);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white dark:bg-mba-dark">
       <div className="max-w-4xl mx-auto px-4 py-8">
@@ -77,6 +93,8 @@ export default function Settings() {
               <button
                 key={themeOption.value}
                 onClick={() => setTheme(themeOption.value)}
+                onMouseEnter={() => handleMouseEnter(themeOption.value)}
+                onMouseLeave={handleMouseLeave}
                 className={`
                   minecraft-card p-4 text-left transition-all
                   ${theme === themeOption.value
