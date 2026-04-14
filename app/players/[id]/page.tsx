@@ -244,13 +244,21 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
             {/* Player Image */}
             <div className="lg:col-span-3 flex justify-center">
               <div className="w-64 h-64 overflow-hidden bg-gray-800 border-4 border-gray-700">
-                <Image
-                  src={getMinecraftHeadshot(player.minecraftUserId, 512)}
-                  alt={player.displayName}
-                  width={256}
-                  height={256}
-                  className="w-full h-full object-cover"
-                />
+                {player.profilePicture ? (
+                  <img
+                    src={player.profilePicture}
+                    alt={player.displayName}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <Image
+                    src={getMinecraftHeadshot(player.minecraftUserId, 512)}
+                    alt={player.displayName}
+                    width={256}
+                    height={256}
+                    className="w-full h-full object-cover"
+                  />
+                )}
               </div>
             </div>
 
