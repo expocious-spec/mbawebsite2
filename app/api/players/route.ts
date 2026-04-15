@@ -131,27 +131,44 @@ export async function GET(request: NextRequest) {
       return NextResponse.json([]);
     }
 
-    // Resolve target season_id for stats filtering
-    let targetSeasonId: string | null = seasonId;
-    if (!targetSeasonId) {
-      const { data: activeSeason } = await supabaseAdmin
+    // Resolve target season name (text) to match games.season field
+    let targetSeasonName: string | null = null;
+    if (seasonId) {
+      const { data: s } = await supabaseAdmin
         .from('seasons')
-        .select('id')
+        .select('season_name')
+        .eq('id', seasonId)
+        .single();
+      targetSeasonName = s?.season_name ?? null;
+    } else {
+      const { data: s } = await supabaseAdmin
+        .from('seasons')
+        .select('season_name')
         .eq('is_active', true)
         .single();
-      targetSeasonId = activeSeason?.id ? String(activeSeason.id) : null;
+      targetSeasonName = s?.season_name ?? null;
     }
 
-    // Get game IDs for the target season
+    // Get game IDs for the target season (matching games.season text field, same as stats page)
     let seasonGameIds: Set<number> | null = null;
-    if (targetSeasonId) {
+    if (targetSeasonName) {
       const { data: seasonGames } = await supabaseAdmin
         .from('games')
         .select('id')
-        .eq('season_id', targetSeasonId)
+        .eq('season', targetSeasonName)
         .eq('status', 'completed');
-      if (seasonGames) {
+      if (seasonGames && seasonGames.length > 0) {
         seasonGameIds = new Set(seasonGames.map((g: any) => g.id));
+      }
+    }
+    // If no season / no games found, fall back to all completed games
+    if (!seasonGameIds) {
+      const { data: allCompleted } = await supabaseAdmin
+        .from('games')
+        .select('id')
+        .eq('status', 'completed');
+      if (allCompleted && allCompleted.length > 0) {
+        seasonGameIds = new Set(allCompleted.map((g: any) => g.id));
       }
     }
 
@@ -195,7 +212,7 @@ export async function GET(request: NextRequest) {
           });
 
           // Aggregate season stats per player from relevant games
-          if (seasonGameIds === null || seasonGameIds.has(stat.game_id)) {
+          if (!seasonGameIds || seasonGameIds.has(stat.game_id)) {
             const cur = seasonAggMap.get(stat.player_id) ?? { pts: 0, reb: 0, ast: 0, stl: 0, blk: 0, gp: 0 };
             cur.pts += stat.points || 0;
             cur.reb += stat.rebounds || 0;

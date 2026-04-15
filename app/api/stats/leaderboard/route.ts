@@ -9,65 +9,74 @@ export async function GET(request: Request) {
   const seasonId = searchParams.get('seasonId');
 
   try {
-    // Find the target season_id
-    let targetSeasonId: string | null = seasonId;
-    if (!targetSeasonId) {
-      const { data: activeSeason } = await supabaseAdmin
+    // Step 1: Find the target season name (text) that matches games.season
+    let targetSeasonName: string | null = null;
+    if (seasonId) {
+      const { data: s } = await supabaseAdmin
         .from('seasons')
-        .select('id')
+        .select('season_name')
+        .eq('id', seasonId)
+        .single();
+      targetSeasonName = s?.season_name ?? null;
+    } else {
+      const { data: s } = await supabaseAdmin
+        .from('seasons')
+        .select('season_name')
         .eq('is_active', true)
         .single();
-      targetSeasonId = activeSeason?.id ? String(activeSeason.id) : null;
+      targetSeasonName = s?.season_name ?? null;
     }
 
-    // Fetch game IDs for the target season
-    let gameIds: Set<number> = new Set();
-    if (targetSeasonId) {
-      const { data: seasonGames } = await supabaseAdmin
+    // Step 2: Get completed game IDs for that season (same as stats page logic)
+    let seasonGameIds: Set<number> | null = null;
+    if (targetSeasonName) {
+      const { data: games } = await supabaseAdmin
         .from('games')
         .select('id')
-        .eq('season_id', targetSeasonId)
+        .eq('season', targetSeasonName)
         .eq('status', 'completed');
-      (seasonGames || []).forEach((g: any) => gameIds.add(g.id));
-    } else {
-      // Fallback: all completed games
-      const { data: allGames } = await supabaseAdmin
+      if (games && games.length > 0) {
+        seasonGameIds = new Set(games.map((g: any) => g.id));
+      }
+    }
+    // If no season found or no games in season, fall back to all completed games
+    if (!seasonGameIds) {
+      const { data: games } = await supabaseAdmin
         .from('games')
         .select('id')
         .eq('status', 'completed');
-      (allGames || []).forEach((g: any) => gameIds.add(g.id));
+      if (games && games.length > 0) {
+        seasonGameIds = new Set(games.map((g: any) => g.id));
+      }
     }
 
-    if (gameIds.size === 0) return NextResponse.json([]);
+    if (!seasonGameIds || seasonGameIds.size === 0) return NextResponse.json([]);
 
-    // Fetch game_stats for those game IDs
-    const { data: gameStats, error: gsError } = await supabaseAdmin
+    // Step 3: Fetch all game_stats (same as /api/players does)
+    const { data: allGameStats, error: gsError } = await supabaseAdmin
       .from('game_stats')
-      .select('player_id, points, rebounds, assists, steals, blocks, field_goals_made, field_goals_attempted, game_id')
-      .in('game_id', Array.from(gameIds));
+      .select('player_id, points, rebounds, assists, steals, blocks, field_goals_made, field_goals_attempted, game_id');
 
-    if (gsError || !gameStats || gameStats.length === 0) return NextResponse.json([]);
+    if (gsError || !allGameStats || allGameStats.length === 0) return NextResponse.json([]);
 
-    // Aggregate per player
-    const agg = new Map<string, {
-      pts: number; reb: number; ast: number; stl: number; blk: number;
-      fgm: number; fga: number; gp: number;
-    }>();
-
-    for (const row of gameStats) {
-      const cur = agg.get(row.player_id) ?? { pts: 0, reb: 0, ast: 0, stl: 0, blk: 0, fgm: 0, fga: 0, gp: 0 };
+    // Step 4: Aggregate per player for games in target season
+    const agg = new Map<string, { pts: number; reb: number; ast: number; stl: number; fgm: number; fga: number; gp: number }>();
+    for (const row of allGameStats) {
+      if (!seasonGameIds.has(row.game_id)) continue;
+      const cur = agg.get(row.player_id) ?? { pts: 0, reb: 0, ast: 0, stl: 0, fgm: 0, fga: 0, gp: 0 };
       cur.pts += row.points ?? 0;
       cur.reb += row.rebounds ?? 0;
       cur.ast += row.assists ?? 0;
       cur.stl += row.steals ?? 0;
-      cur.blk += row.blocks ?? 0;
       cur.fgm += row.field_goals_made ?? 0;
       cur.fga += row.field_goals_attempted ?? 0;
       cur.gp += 1;
       agg.set(row.player_id, cur);
     }
 
-    // Fetch users for all player IDs
+    if (agg.size === 0) return NextResponse.json([]);
+
+    // Step 5: Fetch user info
     const playerIds = Array.from(agg.keys());
     const { data: users } = await supabaseAdmin
       .from('users')
@@ -75,15 +84,13 @@ export async function GET(request: Request) {
       .in('id', playerIds);
 
     const userMap = new Map((users || []).map((u: any) => [u.id, u]));
-
-    // Fetch teams
     const teamIds = [...new Set((users || []).map((u: any) => u.team_id).filter(Boolean))];
     const { data: teams } = teamIds.length
       ? await supabaseAdmin.from('teams').select('id, name').in('id', teamIds)
       : { data: [] };
     const teamMap = new Map((teams || []).map((t: any) => [t.id, t]));
 
-    // Build leaderboard entries
+    // Step 6: Build and sort leaderboard
     const rows = playerIds
       .map(pid => {
         const s = agg.get(pid)!;
@@ -108,7 +115,6 @@ export async function GET(request: Request) {
       })
       .filter(Boolean) as any[];
 
-    // Sort by requested stat, filter nulls for fgpct
     const sorted = rows
       .filter(r => stat !== 'fgpct' || r.fgpct !== null)
       .sort((a, b) => (b[stat] ?? 0) - (a[stat] ?? 0))
