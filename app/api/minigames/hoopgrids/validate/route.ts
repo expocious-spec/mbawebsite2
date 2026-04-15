@@ -218,7 +218,7 @@ async function validateSeasonsWithTeam(playerId: string, minSeasons: number): Pr
 
   // Count unique seasons per team
   const seasonsByTeam = new Map<string, Set<string>>();
-  for (const teamSeason of teamSeasons) {
+  for (const teamSeason of Array.from(teamSeasons)) {
     const [teamId, season] = teamSeason.split('-');
     if (!seasonsByTeam.has(teamId)) {
       seasonsByTeam.set(teamId, new Set());
