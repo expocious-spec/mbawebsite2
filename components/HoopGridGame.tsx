@@ -41,8 +41,10 @@ interface CellState {
 
 interface Player {
   id: string;
-  username: string;
-  minecraft_username?: string;
+  displayName: string;
+  minecraftUsername?: string;
+  minecraftUserId?: string;
+  profilePicture?: string;
 }
 
 export default function HoopGridGame() {
@@ -117,7 +119,7 @@ export default function HoopGridGame() {
       const newGrid = grid.map(r => [...r]);
       newGrid[row][col] = {
         playerId: player.id,
-        playerName: player.minecraft_username || player.username,
+        playerName: player.minecraftUsername || player.displayName,
         isCorrect: result.isValid,
         rarity: result.rarity,
       };
@@ -137,16 +139,18 @@ export default function HoopGridGame() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-xl">Loading puzzle...</div>
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+        <div className="text-2xl font-bold animate-pulse bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+          Loading puzzle...
+        </div>
       </div>
     );
   }
 
   if (!puzzle) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-xl text-red-500">Failed to load puzzle</div>
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+        <div className="text-2xl font-bold text-red-400">Failed to load puzzle</div>
       </div>
     );
   }
@@ -155,13 +159,15 @@ export default function HoopGridGame() {
   const isComplete = completedCells === 9;
 
   return (
-    <div className="min-h-screen p-4 md:p-8">
-      <div className="max-w-5xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 py-8 px-4">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-2">MBA HoopGrids</h1>
-          <p className="text-gray-400">Daily Basketball Grid Challenge</p>
-          <p className="text-sm text-gray-500 mt-2">
+          <h1 className="text-5xl md:text-6xl font-bold mb-3 bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+            MBA HoopGrids
+          </h1>
+          <p className="text-xl text-gray-300">Daily Basketball Grid Challenge</p>
+          <p className="text-sm text-gray-400 mt-2">
             {new Date(puzzle.date).toLocaleDateString('en-US', { 
               weekday: 'long', 
               year: 'numeric', 
@@ -172,39 +178,49 @@ export default function HoopGridGame() {
         </div>
 
         {/* Score */}
-        <div className="text-center mb-6">
-          <div className="text-2xl font-bold">
-            Rarity Score: {totalRarity.toFixed(2)}
-          </div>
-          <div className="text-sm text-gray-400">
-            {completedCells}/9 Correct {isComplete && '🎉 Complete!'}
+        <div className="text-center mb-8">
+          <div className="inline-block bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl px-8 py-4 shadow-lg">
+            <div className="text-3xl font-bold text-white">
+              Rarity Score: {totalRarity.toFixed(2)}
+            </div>
+            <div className="text-sm text-blue-100 mt-1">
+              {completedCells}/9 Correct {isComplete && '🎉 Complete!'}
+            </div>
           </div>
         </div>
 
         {/* Grid */}
-        <div className="mb-8">
-          <div className="inline-block">
+        <div className="flex justify-center mb-8">
+          <div className="inline-block bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 shadow-2xl border border-gray-700">
             {/* Column headers */}
-            <div className="flex mb-2">
-              <div className="w-32"></div>
+            <div className="flex mb-3">
+              <div className="w-40"></div>
               {puzzle.columns.map((col, idx) => (
-                <div key={idx} className="w-32 h-32 flex items-center justify-center">
+                <div key={idx} className="w-40 h-40 flex items-center justify-center p-2">
                   {col.team && (
                     <div className="text-center">
                       {col.team.team_logo_url ? (
-                        <Image 
+                        <img 
                           src={col.team.team_logo_url} 
                           alt={col.team.name}
-                          width={80}
-                          height={80}
-                          className="mx-auto mb-1"
+                          className="w-24 h-24 object-contain mx-auto mb-2"
                         />
                       ) : col.team.team_logo_emoji ? (
-                        <div className="text-6xl mb-1">{col.team.team_logo_emoji}</div>
+                        <div className="text-7xl mb-2">{col.team.team_logo_emoji}</div>
+                      ) : col.team.logo ? (
+                        <img 
+                          src={col.team.logo} 
+                          alt={col.team.name}
+                          className="w-24 h-24 object-contain mx-auto mb-2"
+                        />
                       ) : (
-                        <div className="w-20 h-20 bg-gray-700 rounded-full mx-auto mb-1" />
+                        <div className="w-24 h-24 bg-gradient-to-br from-gray-600 to-gray-700 rounded-full mx-auto mb-2 flex items-center justify-center">
+                          <span className="text-3xl font-bold text-gray-300">
+                            {col.team.name.charAt(0)}
+                          </span>
+                        </div>
                       )}
-                      <div className="text-xs font-semibold">{col.team.name}</div>
+                      <div className="text-xs font-bold text-gray-200">{col.team.name}</div>
                     </div>
                   )}
                 </div>
@@ -215,8 +231,8 @@ export default function HoopGridGame() {
             {puzzle.rows.map((rowCriteria, rowIdx) => (
               <div key={rowIdx} className="flex">
                 {/* Row header */}
-                <div className="w-32 h-32 flex items-center justify-center text-center px-2">
-                  <div className="text-sm font-semibold">{rowCriteria.label}</div>
+                <div className="w-40 h-40 flex items-center justify-center text-center px-3">
+                  <div className="text-sm font-bold text-gray-200 leading-tight">{rowCriteria.label}</div>
                 </div>
 
                 {/* Cells */}
@@ -228,27 +244,27 @@ export default function HoopGridGame() {
                     <button
                       key={colIdx}
                       onClick={() => handleCellClick(rowIdx, colIdx)}
-                      className={`w-32 h-32 border-2 flex items-center justify-center text-center transition-all ${
+                      className={`w-40 h-40 border-2 flex items-center justify-center text-center transition-all m-0.5 rounded-lg ${
                         isSelected
-                          ? 'border-blue-500 bg-blue-500/20'
+                          ? 'border-blue-400 bg-blue-500/30 shadow-lg shadow-blue-500/50 scale-105'
                           : cell?.isCorrect
-                          ? 'border-green-500 bg-green-500/20'
+                          ? 'border-green-400 bg-green-500/20 shadow-lg shadow-green-500/30'
                           : cell
-                          ? 'border-red-500 bg-red-500/20'
-                          : 'border-gray-600 hover:border-gray-400 hover:bg-gray-800/50'
+                          ? 'border-red-400 bg-red-500/20'
+                          : 'border-gray-600 hover:border-blue-400 hover:bg-gray-700/50 hover:scale-102'
                       }`}
                     >
                       {cell ? (
                         <div className="px-2">
-                          <div className="font-bold text-sm">{cell.playerName}</div>
+                          <div className="font-bold text-sm text-white">{cell.playerName}</div>
                           {cell.isCorrect && (
-                            <div className="text-xs text-gray-400 mt-1">
-                              {cell.rarity === 0 ? 'Unique!' : `${cell.rarity} picks`}
+                            <div className="text-xs text-green-300 mt-1 font-semibold">
+                              {cell.rarity === 0 ? '✨ Unique!' : `${cell.rarity} picks`}
                             </div>
                           )}
                         </div>
                       ) : (
-                        <div className="text-gray-600">?</div>
+                        <div className="text-5xl text-gray-500 font-light">?</div>
                       )}
                     </button>
                   );
@@ -260,9 +276,11 @@ export default function HoopGridGame() {
 
         {/* Player search */}
         {selectedCell && (
-          <div className="max-w-md mx-auto">
-            <h3 className="text-lg font-semibold mb-2">
-              Select a player for {puzzle.rows[selectedCell.row].label} + {puzzle.columns[selectedCell.col].team?.name}
+          <div className="max-w-md mx-auto bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-2xl border border-gray-700">
+            <h3 className="text-lg font-bold mb-3 text-center text-gray-100">
+              Select: {puzzle.rows[selectedCell.row].label}
+              <span className="text-blue-400"> + </span>
+              {puzzle.columns[selectedCell.col].team?.name}
             </h3>
             <input
               type="text"
@@ -272,18 +290,32 @@ export default function HoopGridGame() {
                 searchPlayers(e.target.value);
               }}
               placeholder="Search for a player..."
-              className="w-full px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+              className="w-full px-4 py-3 bg-gray-900 border-2 border-gray-600 rounded-xl focus:outline-none focus:border-blue-500 text-white placeholder-gray-400 transition-all"
               autoFocus
             />
             {searchResults.length > 0 && (
-              <div className="mt-2 bg-gray-800 border border-gray-600 rounded-lg max-h-64 overflow-y-auto">
+              <div className="mt-3 bg-gray-900 border-2 border-gray-700 rounded-xl max-h-80 overflow-y-auto">
                 {searchResults.map(player => (
                   <button
                     key={player.id}
                     onClick={() => handlePlayerSelect(player)}
-                    className="w-full px-4 py-2 text-left hover:bg-gray-700 transition-colors"
+                    className="w-full px-4 py-3 text-left hover:bg-blue-600/20 transition-colors flex items-center gap-3 border-b border-gray-800 last:border-b-0"
                   >
-                    {player.minecraft_username || player.username}
+                    {player.profilePicture && (
+                      <img 
+                        src={player.profilePicture} 
+                        alt={player.displayName}
+                        className="w-10 h-10 rounded-lg"
+                      />
+                    )}
+                    <div>
+                      <div className="font-semibold text-white">
+                        {player.minecraftUsername || player.displayName}
+                      </div>
+                      {player.minecraftUsername && player.displayName !== player.minecraftUsername && (
+                        <div className="text-xs text-gray-400">{player.displayName}</div>
+                      )}
+                    </div>
                   </button>
                 ))}
               </div>
@@ -292,9 +324,16 @@ export default function HoopGridGame() {
         )}
 
         {/* Instructions */}
-        <div className="mt-8 text-center text-sm text-gray-400">
-          <p>Click a cell to make a guess. Find a player that matches both the row and column criteria.</p>
-          <p className="mt-2">Lower rarity scores are better (means you picked unique players)!</p>
+        <div className="mt-12 text-center max-w-2xl mx-auto">
+          <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700">
+            <h3 className="text-xl font-bold mb-4 text-gray-100">How to Play</h3>
+            <div className="space-y-2 text-gray-300 text-sm">
+              <p>🎯 Click a cell to make a guess</p>
+              <p>🔍 Find a player that matches both the row and column criteria</p>
+              <p>⭐ Lower rarity scores are better (unique picks score 0)</p>
+              <p>🏆 Complete all 9 cells to finish the puzzle!</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

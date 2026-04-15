@@ -239,7 +239,7 @@ async function validateTransaction(playerId: string, transactionType: string): P
     .from('transaction_history')
     .select('id')
     .eq('player_id', playerId)
-    .eq('transaction_type', transactionType)
+    .ilike('transaction_type', `%${transactionType}%`)
     .limit(1);
 
   return (data?.length || 0) > 0;

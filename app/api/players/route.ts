@@ -118,6 +118,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const seasonId = searchParams.get('seasonId');
+    const searchQuery = searchParams.get('search')?.toLowerCase().trim();
 
     // Fetch users
     let { data: users, error } = await supabaseAdmin
@@ -276,7 +277,16 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    return NextResponse.json(formattedPlayers);
+    // Filter by search query if provided
+    const filteredPlayers = searchQuery
+      ? formattedPlayers.filter((p: any) =>
+          p.displayName.toLowerCase().includes(searchQuery) ||
+          p.minecraftUsername?.toLowerCase().includes(searchQuery) ||
+          p.discordUsername?.toLowerCase().includes(searchQuery)
+        )
+      : formattedPlayers;
+
+    return NextResponse.json(filteredPlayers);
   } catch (error) {
     console.error('Error in players API:', error);
     // Return empty array on any error
