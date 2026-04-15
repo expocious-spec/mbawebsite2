@@ -84,7 +84,7 @@ export async function GET(request: Request) {
       .in('id', playerIds);
 
     const userMap = new Map((users || []).map((u: any) => [u.id, u]));
-    const teamIds = [...new Set((users || []).map((u: any) => u.team_id).filter(Boolean))];
+    const teamIds = Array.from(new Set((users || []).map((u: any) => u.team_id).filter(Boolean)));
     const { data: teams } = teamIds.length
       ? await supabaseAdmin.from('teams').select('id, name').in('id', teamIds)
       : { data: [] };
