@@ -3,6 +3,7 @@
 import { Calendar, ChevronRight, Radio, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import StatLeaders from '@/components/StatLeaders';
 
 export default function Home() {
   const [articles, setArticles] = useState<any[]>([]);
@@ -209,6 +210,11 @@ export default function Home() {
               >
                 View Full Schedule
               </Link>
+            </div>
+
+            {/* Stat Leaders */}
+            <div className="mt-8">
+              <StatLeaders />
             </div>
           </div>
         </div>
