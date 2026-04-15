@@ -168,7 +168,7 @@ async function validateStatThreshold(playerId: string, threshold: string): Promi
   }
 
   // Check if any season meets the threshold
-  for (const [_, data] of seasonMap) {
+  for (const [_, data] of Array.from(seasonMap.entries())) {
     const average = data.total / data.games;
     if (average >= thresholdValue) return true;
   }
@@ -227,7 +227,7 @@ async function validateSeasonsWithTeam(playerId: string, minSeasons: number): Pr
   }
 
   // Check if any team has minSeasons+
-  for (const [_, seasons] of seasonsByTeam) {
+  for (const [_, seasons] of Array.from(seasonsByTeam.entries())) {
     if (seasons.size >= minSeasons) return true;
   }
 
