@@ -4,30 +4,64 @@ import { Search, User, Star } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 
+const STAT_LABELS: Record<string, string> = {
+  points: 'PTS',
+  rebounds: 'REB',
+  assists: 'AST',
+  steals: 'STL',
+  blocks: 'BLK',
+};
+
+function getTop3Stats(stats: any) {
+  const candidates = [
+    { key: 'points', label: 'PTS', value: stats.points ?? 0 },
+    { key: 'rebounds', label: 'REB', value: stats.rebounds ?? 0 },
+    { key: 'assists', label: 'AST', value: stats.assists ?? 0 },
+    { key: 'steals', label: 'STL', value: stats.steals ?? 0 },
+    { key: 'blocks', label: 'BLK', value: stats.blocks ?? 0 },
+  ];
+  return candidates.sort((a, b) => b.value - a.value).slice(0, 3);
+}
+
 export default function PlayersPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [players, setPlayers] = useState<any[]>([]);
   const [teams, setTeams] = useState<any[]>([]);
+  const [seasons, setSeasons] = useState<any[]>([]);
+  const [selectedSeasonId, setSelectedSeasonId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchData();
+    fetchSeasons();
+    fetch('/api/teams').then(r => r.json()).then(setTeams).catch(console.error);
   }, []);
 
-  const fetchData = async () => {
+  useEffect(() => {
+    if (selectedSeasonId !== undefined) {
+      fetchPlayers(selectedSeasonId);
+    }
+  }, [selectedSeasonId]);
+
+  const fetchSeasons = async () => {
     try {
-      const [playersRes, teamsRes] = await Promise.all([
-        fetch('/api/players'),
-        fetch('/api/teams')
-      ]);
-      const [playersData, teamsData] = await Promise.all([
-        playersRes.json(),
-        teamsRes.json()
-      ]);
-      setPlayers(playersData);
-      setTeams(teamsData);
+      const data = await fetch('/api/seasons').then(r => r.json());
+      setSeasons(data);
+      const active = data.find((s: any) => s.isCurrent) ?? data[0] ?? null;
+      setSelectedSeasonId(active ? String(active.id) : null);
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error('Error fetching seasons:', error);
+      setSelectedSeasonId(null);
+    }
+  };
+
+  const fetchPlayers = async (seasonId: string | null) => {
+    setLoading(true);
+    try {
+      const url = seasonId ? `/api/players?seasonId=${seasonId}` : '/api/players';
+      const data = await fetch(url).then(r => r.json());
+      setPlayers(data);
+    } catch (error) {
+      console.error('Error fetching players:', error);
     } finally {
       setLoading(false);
     }
@@ -55,6 +89,24 @@ export default function PlayersPage() {
         </h1>
         <p className="text-gray-600 dark:text-gray-400">Find and view player profiles</p>
       </div>
+
+      {/* Season Selector */}
+      {seasons.length > 0 && (
+        <div className="mb-6 flex items-center gap-3">
+          <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Season:</span>
+          <select
+            value={selectedSeasonId ?? ''}
+            onChange={(e) => setSelectedSeasonId(e.target.value || null)}
+            className="px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:border-mba-blue"
+          >
+            {seasons.map((s: any) => (
+              <option key={s.id} value={String(s.id)}>
+                {s.name}{s.isCurrent ? ' (Current)' : ''}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       {/* Search Bar */}
       <div className="mb-8">
@@ -150,20 +202,14 @@ export default function PlayersPage() {
                   </span>
                 </div>
 
-                {/* Quick Stats */}
+                {/* Quick Stats - Top 3 */}
                 <div className="grid grid-cols-3 gap-2 pt-3 border-t border-gray-200 dark:border-gray-700">
-                  <div className="text-center">
-                    <div className="text-xs text-gray-600 dark:text-gray-400">PTS</div>
-                    <div className="font-bold text-gray-900 dark:text-white">{player.stats.points.toFixed(1)}</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-xs text-gray-600 dark:text-gray-400">REB</div>
-                    <div className="font-bold text-gray-900 dark:text-white">{player.stats.rebounds.toFixed(1)}</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-xs text-gray-600 dark:text-gray-400">AST</div>
-                    <div className="font-bold text-gray-900 dark:text-white">{player.stats.assists.toFixed(1)}</div>
-                  </div>
+                  {getTop3Stats(player.stats).map(({ key, label, value }) => (
+                    <div key={key} className="text-center">
+                      <div className="text-xs text-gray-600 dark:text-gray-400">{label}</div>
+                      <div className="font-bold text-gray-900 dark:text-white">{value.toFixed(1)}</div>
+                    </div>
+                  ))}
                 </div>
               </Link>
             );

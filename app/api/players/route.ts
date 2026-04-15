@@ -1,5 +1,5 @@
 import { supabaseAdmin } from '@/lib/supabase';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getMinecraftHeadshot } from '@/lib/minecraft';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
@@ -114,33 +114,43 @@ async function syncTeamStaffRoles(userId: string, teamId: string | null, roles: 
 
 // This endpoint is kept for backward compatibility
 // New code should use /api/users instead
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    // Debug: Log environment to verify correct Supabase project
-    console.log('SUPABASE_URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
-    console.log('SERVICE_KEY exists:', !!process.env.SUPABASE_SERVICE_ROLE_KEY);
-    console.log('SERVICE_KEY first 20 chars:', process.env.SUPABASE_SERVICE_ROLE_KEY?.substring(0, 20));
-    
-    // Try to fetch with season stats first
+    const { searchParams } = new URL(request.url);
+    const seasonId = searchParams.get('seasonId');
+
+    // Fetch users (without the season stats join — we'll fetch those separately)
     let { data: users, error } = await supabaseAdmin
       .from('users')
-      .select('*, player_season_stats(*)')
+      .select('*')
       .not('minecraft_username', 'is', null)
       .order('username');
 
-    // If that fails, try without season stats
-    if (error) {
-      console.warn('Error fetching users with season stats:', error);
-      console.log('Retrying without season stats...');
-      
-      const fallback = await supabaseAdmin
-        .from('users')
-        .select('*')
-        .not('minecraft_username', 'is', null)
-        .order('username');
-      
-      users = fallback.data;
-      error = fallback.error;
+    // Fetch player_season_stats filtered by seasonId (or all if no seasonId)
+    let seasonStatsMap = new Map<string, any>();
+    try {
+      let query = supabaseAdmin.from('player_season_stats').select('*');
+      if (seasonId) {
+        query = query.eq('season_id', seasonId);
+      } else {
+        // Default: fetch stats for the active season
+        const { data: activeSeason } = await supabaseAdmin
+          .from('seasons')
+          .select('id')
+          .eq('is_active', true)
+          .single();
+        if (activeSeason) {
+          query = query.eq('season_id', activeSeason.id);
+        }
+      }
+      const { data: seasonStats } = await query;
+      if (seasonStats) {
+        seasonStats.forEach((s: any) => {
+          seasonStatsMap.set(s.player_id, s);
+        });
+      }
+    } catch (e) {
+      console.warn('Could not fetch player_season_stats:', e);
     }
 
     if (error) {
@@ -197,8 +207,10 @@ export async function GET() {
 
     // Format users to match expected player format
     const formattedPlayers = (users || []).map((user: any) => {
-      // Get current season stats if available
-      const currentStats = user.player_season_stats?.[0] || {};
+      // Get season stats for this user (keyed by player_id which is the user id)
+      const currentStats = seasonStatsMap.get(user.id) || {};
+      const gp = currentStats.games_played || 0;
+      const avg = (total: number) => gp > 0 ? parseFloat((total / gp).toFixed(1)) : 0;
       const userGameStats = gameStatsMap.get(user.id) || [];
       
       return {
@@ -217,12 +229,13 @@ export async function GET() {
         playerLevel: user.player_level ?? 'mba',
         coinWorth: user.coin_worth ?? 1000,
         stats: {
-          gamesPlayed: currentStats.games_played || 0,
-          points: parseFloat(currentStats.points || 0),
-          rebounds: parseFloat(currentStats.rebounds || 0),
-          assists: parseFloat(currentStats.assists || 0),
-          steals: parseFloat(currentStats.steals || 0),
-          turnovers: parseFloat(currentStats.turnovers || 0),
+          gamesPlayed: gp,
+          points: avg(currentStats.total_points || 0),
+          rebounds: avg(currentStats.total_rebounds || 0),
+          assists: avg(currentStats.total_assists || 0),
+          steals: avg(currentStats.total_steals || 0),
+          blocks: avg(currentStats.total_blocks || 0),
+          turnovers: avg(currentStats.total_turnovers || 0),
           fieldGoalsMade: currentStats.field_goals_made || 0,
           fieldGoalsAttempted: currentStats.field_goals_attempted || 0,
           fieldGoalPercentage: parseFloat(currentStats.field_goal_percentage || 0),
