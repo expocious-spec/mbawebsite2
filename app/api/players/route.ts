@@ -119,64 +119,58 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const seasonId = searchParams.get('seasonId');
 
-    // Fetch users (without the season stats join — we'll fetch those separately)
+    // Fetch users
     let { data: users, error } = await supabaseAdmin
       .from('users')
       .select('*')
       .not('minecraft_username', 'is', null)
       .order('username');
 
-    // Fetch player_season_stats filtered by seasonId (or all if no seasonId)
-    let seasonStatsMap = new Map<string, any>();
-    try {
-      let query = supabaseAdmin.from('player_season_stats').select('*');
-      if (seasonId) {
-        query = query.eq('season_id', seasonId);
-      } else {
-        // Default: fetch stats for the active season
-        const { data: activeSeason } = await supabaseAdmin
-          .from('seasons')
-          .select('id')
-          .eq('is_active', true)
-          .single();
-        if (activeSeason) {
-          query = query.eq('season_id', activeSeason.id);
-        }
-      }
-      const { data: seasonStats } = await query;
-      if (seasonStats) {
-        seasonStats.forEach((s: any) => {
-          seasonStatsMap.set(s.player_id, s);
-        });
-      }
-    } catch (e) {
-      console.warn('Could not fetch player_season_stats:', e);
-    }
-
     if (error) {
       console.error('Error fetching users:', error);
-      console.error('Error details:', JSON.stringify(error, null, 2));
-      // Return empty array instead of error to prevent frontend crashes
       return NextResponse.json([]);
     }
 
-    console.log(`Fetched ${users?.length || 0} users from database`);
+    // Resolve target season_id for stats filtering
+    let targetSeasonId: string | null = seasonId;
+    if (!targetSeasonId) {
+      const { data: activeSeason } = await supabaseAdmin
+        .from('seasons')
+        .select('id')
+        .eq('is_active', true)
+        .single();
+      targetSeasonId = activeSeason?.id ? String(activeSeason.id) : null;
+    }
 
-    // Fetch all game stats for these users
-    let gameStatsMap = new Map();
+    // Get game IDs for the target season
+    let seasonGameIds: Set<number> | null = null;
+    if (targetSeasonId) {
+      const { data: seasonGames } = await supabaseAdmin
+        .from('games')
+        .select('id')
+        .eq('season_id', targetSeasonId)
+        .eq('status', 'completed');
+      if (seasonGames) {
+        seasonGameIds = new Set(seasonGames.map((g: any) => g.id));
+      }
+    }
+
+    // Fetch all game stats
+    let gameStatsMap = new Map<string, any[]>();
+    let seasonAggMap = new Map<string, { pts: number; reb: number; ast: number; stl: number; blk: number; gp: number }>();
     try {
       const { data: allGameStats } = await supabaseAdmin
         .from('game_stats')
         .select('*')
         .order('date', { ascending: false });
-      
+
       if (allGameStats) {
-        // Group game stats by player_id
-        allGameStats.forEach(stat => {
+        allGameStats.forEach((stat: any) => {
+          // Build full game stats list per player (all time, for detail pages)
           if (!gameStatsMap.has(stat.player_id)) {
             gameStatsMap.set(stat.player_id, []);
           }
-          gameStatsMap.get(stat.player_id).push({
+          gameStatsMap.get(stat.player_id)!.push({
             id: stat.id,
             playerId: stat.player_id,
             gameId: stat.game_id,
@@ -199,26 +193,37 @@ export async function GET(request: NextRequest) {
             possessionTime: stat.possession_time || 0,
             result: stat.result || 'L',
           });
+
+          // Aggregate season stats per player from relevant games
+          if (seasonGameIds === null || seasonGameIds.has(stat.game_id)) {
+            const cur = seasonAggMap.get(stat.player_id) ?? { pts: 0, reb: 0, ast: 0, stl: 0, blk: 0, gp: 0 };
+            cur.pts += stat.points || 0;
+            cur.reb += stat.rebounds || 0;
+            cur.ast += stat.assists || 0;
+            cur.stl += stat.steals || 0;
+            cur.blk += stat.blocks || 0;
+            cur.gp += 1;
+            seasonAggMap.set(stat.player_id, cur);
+          }
         });
       }
-    } catch (error) {
-      console.warn('Could not fetch game stats:', error);
+    } catch (err) {
+      console.warn('Could not fetch game stats:', err);
     }
 
     // Format users to match expected player format
     const formattedPlayers = (users || []).map((user: any) => {
-      // Get season stats for this user (keyed by player_id which is the user id)
-      const currentStats = seasonStatsMap.get(user.id) || {};
-      const gp = currentStats.games_played || 0;
+      const agg = seasonAggMap.get(user.id);
+      const gp = agg?.gp ?? 0;
       const avg = (total: number) => gp > 0 ? parseFloat((total / gp).toFixed(1)) : 0;
       const userGameStats = gameStatsMap.get(user.id) || [];
-      
+
       return {
         id: user.id,
         displayName: user.username || '',
         minecraftUsername: user.minecraft_username || '',
         minecraftUserId: user.minecraft_user_id || '',
-        profilePicture: user.minecraft_user_id 
+        profilePicture: user.minecraft_user_id
           ? getMinecraftHeadshot(user.minecraft_user_id, 256)
           : user.avatar_url || getMinecraftHeadshot(null, 256),
         description: user.description || '',
@@ -230,22 +235,22 @@ export async function GET(request: NextRequest) {
         coinWorth: user.coin_worth ?? 1000,
         stats: {
           gamesPlayed: gp,
-          points: avg(currentStats.total_points || 0),
-          rebounds: avg(currentStats.total_rebounds || 0),
-          assists: avg(currentStats.total_assists || 0),
-          steals: avg(currentStats.total_steals || 0),
-          blocks: avg(currentStats.total_blocks || 0),
-          turnovers: avg(currentStats.total_turnovers || 0),
-          fieldGoalsMade: currentStats.field_goals_made || 0,
-          fieldGoalsAttempted: currentStats.field_goals_attempted || 0,
-          fieldGoalPercentage: parseFloat(currentStats.field_goal_percentage || 0),
-          threePointersMade: currentStats.three_pointers_made || 0,
-          threePointersAttempted: currentStats.three_pointers_attempted || 0,
-          threePointPercentage: parseFloat(currentStats.three_point_percentage || 0),
-          freeThrowsMade: currentStats.free_throws_made || 0,
-          freeThrowsAttempted: currentStats.free_throws_attempted || 0,
-          freeThrowPercentage: parseFloat(currentStats.free_throw_percentage || 0),
-          fouls: currentStats.fouls || 0,
+          points: avg(agg?.pts ?? 0),
+          rebounds: avg(agg?.reb ?? 0),
+          assists: avg(agg?.ast ?? 0),
+          steals: avg(agg?.stl ?? 0),
+          blocks: avg(agg?.blk ?? 0),
+          turnovers: 0,
+          fieldGoalsMade: 0,
+          fieldGoalsAttempted: 0,
+          fieldGoalPercentage: 0,
+          threePointersMade: 0,
+          threePointersAttempted: 0,
+          threePointPercentage: 0,
+          freeThrowsMade: 0,
+          freeThrowsAttempted: 0,
+          freeThrowPercentage: 0,
+          fouls: 0,
           assistTurnoverRatio: 0,
           assistPercentage: 0,
           efficiency: 0,

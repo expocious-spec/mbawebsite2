@@ -2,8 +2,6 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { NextResponse } from 'next/server';
 import { getMinecraftHeadshot } from '@/lib/minecraft';
 
-const GUILD_ID = process.env.DISCORD_GUILD_ID;
-
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const stat = searchParams.get('stat') || 'ppg';
@@ -11,8 +9,8 @@ export async function GET(request: Request) {
   const seasonId = searchParams.get('seasonId');
 
   try {
-    // Find the target season
-    let targetSeasonId = seasonId;
+    // Find the target season_id
+    let targetSeasonId: string | null = seasonId;
     if (!targetSeasonId) {
       const { data: activeSeason } = await supabaseAdmin
         .from('seasons')
@@ -22,128 +20,101 @@ export async function GET(request: Request) {
       targetSeasonId = activeSeason?.id ? String(activeSeason.id) : null;
     }
 
-    // --- FG% leaderboard: aggregate from game_stats joined with games ---
-    if (stat === 'fgpct') {
-      // Get all game_stats for games in this season
-      let gsQuery = supabaseAdmin
-        .from('game_stats')
-        .select('player_id, field_goals_made, field_goals_attempted, games!inner(season_id)');
-
-      if (targetSeasonId) {
-        gsQuery = gsQuery.eq('games.season_id', targetSeasonId);
-      }
-
-      const { data: gsData, error: gsError } = await gsQuery;
-
-      if (gsError) {
-        console.error('FG% leaderboard error:', gsError);
-        return NextResponse.json([]);
-      }
-
-      // Aggregate per player
-      const fgMap = new Map<string, { made: number; attempted: number }>();
-      for (const row of (gsData || [])) {
-        const cur = fgMap.get(row.player_id) ?? { made: 0, attempted: 0 };
-        cur.made += row.field_goals_made ?? 0;
-        cur.attempted += row.field_goals_attempted ?? 0;
-        fgMap.set(row.player_id, cur);
-      }
-
-      // Filter to players with at least 5 FG attempts
-      const playerIds = Array.from(fgMap.entries())
-        .filter(([, v]) => v.attempted >= 5)
-        .map(([id]) => id);
-
-      if (playerIds.length === 0) return NextResponse.json([]);
-
-      const { data: users } = await supabaseAdmin
-        .from('users')
-        .select('id, username, minecraft_username, minecraft_user_id, avatar_url, team_id')
-        .in('id', playerIds);
-
-      const teamIds = (users || []).map(u => u.team_id).filter(Boolean);
-      const { data: teams } = teamIds.length
-        ? await supabaseAdmin.from('teams').select('id, name').in('id', teamIds)
-        : { data: [] };
-      const teamMap = new Map((teams || []).map(t => [t.id, t]));
-
-      const result = (users || [])
-        .map((user: any) => {
-          const fg = fgMap.get(user.id) ?? { made: 0, attempted: 0 };
-          const pct = fg.attempted > 0 ? parseFloat(((fg.made / fg.attempted) * 100).toFixed(1)) : 0;
-          const team = user.team_id ? teamMap.get(user.team_id) : null;
-          return {
-            playerId: user.id,
-            username: user.username,
-            minecraftUsername: user.minecraft_username,
-            avatarUrl: user.minecraft_user_id
-              ? getMinecraftHeadshot(user.minecraft_user_id, 64)
-              : user.avatar_url,
-            teamName: team?.name,
-            fgpct: pct,
-          };
-        })
-        .sort((a: any, b: any) => b.fgpct - a.fgpct)
-        .slice(0, limit);
-
-      return NextResponse.json(result);
-    }
-
-    // --- Standard leaderboards (ppg / rpg / apg / spg) from player_season_stats ---
-    if (!GUILD_ID) {
-      // Fall back to filtering only by season if no guild id
-    }
-
-    let query = supabaseAdmin
-      .from('player_season_stats')
-      .select(`*, users!inner(id, username, minecraft_username, minecraft_user_id, avatar_url, team_id), seasons!inner(id, season_name, is_active)`)
-      .gt('games_played', 0);
-
+    // Fetch game IDs for the target season
+    let gameIds: Set<number> = new Set();
     if (targetSeasonId) {
-      query = query.eq('season_id', targetSeasonId);
-    } else if (GUILD_ID) {
-      query = query.eq('guild_id', GUILD_ID).eq('seasons.is_active', true);
+      const { data: seasonGames } = await supabaseAdmin
+        .from('games')
+        .select('id')
+        .eq('season_id', targetSeasonId)
+        .eq('status', 'completed');
+      (seasonGames || []).forEach((g: any) => gameIds.add(g.id));
+    } else {
+      // Fallback: all completed games
+      const { data: allGames } = await supabaseAdmin
+        .from('games')
+        .select('id')
+        .eq('status', 'completed');
+      (allGames || []).forEach((g: any) => gameIds.add(g.id));
     }
 
-    const { data, error } = await query.limit(100);
+    if (gameIds.size === 0) return NextResponse.json([]);
 
-    if (error) {
-      console.error('Leaderboard fetch error:', error);
-      return NextResponse.json([]);
+    // Fetch game_stats for those game IDs
+    const { data: gameStats, error: gsError } = await supabaseAdmin
+      .from('game_stats')
+      .select('player_id, points, rebounds, assists, steals, blocks, field_goals_made, field_goals_attempted, game_id')
+      .in('game_id', Array.from(gameIds));
+
+    if (gsError || !gameStats || gameStats.length === 0) return NextResponse.json([]);
+
+    // Aggregate per player
+    const agg = new Map<string, {
+      pts: number; reb: number; ast: number; stl: number; blk: number;
+      fgm: number; fga: number; gp: number;
+    }>();
+
+    for (const row of gameStats) {
+      const cur = agg.get(row.player_id) ?? { pts: 0, reb: 0, ast: 0, stl: 0, blk: 0, fgm: 0, fga: 0, gp: 0 };
+      cur.pts += row.points ?? 0;
+      cur.reb += row.rebounds ?? 0;
+      cur.ast += row.assists ?? 0;
+      cur.stl += row.steals ?? 0;
+      cur.blk += row.blocks ?? 0;
+      cur.fgm += row.field_goals_made ?? 0;
+      cur.fga += row.field_goals_attempted ?? 0;
+      cur.gp += 1;
+      agg.set(row.player_id, cur);
     }
 
-    if (!data || data.length === 0) return NextResponse.json([]);
+    // Fetch users for all player IDs
+    const playerIds = Array.from(agg.keys());
+    const { data: users } = await supabaseAdmin
+      .from('users')
+      .select('id, username, minecraft_username, minecraft_user_id, avatar_url, team_id')
+      .in('id', playerIds);
 
-    const teamIds = data.map((p: any) => p.users?.team_id).filter(Boolean);
+    const userMap = new Map((users || []).map((u: any) => [u.id, u]));
+
+    // Fetch teams
+    const teamIds = [...new Set((users || []).map((u: any) => u.team_id).filter(Boolean))];
     const { data: teams } = teamIds.length
       ? await supabaseAdmin.from('teams').select('id, name').in('id', teamIds)
       : { data: [] };
-    const teamMap = new Map((teams || []).map(t => [t.id, t]));
+    const teamMap = new Map((teams || []).map((t: any) => [t.id, t]));
 
-    const leaderboard = data.map((row: any) => {
-      const user = row.users;
-      const gp = row.games_played;
-      const team = user?.team_id ? teamMap.get(user.team_id) : null;
-      return {
-        playerId: row.player_id,
-        username: user?.username || 'Unknown',
-        minecraftUsername: user?.minecraft_username,
-        avatarUrl: user?.minecraft_user_id
-          ? getMinecraftHeadshot(user.minecraft_user_id, 64)
-          : user?.avatar_url,
-        teamName: team?.name,
-        gamesPlayed: gp,
-        ppg: parseFloat((row.total_points / gp).toFixed(1)),
-        rpg: parseFloat((row.total_rebounds / gp).toFixed(1)),
-        apg: parseFloat((row.total_assists / gp).toFixed(1)),
-        spg: parseFloat((row.total_steals / gp).toFixed(1)),
-      };
-    });
+    // Build leaderboard entries
+    const rows = playerIds
+      .map(pid => {
+        const s = agg.get(pid)!;
+        const user = userMap.get(pid);
+        if (!user || s.gp === 0) return null;
+        const team = user.team_id ? teamMap.get(user.team_id) : null;
+        const fgpct = s.fga >= 5 ? parseFloat(((s.fgm / s.fga) * 100).toFixed(1)) : null;
+        return {
+          playerId: pid,
+          username: user.username,
+          minecraftUsername: user.minecraft_username,
+          avatarUrl: user.minecraft_user_id
+            ? getMinecraftHeadshot(user.minecraft_user_id, 64)
+            : user.avatar_url,
+          teamName: team?.name,
+          ppg: parseFloat((s.pts / s.gp).toFixed(1)),
+          rpg: parseFloat((s.reb / s.gp).toFixed(1)),
+          apg: parseFloat((s.ast / s.gp).toFixed(1)),
+          spg: parseFloat((s.stl / s.gp).toFixed(1)),
+          fgpct,
+        };
+      })
+      .filter(Boolean) as any[];
 
-    const sortKey = stat as keyof (typeof leaderboard)[0];
-    leaderboard.sort((a: any, b: any) => (b[sortKey] ?? 0) - (a[sortKey] ?? 0));
+    // Sort by requested stat, filter nulls for fgpct
+    const sorted = rows
+      .filter(r => stat !== 'fgpct' || r.fgpct !== null)
+      .sort((a, b) => (b[stat] ?? 0) - (a[stat] ?? 0))
+      .slice(0, limit);
 
-    return NextResponse.json(leaderboard.slice(0, limit));
+    return NextResponse.json(sorted);
   } catch (error) {
     console.error('Leaderboard error:', error);
     return NextResponse.json([]);
