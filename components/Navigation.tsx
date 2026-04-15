@@ -32,7 +32,10 @@ export default function Navigation() {
   console.log('[NAV DEBUG] Player ID:', session?.user?.playerId);
 
   return (
-    <nav className="bg-[var(--background)] border-b-4 border-[var(--border)] shadow-minecraft">
+    <nav
+      className="border-b-4 shadow-minecraft"
+      style={{ backgroundColor: 'var(--background)', borderColor: 'var(--border)' }}
+    >
       <div className="max-w-full mx-auto px-2 sm:px-4 lg:px-8">
         <div className="flex items-center justify-between min-h-16 py-2">
           <div className="flex items-center">
@@ -64,8 +67,9 @@ export default function Navigation() {
                     className={`flex items-center gap-1 px-2 py-2 minecraft-button border-2 text-sm font-medium ${
                       isActive
                         ? 'bg-gradient-to-r from-mba-blue to-mba-red text-white border-blue-800'
-                        : 'text-gray-700 dark:text-gray-300 bg-[var(--surface)] border-[var(--border)]'
+                        : 'dark:text-gray-300 text-gray-700'
                     }`}
+                    style={isActive ? undefined : { backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
                   >
                     <Icon className="w-4 h-4" />
                     <span className="hidden lg:inline">{item.label}</span>
@@ -79,8 +83,9 @@ export default function Navigation() {
               className={`ml-2 p-2 minecraft-button border-2 ${
                 pathname === '/settings'
                   ? 'bg-gradient-to-r from-mba-blue to-mba-red text-white border-blue-800'
-                  : 'text-gray-700 dark:text-gray-300 bg-[var(--surface)] border-[var(--border)]'
+                  : 'dark:text-gray-300 text-gray-700'
               }`}
+              style={pathname === '/settings' ? undefined : { backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
               title="Settings"
             >
               <Settings className="w-5 h-5" />

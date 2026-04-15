@@ -70,7 +70,7 @@ export default function Settings() {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-mba-dark">
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--background)', color: 'var(--foreground)' }}>
       <div className="max-w-4xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
