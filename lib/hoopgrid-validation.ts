@@ -81,7 +81,7 @@ async function countPlayersWithStatThreshold(threshold: string): Promise<number>
 
   if (!gameStats || gameStats.length === 0) return 0;
 
-  const gameIds = [...new Set(gameStats.map(gs => gs.game_id))];
+  const gameIds = Array.from(new Set(gameStats.map(gs => gs.game_id)));
   const { data: games } = await supabaseAdmin
     .from('games')
     .select('id, season')
@@ -133,7 +133,7 @@ async function countPlayersWithSeasons(minSeasons: number): Promise<number> {
 
   if (!gameStats) return 0;
 
-  const gameIds = [...new Set(gameStats.map(gs => gs.game_id))];
+  const gameIds = Array.from(new Set(gameStats.map(gs => gs.game_id)));
   const { data: games } = await supabaseAdmin
     .from('games')
     .select('id, season')
