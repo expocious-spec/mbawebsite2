@@ -123,6 +123,7 @@ export default function HoopGridGame() {
       newGrid[row][col] = {
         playerId: player.id,
         playerName: player.minecraftUsername || player.displayName,
+        playerPicture: player.profilePicture,
         isCorrect: result.isValid,
         rarity: result.rarity,
       };
@@ -250,6 +251,8 @@ export default function HoopGridGame() {
 
                   return (
                     <button
+                      key={colIdx}
+                      onClick={() => handleCellClick(rowIdx, colIdx)}
                       disabled={isGameOver && !cell}
                       className={`w-40 h-40 border-2 flex items-center justify-center text-center transition-colors m-0.5 rounded-lg ${
                         isSelected
@@ -260,9 +263,7 @@ export default function HoopGridGame() {
                           ? 'border-red-400 bg-red-500/20'
                           : isGameOver
                           ? 'border-gray-700 bg-gray-800 cursor-not-allowed'
-                          : 'border-gray-600 hover:border-blue-400 hover:bg-gray-700/50 cursor-pointer
-                          ? 'border-red-400 bg-red-500/20'
-                          : 'border-gray-600 hover:border-blue-400 hover:bg-gray-700/50 hover:scale-102'
+                          : 'border-gray-600 hover:border-blue-400 hover:bg-gray-700/50 cursor-pointer'
                       }`}
                     >
                       {cell ? (
@@ -288,12 +289,12 @@ export default function HoopGridGame() {
                   );
                 })}
               </div>
-            ))}!isGameOver && (
-          <div className="max-w-md mx-auto bg-gray-800 rounded-xl p-6
+            ))}
+          </div>
         </div>
 
         {/* Player search */}
-        {selectedCell && (
+        {selectedCell && !isGameOver && (
           <div className="max-w-md mx-auto bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-2xl border border-gray-700">
             <h3 className="text-lg font-bold mb-3 text-center text-gray-100">
               Select: {puzzle.rows[selectedCell.row].label}
@@ -305,11 +306,11 @@ export default function HoopGridGame() {
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
-                searchPlayers(e.target.value);lg focus:outline-none focus:border-blue-500 text-white placeholder-gray-400"
+                searchPlayers(e.target.value);
+              }}
+              placeholder="Search for a player..."
+              className="w-full px-4 py-3 bg-gray-900 border-2 border-gray-700 rounded-lg focus:outline-none focus:border-blue-500 text-white placeholder-gray-400"
               autoFocus
-            />
-            {searchResults.length > 0 && (
-              <div className="mt-3 bg-gray-900 border-2 border-gray-700 rounded-lg
             />
             {searchResults.length > 0 && (
               <div className="mt-3 bg-gray-900 border-2 border-gray-700 rounded-xl max-h-80 overflow-y-auto">
@@ -340,17 +341,16 @@ export default function HoopGridGame() {
             )}
           </div>
         )}
- rounded-xl p-6 border border-gray-700">
-            <h3 className="text-xl font-bold mb-4 text-gray-100">How to Play</h3>
-            <div className="space-y-2 text-gray-300 text-sm">
-              <p>🎯 You have 9 guesses to complete the grid</p>
-              <p>🔍 Find a player that matches both the row and column criteria</p>
-              <p>⭐ Lower rarity scores are better (unique picks score 0)</p>
-              <p>✅ Green = Correct | ❌ Red = Wrong
-              <p>🔍 Find a player that matches both the row and column criteria</p>
-              <p>⭐ Lower rarity scores are better (unique picks score 0)</p>
-              <p>🏆 Complete all 9 cells to finish the puzzle!</p>
-            </div>
+
+        {/* Instructions */}
+        <div className="max-w-md mx-auto bg-gray-800 rounded-xl p-6 border border-gray-700">
+          <h3 className="text-xl font-bold mb-4 text-gray-100">How to Play</h3>
+          <div className="space-y-2 text-gray-300 text-sm">
+            <p>🎯 You have 9 guesses to complete the grid</p>
+            <p>🔍 Find a player that matches both the row and column criteria</p>
+            <p>⭐ Lower rarity scores are better (unique picks score 0)</p>
+            <p>✅ Green = Correct | ❌ Red = Wrong</p>
+            <p>🏆 Complete all 9 cells to finish the puzzle!</p>
           </div>
         </div>
       </div>
