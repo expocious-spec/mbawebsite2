@@ -71,18 +71,24 @@ async function generateDailyPuzzle(date: string) {
 
   const selectedTeams = validTeams.slice(0, 3);
 
-  // Define possible row criteria (using only criteria that likely have matches)
+  // Define possible row criteria (based on ACTUAL database stats from 47 players)
+  // PPG: 87% have 5+, 62% have 10+, 45% have 15+
+  // RPG: 79% have 5+, 32% have 8+
+  // APG: 81% have 1+, 64% have 2+, 26% have 3+
+  // SPG: 96% have 1+, 68% have 2+, 51% have 3+
   const rowCriteria = [
-    { type: 'stat_threshold', value: 'ppg_10' },  // Averaged 10+ PPG in a season
-    { type: 'stat_threshold', value: 'ppg_5' },   // Averaged 5+ PPG in a season
-    { type: 'stat_threshold', value: 'ppg_3' },   // Averaged 3+ PPG in a season
-    { type: 'stat_threshold', value: 'rpg_5' },   // Averaged 5+ RPG in a season
-    { type: 'stat_threshold', value: 'rpg_3' },   // Averaged 3+ RPG in a season
-    { type: 'stat_threshold', value: 'apg_3' },   // Averaged 3+ APG in a season
-    { type: 'stat_threshold', value: 'apg_2' },   // Averaged 2+ APG in a season
-    { type: 'stat_threshold', value: 'apg_1' },   // Averaged 1+ APG in a season
-    { type: 'seasons_count', value: '2' },  // Played 2+ seasons with team
-    { type: 'multiple_teams', value: '2' },  // Played for 2+ teams
+    { type: 'stat_threshold', value: 'ppg_5' },
+    { type: 'stat_threshold', value: 'ppg_10' },
+    { type: 'stat_threshold', value: 'ppg_15' },
+    { type: 'stat_threshold', value: 'rpg_3' },
+    { type: 'stat_threshold', value: 'rpg_5' },
+    { type: 'stat_threshold', value: 'rpg_8' },
+    { type: 'stat_threshold', value: 'apg_1' },
+    { type: 'stat_threshold', value: 'apg_2' },
+    { type: 'stat_threshold', value: 'apg_3' },
+    { type: 'stat_threshold', value: 'spg_1' },
+    { type: 'stat_threshold', value: 'spg_2' },
+    { type: 'stat_threshold', value: 'spg_3' },
   ];
 
   // Shuffle and pick valid criteria with at least 1 matching player (lowered from 3)
@@ -177,26 +183,23 @@ async function formatPuzzle(puzzle: any) {
 function formatCriteriaLabel(type: string, value: string): string {
   switch (type) {
     case 'stat_threshold':
-      if (value === 'ppg_15') return '15+ PPG in a Season';
-      if (value === 'ppg_10') return '10+ PPG in a Season';
-      if (value === 'ppg_5') return '5+ PPG in a Season';
-      if (value === 'ppg_3') return '3+ PPG in a Season';
-      if (value === 'rpg_10') return '10+ RPG in a Season';
-      if (value === 'rpg_5') return '5+ RPG in a Season';
-      if (value === 'rpg_3') return '3+ RPG in a Season';
-      if (value === 'apg_5') return '5+ APG in a Season';
-      if (value === 'apg_3') return '3+ APG in a Season';
-      if (value === 'apg_2') return '2+ APG in a Season';
-      if (value === 'apg_1') return '1+ APG in a Season';
+      if (value === 'ppg_15') return '15+ PPG';
+      if (value === 'ppg_10') return '10+ PPG';
+      if (value === 'ppg_5') return '5+ PPG';
+      if (value === 'rpg_8') return '8+ RPG';
+      if (value === 'rpg_5') return '5+ RPG';
+      if (value === 'rpg_3') return '3+ RPG';
+      if (value === 'apg_3') return '3+ APG';
+      if (value === 'apg_2') return '2+ APG';
+      if (value === 'apg_1') return '1+ APG';
+      if (value === 'spg_3') return '3+ SPG';
+      if (value === 'spg_2') return '2+ SPG';
+      if (value === 'spg_1') return '1+ SPG';
       return value;
-    case 'accolade':
-      return value; // 'MVP', 'All-Star', etc.
     case 'seasons_count':
-      return `${value}+ Seasons with Team`;
-    case 'transaction':
-      return 'Was Traded';
+      return `${value}+ Seasons`;
     case 'multiple_teams':
-      return `Played for ${value}+ Teams`;
+      return `${value}+ Teams`;
     default:
       return value;
   }

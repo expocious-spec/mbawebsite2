@@ -77,7 +77,7 @@ async function countPlayersWithStatThreshold(threshold: string): Promise<number>
 
   const { data: gameStats } = await supabaseAdmin
     .from('game_stats')
-    .select('player_id, points, rebounds, assists, game_id');
+    .select('player_id, points, rebounds, assists, steals, game_id');
 
   if (!gameStats || gameStats.length === 0) return 0;
 
@@ -98,7 +98,8 @@ async function countPlayersWithStatThreshold(threshold: string): Promise<number>
 
     const statValue = stat === 'ppg' ? gs.points : 
                      stat === 'rpg' ? gs.rebounds :
-                     stat === 'apg' ? gs.assists : 0;
+                     stat === 'apg' ? gs.assists :
+                     stat === 'spg' ? gs.steals : 0;
 
     if (!playerSeasonStats.has(gs.player_id)) {
       playerSeasonStats.set(gs.player_id, new Map());

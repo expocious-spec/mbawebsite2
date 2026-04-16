@@ -135,7 +135,7 @@ async function validateStatThreshold(playerId: string, threshold: string): Promi
   // Get all game stats for player
   const { data: gameStats } = await supabaseAdmin
     .from('game_stats')
-    .select('points, rebounds, assists, game_id')
+    .select('points, rebounds, assists, steals, game_id')
     .eq('player_id', playerId);
 
   if (!gameStats || gameStats.length === 0) return false;
@@ -159,7 +159,8 @@ async function validateStatThreshold(playerId: string, threshold: string): Promi
 
     const statValue = stat === 'ppg' ? gs.points : 
                      stat === 'rpg' ? gs.rebounds :
-                     stat === 'apg' ? gs.assists : 0;
+                     stat === 'apg' ? gs.assists :
+                     stat === 'spg' ? gs.steals : 0;
 
     const current = seasonMap.get(season) || { total: 0, games: 0 };
     current.total += statValue || 0;
