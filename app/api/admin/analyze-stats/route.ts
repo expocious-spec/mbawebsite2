@@ -101,7 +101,7 @@ export async function GET() {
   const spgValues: number[] = [];
   const bpgValues: number[] = [];
 
-  for (const [playerId, playerStat] of playerStats.entries()) {
+  for (const [playerId, playerStat] of Array.from(playerStats.entries())) {
     if (playerStat.games > 0) {
       ppgValues.push(playerStat.totalPoints / playerStat.games);
       rpgValues.push(playerStat.totalRebounds / playerStat.games);
