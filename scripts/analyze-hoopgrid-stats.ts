@@ -140,7 +140,7 @@ async function analyzeStats() {
   const spgValues: number[] = [];
   const bpgValues: number[] = [];
 
-  for (const [playerId, stats] of playerStats.entries()) {
+  for (const [playerId, stats] of Array.from(playerStats.entries())) {
     if (stats.games > 0) {
       ppgValues.push(stats.totalPoints / stats.games);
       rpgValues.push(stats.totalRebounds / stats.games);
