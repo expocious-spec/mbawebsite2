@@ -193,11 +193,10 @@ export default function HoopGridGame() {
               {completedCells}/9 Correct • {guessesRemaining} Guesses Left
             </div>
             {isComplete && <div className="text-lg mt-2 text-green-300">🎉 Perfect Game!</div>}
-            {isGameOver && !isComplete && <div className="text-lg mt-2 text-red-300">Game Over</div>}pletedCells}/9 Correct {isComplete && '🎉 Complete!'}
-            </div>
+            {isGameOver && !isComplete && <div className="text-lg mt-2 text-red-300">Game Over</div>}
           </div>
         </div>
- rounded-xl p-6
+
         {/* Grid */}
         <div className="flex justify-center mb-8">
           <div className="inline-block bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 shadow-2xl border border-gray-700">
