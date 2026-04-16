@@ -93,7 +93,7 @@ async function generateDailyPuzzle(date: string) {
 
   // Shuffle and pick valid criteria with at least 1 matching player (lowered from 3)
   const shuffledCriteria = shuffle(rowCriteria, random);
-  const selectedCriteria = [];
+  const selectedCriteria: Array<{ type: string; value: string }> = [];
   
   for (const criterion of shuffledCriteria) {
     if (selectedCriteria.length >= 3) break;
