@@ -35,6 +35,7 @@ interface Puzzle {
 interface CellState {
   playerId?: string;
   playerName?: string;
+  playerPicture?: string;
   isCorrect?: boolean;
   rarity?: number;
 }
@@ -56,6 +57,7 @@ export default function HoopGridGame() {
   const [searchResults, setSearchResults] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalRarity, setTotalRarity] = useState(0);
+  const [guessesRemaining, setGuessesRemaining] = useState(9);
 
   useEffect(() => {
     loadPuzzle();
@@ -89,7 +91,8 @@ export default function HoopGridGame() {
   };
 
   const handleCellClick = (row: number, col: number) => {
-    if (grid[row][col]?.isCorrect) return; // Already answered correctly
+    if (grid[row][col]) return; // Already guessed this cell
+    if (guessesRemaining === 0) return; // No guesses left
     setSelectedCell({ row, col });
     setSearchQuery('');
     setSearchResults([]);
@@ -123,6 +126,7 @@ export default function HoopGridGame() {
         isCorrect: result.isValid,
         rarity: result.rarity,
       };
+      setGuessesRemaining(prev => prev - 1);
       setGrid(newGrid);
 
       if (result.isValid) {
@@ -138,9 +142,8 @@ export default function HoopGridGame() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-        <div className="text-2xl font-bold animate-pulse bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+    return (y-900">
+        <div className="text-2xl font-bold text-blue-400">
           Loading puzzle...
         </div>
       </div>
@@ -149,21 +152,22 @@ export default function HoopGridGame() {
 
   if (!puzzle) {
     return (
+      <div className="flex items-center justify-center min-h-screen bg
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
         <div className="text-2xl font-bold text-red-400">Failed to load puzzle</div>
       </div>
     );
   }
 
-  const completedCells = grid.flat().filter(cell => cell?.isCorrect).length;
+  const completedCells = grid.flat().filte
+  const isGameOver = guessesRemaining === 0 || isComplete;r(cell => cell?.isCorrect).length;
   const isComplete = completedCells === 9;
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 py-8 px-4">
+  return (y-900 py-8 px-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-5xl md:text-6xl font-bold mb-3 bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+          <h1 className="text-5xl md:text-6xl font-bold mb-3 text-blue-400">
             MBA HoopGrids
           </h1>
           <p className="text-xl text-gray-300">Daily Basketball Grid Challenge</p>
@@ -179,16 +183,19 @@ export default function HoopGridGame() {
 
         {/* Score */}
         <div className="text-center mb-8">
-          <div className="inline-block bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl px-8 py-4 shadow-lg">
+          <div className="inline-block bg-blue-600 rounded-xl px-8 py-4">
             <div className="text-3xl font-bold text-white">
               Rarity Score: {totalRarity.toFixed(2)}
             </div>
             <div className="text-sm text-blue-100 mt-1">
-              {completedCells}/9 Correct {isComplete && '🎉 Complete!'}
+              {completedCells}/9 Correct • {guessesRemaining} Guesses Left
+            </div>
+            {isComplete && <div className="text-lg mt-2 text-green-300">🎉 Perfect Game!</div>}
+            {isGameOver && !isComplete && <div className="text-lg mt-2 text-red-300">Game Over</div>}pletedCells}/9 Correct {isComplete && '🎉 Complete!'}
             </div>
           </div>
         </div>
-
+ rounded-xl p-6
         {/* Grid */}
         <div className="flex justify-center mb-8">
           <div className="inline-block bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 shadow-2xl border border-gray-700">
@@ -242,21 +249,31 @@ export default function HoopGridGame() {
 
                   return (
                     <button
-                      key={colIdx}
-                      onClick={() => handleCellClick(rowIdx, colIdx)}
-                      className={`w-40 h-40 border-2 flex items-center justify-center text-center transition-all m-0.5 rounded-lg ${
+                      disabled={isGameOver && !cell}
+                      className={`w-40 h-40 border-2 flex items-center justify-center text-center transition-colors m-0.5 rounded-lg ${
                         isSelected
-                          ? 'border-blue-400 bg-blue-500/30 shadow-lg shadow-blue-500/50 scale-105'
+                          ? 'border-blue-400 bg-blue-500/30'
                           : cell?.isCorrect
-                          ? 'border-green-400 bg-green-500/20 shadow-lg shadow-green-500/30'
+                          ? 'border-green-400 bg-green-500/20'
                           : cell
+                          ? 'border-red-400 bg-red-500/20'
+                          : isGameOver
+                          ? 'border-gray-700 bg-gray-800 cursor-not-allowed'
+                          : 'border-gray-600 hover:border-blue-400 hover:bg-gray-700/50 cursor-pointer
                           ? 'border-red-400 bg-red-500/20'
                           : 'border-gray-600 hover:border-blue-400 hover:bg-gray-700/50 hover:scale-102'
                       }`}
                     >
                       {cell ? (
-                        <div className="px-2">
-                          <div className="font-bold text-sm text-white">{cell.playerName}</div>
+                        <div className="px-2 flex flex-col items-center">
+                          {cell.playerPicture && (
+                            <img 
+                              src={cell.playerPicture} 
+                              alt={cell.playerName}
+                              className="w-16 h-16 rounded-lg mb-1"
+                            />
+                          )}
+                          <div className="font-bold text-xs text-white text-center">{cell.playerName}</div>
                           {cell.isCorrect && (
                             <div className="text-xs text-green-300 mt-1 font-semibold">
                               {cell.rarity === 0 ? '✨ Unique!' : `${cell.rarity} picks`}
@@ -270,8 +287,8 @@ export default function HoopGridGame() {
                   );
                 })}
               </div>
-            ))}
-          </div>
+            ))}!isGameOver && (
+          <div className="max-w-md mx-auto bg-gray-800 rounded-xl p-6
         </div>
 
         {/* Player search */}
@@ -287,11 +304,11 @@ export default function HoopGridGame() {
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
-                searchPlayers(e.target.value);
-              }}
-              placeholder="Search for a player..."
-              className="w-full px-4 py-3 bg-gray-900 border-2 border-gray-600 rounded-xl focus:outline-none focus:border-blue-500 text-white placeholder-gray-400 transition-all"
+                searchPlayers(e.target.value);lg focus:outline-none focus:border-blue-500 text-white placeholder-gray-400"
               autoFocus
+            />
+            {searchResults.length > 0 && (
+              <div className="mt-3 bg-gray-900 border-2 border-gray-700 rounded-lg
             />
             {searchResults.length > 0 && (
               <div className="mt-3 bg-gray-900 border-2 border-gray-700 rounded-xl max-h-80 overflow-y-auto">
@@ -322,13 +339,13 @@ export default function HoopGridGame() {
             )}
           </div>
         )}
-
-        {/* Instructions */}
-        <div className="mt-12 text-center max-w-2xl mx-auto">
-          <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700">
+ rounded-xl p-6 border border-gray-700">
             <h3 className="text-xl font-bold mb-4 text-gray-100">How to Play</h3>
             <div className="space-y-2 text-gray-300 text-sm">
-              <p>🎯 Click a cell to make a guess</p>
+              <p>🎯 You have 9 guesses to complete the grid</p>
+              <p>🔍 Find a player that matches both the row and column criteria</p>
+              <p>⭐ Lower rarity scores are better (unique picks score 0)</p>
+              <p>✅ Green = Correct | ❌ Red = Wrong
               <p>🔍 Find a player that matches both the row and column criteria</p>
               <p>⭐ Lower rarity scores are better (unique picks score 0)</p>
               <p>🏆 Complete all 9 cells to finish the puzzle!</p>

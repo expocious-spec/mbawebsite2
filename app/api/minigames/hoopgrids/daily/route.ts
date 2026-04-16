@@ -54,11 +54,11 @@ async function generateDailyPuzzle(date: string) {
   // Shuffle and pick 3 teams for columns
   const shuffledTeams = shuffle(teams, random);
   
-  // Pick teams that have at least 3 players
+  // Pick teams that have at least 1 player (lowered from 3)
   const validTeams = [];
   for (const team of shuffledTeams) {
     if (validTeams.length >= 3) break;
-    const hasPlayers = await validateTeamHasPlayers(team.id, 3);
+    const hasPlayers = await validateTeamHasPlayers(team.id, 1);
     if (hasPlayers) {
       validTeams.push(team);
     }
@@ -71,42 +71,41 @@ async function generateDailyPuzzle(date: string) {
 
   const selectedTeams = validTeams.slice(0, 3);
 
-  // Define possible row criteria
+  // Define possible row criteria (using only criteria that likely have matches)
   const rowCriteria = [
-    { type: 'stat_threshold', value: 'ppg_15' },  // Averaged 15+ PPG in a season
     { type: 'stat_threshold', value: 'ppg_10' },  // Averaged 10+ PPG in a season
-    { type: 'stat_threshold', value: 'rpg_10' },  // Averaged 10+ RPG in a season
+    { type: 'stat_threshold', value: 'ppg_5' },   // Averaged 5+ PPG in a season
+    { type: 'stat_threshold', value: 'ppg_3' },   // Averaged 3+ PPG in a season
     { type: 'stat_threshold', value: 'rpg_5' },   // Averaged 5+ RPG in a season
-    { type: 'stat_threshold', value: 'apg_5' },   // Averaged 5+ APG in a season
+    { type: 'stat_threshold', value: 'rpg_3' },   // Averaged 3+ RPG in a season
     { type: 'stat_threshold', value: 'apg_3' },   // Averaged 3+ APG in a season
-    { type: 'accolade', value: 'All-Star' },
-    { type: 'accolade', value: 'MVP' },
-    { type: 'accolade', value: 'Champion' },
-    { type: 'accolade', value: 'DPOY' },
-    { type: 'accolade', value: 'ROTY' },
+    { type: 'stat_threshold', value: 'apg_2' },   // Averaged 2+ APG in a season
+    { type: 'stat_threshold', value: 'apg_1' },   // Averaged 1+ APG in a season
     { type: 'seasons_count', value: '2' },  // Played 2+ seasons with team
-    { type: 'seasons_count', value: '3' },  // Played 3+ seasons with team
-    { type: 'transaction', value: 'trade' },  // Was traded
     { type: 'multiple_teams', value: '2' },  // Played for 2+ teams
-    { type: 'multiple_teams', value: '3' },  // Played for 3+ teams
   ];
 
-  // Shuffle and pick valid criteria with at least 3 matching players
+  // Shuffle and pick valid criteria with at least 1 matching player (lowered from 3)
   const shuffledCriteria = shuffle(rowCriteria, random);
   const selectedCriteria = [];
   
   for (const criterion of shuffledCriteria) {
     if (selectedCriteria.length >= 3) break;
-    const hasPlayers = await validateCriterionHasPlayers(criterion.type, criterion.value, 3);
+    const hasPlayers = await validateCriterionHasPlayers(criterion.type, criterion.value, 1);
+    console.log(`[HoopGrids] Criterion ${criterion.type}:${criterion.value} has players: ${hasPlayers}`);
     if (hasPlayers) {
       selectedCriteria.push(criterion);
     }
   }
 
-  // Fallback: if we don't have enough valid criteria, add some anyway
+  // Fallback: if we don't have enough valid criteria, just add some anyway (game must work)
   if (selectedCriteria.length < 3) {
-    selectedCriteria.push(...shuffledCriteria.slice(0, 3 - selectedCriteria.length));
+    console.log(`[HoopGrids] Only found ${selectedCriteria.length} valid criteria, adding fallbacks`);
+    const remaining = shuffledCriteria.filter(c => !selectedCriteria.includes(c)).slice(0, 3 - selectedCriteria.length);
+    selectedCriteria.push(...remaining);
   }
+
+  console.log(`[HoopGrids] Selected criteria:`, selectedCriteria);
 
   return {
     puzzle_date: date,
@@ -180,11 +179,15 @@ function formatCriteriaLabel(type: string, value: string): string {
     case 'stat_threshold':
       if (value === 'ppg_15') return '15+ PPG in a Season';
       if (value === 'ppg_10') return '10+ PPG in a Season';
+      if (value === 'ppg_5') return '5+ PPG in a Season';
+      if (value === 'ppg_3') return '3+ PPG in a Season';
       if (value === 'rpg_10') return '10+ RPG in a Season';
       if (value === 'rpg_5') return '5+ RPG in a Season';
+      if (value === 'rpg_3') return '3+ RPG in a Season';
       if (value === 'apg_5') return '5+ APG in a Season';
       if (value === 'apg_3') return '3+ APG in a Season';
-      if (value === 'ppg_20') return '20+ PPG in a Season';
+      if (value === 'apg_2') return '2+ APG in a Season';
+      if (value === 'apg_1') return '1+ APG in a Season';
       return value;
     case 'accolade':
       return value; // 'MVP', 'All-Star', etc.
