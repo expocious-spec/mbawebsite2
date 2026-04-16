@@ -142,7 +142,8 @@ export default function HoopGridGame() {
   };
 
   if (loading) {
-    return (y-900">
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-900">
         <div className="text-2xl font-bold text-blue-400">
           Loading puzzle...
         </div>
@@ -152,18 +153,18 @@ export default function HoopGridGame() {
 
   if (!puzzle) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      <div className="flex items-center justify-center min-h-screen bg-gray-900">
         <div className="text-2xl font-bold text-red-400">Failed to load puzzle</div>
       </div>
     );
   }
 
-  const completedCells = grid.flat().filte
-  const isGameOver = guessesRemaining === 0 || isComplete;r(cell => cell?.isCorrect).length;
+  const completedCells = grid.flat().filter(cell => cell?.isCorrect).length;
   const isComplete = completedCells === 9;
+  const isGameOver = guessesRemaining === 0 || isComplete;
 
-  return (y-900 py-8 px-4">
+  return (
+    <div className="min-h-screen bg-gray-900 py-8 px-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
