@@ -156,7 +156,7 @@ export const authOptions: NextAuthOptions = {
                     discord_username: user.name,
                     minecraft_uuid: discordLink.minecraft_uuid,
                     minecraft_user_id: discordLink.minecraft_uuid,
-                    avatar_url: `https://mc-heads.net/avatar/${discordLink.minecraft_uuid}/128`,
+                    avatar_url: `https://mc-heads.net/avatar/${discordLink.minecraft_uuid}`,
                   })
                   .eq("id", adminByMinecraft.id);
                 console.log("[AUTH] Linked Discord to existing admin profile:", adminByMinecraft.id);
@@ -178,7 +178,7 @@ export const authOptions: NextAuthOptions = {
               // Create new admin user
               // Prefer Minecraft avatar if linked, otherwise use Discord avatar
               const avatarUrl = discordLink?.minecraft_uuid 
-                ? `https://mc-heads.net/avatar/${discordLink.minecraft_uuid}/128`
+                ? `https://mc-heads.net/avatar/${discordLink.minecraft_uuid}`
                 : user.image;
               
               await supabaseAdmin.from("users").insert({
@@ -253,7 +253,7 @@ export const authOptions: NextAuthOptions = {
                 minecraft_username: minecraftUsername,
                 minecraft_uuid: minecraftUuid,
                 minecraft_user_id: minecraftUuid, // Ensure this is set
-                avatar_url: `https://mc-heads.net/avatar/${minecraftUuid}/128`, // Always use Minecraft avatar
+                avatar_url: `https://mc-heads.net/avatar/${minecraftUuid}`, // Always use Minecraft avatar
               })
               .eq("id", existingUser.id);
             
@@ -286,7 +286,7 @@ export const authOptions: NextAuthOptions = {
             discord_username: discordLink.discord_username || user.name,
             team_id: teamId,
             profile_description: "", // Empty - user will fill later
-            avatar_url: `https://mc-heads.net/avatar/${discordLink.minecraft_uuid}/128`, // Always use Minecraft avatar, never Discord
+            avatar_url: `https://mc-heads.net/avatar/${discordLink.minecraft_uuid}`, // Always use Minecraft avatar, never Discord
             roles: ['Player'],
             email: user.email,
           };
@@ -385,7 +385,7 @@ export const authOptions: NextAuthOptions = {
               const rawUuid = userData.minecraft_uuid || userData.minecraft_user_id;
               // Remove dashes and ensure lowercase for consistency
               const uuid = String(rawUuid).replace(/-/g, '').toLowerCase();
-              token.profilePicture = `https://mc-heads.net/avatar/${uuid}/128`;
+              token.profilePicture = `https://mc-heads.net/avatar/${uuid}`;
             } else {
               token.profilePicture = userData.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.username)}&size=128&background=0A0E27&color=00A8E8&bold=true`;
             }
