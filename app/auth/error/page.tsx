@@ -10,6 +10,7 @@ export default function AuthErrorPage() {
   const errorMessages: Record<string, string> = {
     Configuration: "There is a problem with the server configuration.",
     AccessDenied: "You need to /linkdiscord in the official MBA Discord.",
+    MinecraftNotLinked: "You must link your Minecraft account in Discord before logging in.",
     Verification: "The verification link has expired or has already been used.",
     OAuthSignin: "Error constructing the authorization URL.",
     OAuthCallback: "Error handling the Discord OAuth callback.",
@@ -20,6 +21,7 @@ export default function AuthErrorPage() {
     EmailSignin: "Error sending the verification email.",
     CredentialsSignin: "Sign in failed. Check your credentials.",
     SessionRequired: "Please sign in to access this page.",
+    UserCreationFailed: "Failed to create your account. Please try again.",
     Default: "You need to /linkdiscord in the official MBA Discord.",
   };
 
@@ -54,16 +56,16 @@ export default function AuthErrorPage() {
             </div>
           )}
 
-          {(error === "AccessDenied" || error === "Default") && (
+          {(error === "AccessDenied" || error === "Default" || error === "MinecraftNotLinked") && (
             <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
               <h3 className="font-semibold text-blue-900 dark:text-blue-200 mb-2">
-                ✅ How to Verify Your Minecraft Username:
+                ✅ How to Link Your Minecraft Account:
               </h3>
               <ol className="text-sm text-blue-800 dark:text-blue-300 space-y-2 list-decimal list-inside">
                 <li>Join the MBA Discord server</li>
-                <li>Go to the verification channel</li>
-                <li>Use the bot command to link your Minecraft account</li>
-                <li>Once verified, come back and sign in again</li>
+                <li>Use the <code className="bg-blue-100 dark:bg-blue-900 px-2 py-1 rounded">/linkdiscord</code> command</li>
+                <li>Follow the instructions to link your Minecraft account</li>
+                <li>Once linked, come back and sign in again</li>
               </ol>
             </div>
           )}

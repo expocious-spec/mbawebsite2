@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { Home, Users, Link2, TrendingUp, Calendar, Search, Shield, Sun, Moon, Trophy, Briefcase, Award, User, FileText, Settings, Gamepad2 } from 'lucide-react';
+import { Home, Users, Link2, TrendingUp, Calendar, Search, Shield, Sun, Moon, Trophy, Briefcase, Award, User, FileText, Settings, Gamepad2, LogIn, LogOut, LayoutDashboard } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
 import { useSession, signIn, signOut } from 'next-auth/react';
 
@@ -91,6 +91,56 @@ export default function Navigation() {
             >
               <Settings className="w-5 h-5" />
             </Link>
+
+            {/* User Menu */}
+            {status === 'authenticated' && session?.user ? (
+              <>
+                {/* Profile Picture Button */}
+                <Link
+                  href="/dashboard"
+                  className={`ml-2 minecraft-button border-2 p-0.5 ${
+                    pathname === '/dashboard'
+                      ? 'border-blue-500'
+                      : 'border-gray-300 dark:border-gray-600'
+                  }`}
+                  style={pathname === '/dashboard' ? undefined : { backgroundColor: 'var(--surface)' }}
+                  title={`Profile - ${session.user.minecraftUsername || session.user.playerName || 'Dashboard'}`}
+                >
+                  <div className="w-9 h-9 rounded overflow-hidden bg-gray-200 dark:bg-gray-700">
+                    {session.user.profilePicture ? (
+                      <Image
+                        src={session.user.profilePicture}
+                        alt="Profile"
+                        width={36}
+                        height={36}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <User className="w-full h-full p-1 text-gray-400" />
+                    )}
+                  </div>
+                </Link>
+                
+                {/* Logout Button */}
+                <button
+                  onClick={() => signOut()}
+                  className="ml-1 p-2 minecraft-button border-2 dark:text-gray-300 text-gray-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                  style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+                  title="Sign Out"
+                >
+                  <LogOut className="w-5 h-5" />
+                </button>
+              </>
+            ) : status === 'unauthenticated' ? (
+              <button
+                onClick={() => signIn('discord')}
+                className="ml-2 px-3 py-2 minecraft-button border-2 bg-[#5865F2] hover:bg-[#4752C4] text-white border-[#5865F2] flex items-center gap-2"
+                title="Login with Discord"
+              >
+                <LogIn className="w-5 h-5" />
+                <span className="hidden sm:inline font-medium">Login</span>
+              </button>
+            ) : null}
           </div>
         </div>
       </div>

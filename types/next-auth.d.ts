@@ -16,6 +16,7 @@ declare module "next-auth" {
       playerName?: string;
       profilePicture?: string;
       minecraftUsername?: string;
+      profileDescription?: string;
     };
   }
 }
@@ -29,5 +30,6 @@ declare module "next-auth/jwt" {
     playerName?: string;
     profilePicture?: string;
     minecraftUsername?: string;
+    profileDescription?: string;
   }
 }

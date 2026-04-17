@@ -100,73 +100,138 @@ export const authOptions: NextAuthOptions = {
         const userId = `discord-${discordId}`; // Bot format: discord-{id}
         const isAdmin = ADMIN_DISCORD_IDS.includes(discordId);
         
-        console.log("Discord sign in attempt:", { discordId, userId, isAdmin });
+        console.log("[AUTH] Discord sign in attempt:", { discordId, userId, isAdmin });
 
         try {
-          // Check if user exists with this Discord ID
-          const { data: existingUser } = await supabaseAdmin
-            .from("users")
+          // STEP 1: Check if Discord account is linked to Minecraft
+          const { data: discordLink } = await supabaseAdmin
+            .from("bot_discord_links")
             .select("*")
-            .eq("id", userId)
+            .eq("discord_id", discordId)
             .single();
 
-          // Allow admins to always sign in (for admin panel access)
+          // STEP 2: Verify Discord-Minecraft link exists
+          if (!discordLink && !isAdmin) {
+            // User hasn't linked their Minecraft account - reject login
+            console.log("[AUTH] No Discord link found for:", discordId);
+            throw new Error("MINECRAFT_NOT_LINKED");
+          }
+
+          // STEP 3: Allow admins to sign in even without Minecraft link
           if (isAdmin) {
-            console.log("Admin user signing in:", userId);
+            console.log("[AUTH] Admin user signing in:", userId);
             
-            if (!existingUser) {
-              // For new admin users, create with Discord info only
+            // Check if admin user exists in database
+            const { data: existingAdmin } = await supabaseAdmin
+              .from("users")
+              .select("*")
+              .eq("id", userId)
+              .single();
+            
+            if (!existingAdmin) {
+              // Create new admin user
               await supabaseAdmin.from("users").insert({
                 id: userId,
-                username: user.name || "Unknown",
+                username: user.name || `Admin-${discordId}`,
                 email: user.email,
                 avatar_url: user.image,
                 discord_username: user.name,
+                discord_id: discordId,
+                roles: ['Admin'],
               });
-              console.log("Created new admin user");
+              console.log("[AUTH] Created new admin user");
             }
-            // Allow admin to sign in regardless of minecraft_username status
-            return true;
+            
+            return true; // Allow admin login
           }
 
-          // PROFILE SYSTEM DISABLED - Block non-admin users from signing in
-          // Regular user authentication has been disabled
-          // Only admins can sign in for admin panel access
-          console.log("Non-admin user blocked from signing in:", userId);
-          return false;
-
-          /* // ORIGINAL CODE - Non-admin player authentication (DISABLED)
-          // For non-admin players: Must be verified via Discord bot
-          // The bot calls /api/bot/link-account to create/link user accounts
-          // That endpoint handles checking for existing Minecraft usernames
+          // STEP 4: For regular players - Check if user exists in website database
+          const minecraftUsername = discordLink.minecraft_username;
           
-          if (!existingUser) {
-            // User doesn't exist with this Discord ID - must verify on Discord
-            console.log("User not found - must verify Minecraft on Discord:", userId);
-            throw new Error("MINECRAFT_NOT_VERIFIED");
+          const { data: existingUser } = await supabaseAdmin
+            .from("users")
+            .select("*")
+            .eq("minecraft_username", minecraftUsername)
+            .single();
+
+          if (existingUser) {
+            // STEP 5a: User exists - update their discord_id if changed
+            console.log("[AUTH] Existing user found:", existingUser.id);
+            
+            if (existingUser.discord_id !== discordId) {
+              await supabaseAdmin
+                .from("users")
+                .update({ 
+                  discord_id: discordId,
+                  discord_username: discordLink.discord_username || user.name 
+                })
+                .eq("id", existingUser.id);
+              
+              console.log("[AUTH] Updated discord_id for user:", existingUser.id);
+            }
+            
+            return true; // Allow login to existing account
           }
 
-          // Check if user has minecraft_username (indicates Discord bot verification)
-          if (!existingUser.minecraft_username) {
-            console.log("User exists but no minecraft_username - must verify:", userId);
-            throw new Error("MINECRAFT_NOT_VERIFIED");
+          // STEP 5b: User doesn't exist - Auto-import from bot database
+          console.log("[AUTH] New user - importing from bot database");
+          
+          // Query bot's users table for full profile data
+          const { data: botUser } = await supabaseAdmin
+            .from("bot_users")
+            .select("*")
+            .eq("discord_id", discordId)
+            .single();
+
+          // Determine team status
+          const teamId = botUser?.team_id || null;
+          const teamStatus = teamId ? teamId : "Free Agent";
+
+          // Create new player record in website database
+          const newUserData = {
+            id: userId,
+            username: minecraftUsername,
+            minecraft_username: minecraftUsername,
+            minecraft_uuid: discordLink.minecraft_uuid,
+            minecraft_user_id: discordLink.minecraft_uuid,
+            discord_id: discordId,
+            discord_username: discordLink.discord_username || user.name,
+            team_id: teamId,
+            profile_description: "", // Empty - user will fill later
+            avatar_url: `https://mc-heads.net/avatar/${discordLink.minecraft_uuid}/128`,
+            roles: ['Player'],
+            email: user.email,
+          };
+
+          const { data: newUser, error: createError } = await supabaseAdmin
+            .from("users")
+            .insert(newUserData)
+            .select()
+            .single();
+
+          if (createError) {
+            console.error("[AUTH] Error creating new user:", createError);
+            throw new Error("USER_CREATION_FAILED");
           }
 
-          // User is verified and has minecraft_username - allow sign in
-          console.log("Verified user signing in:", userId, "Minecraft:", existingUser.minecraft_username);
-          return true;
-          */
+          console.log("[AUTH] Successfully created new user:", newUser.id);
+          return true; // Allow login to new account
 
         } catch (error: any) {
-          console.error("Error in Discord signIn callback:", error);
+          console.error("[AUTH] Error in Discord signIn callback:", error);
           
-          // If it's our custom verification error, reject sign-in
-          if (error.message === "MINECRAFT_NOT_VERIFIED") {
-            return false;
+          // Handle specific error cases
+          if (error.message === "MINECRAFT_NOT_LINKED") {
+            // Redirect to error page with message
+            return "/auth/error?error=MinecraftNotLinked";
           }
           
-          // For other errors, still allow sign in to avoid blocking users
-          return true;
+          if (error.message === "USER_CREATION_FAILED") {
+            return "/auth/error?error=UserCreationFailed";
+          }
+          
+          // For other errors, block sign-in
+          return false;
         }
       }
       
@@ -182,18 +247,15 @@ export const authOptions: NextAuthOptions = {
         session.user.isAdmin = ADMIN_DISCORD_IDS.includes(token.discordId as string);
       }
       
-      // PROFILE SYSTEM DISABLED - Do not add player data to session for regular users
-      // Only admin data is preserved in session
-      /* // ORIGINAL CODE (DISABLED)
-      // Add player/team data to session - only if user has minecraft_username
-      if (token.playerId && token.minecraftUsername) {
+      // Add player data to session
+      if (token.playerId) {
         session.user.playerId = token.playerId as string;
         session.user.teamId = token.teamId as string | null;
         session.user.playerName = token.playerName as string;
         session.user.profilePicture = token.profilePicture as string;
         session.user.minecraftUsername = token.minecraftUsername as string;
+        session.user.profileDescription = token.profileDescription as string;
       }
-      */
       
       return session;
     },
@@ -211,68 +273,19 @@ export const authOptions: NextAuthOptions = {
         try {
           let { data: userData, error } = await supabaseAdmin
             .from("users")
-            .select("id, username, team_id, avatar_url, minecraft_username, minecraft_user_id, discord_username")
-            .eq("id", userId)
+            .select("id, username, team_id, avatar_url, minecraft_username, minecraft_user_id, minecraft_uuid, discord_username, profile_description")
+            .eq("discord_id", discordId)
             .single();
           
-          // Only create user if they're an admin
-          // Regular players must be created by Discord bot verification
+          // If not found by discord_id, try by user id
           if (error && error.code === 'PGRST116') {
-            if (isAdmin) {
-              console.log(`[AUTH] Admin user not found, creating for Discord ID: ${discordId}`);
-              const discordUser = user as any;
-              
-              const newUserData = {
-                id: userId,
-                username: discordUser?.name || `User-${discordId}`,
-                discord_username: discordUser?.name || null,
-                email: discordUser?.email || null,
-                avatar_url: discordUser?.image || null,
-                roles: ['Player']
-              };
-              
-              console.log('[AUTH] Attempting to insert admin user:', newUserData);
-              
-              const { data: newUser, error: createError } = await supabaseAdmin
-                .from("users")
-                .insert(newUserData)
-                .select("id, username, team_id, avatar_url, minecraft_username, minecraft_user_id, discord_username")
-                .single();
-              
-              if (createError) {
-                console.error("[AUTH] Error creating admin user:", createError);
-                console.error("[AUTH] Error details:", JSON.stringify(createError, null, 2));
-              } else {
-                console.log("[AUTH] Successfully created admin user:", newUser);
-                userData = newUser;
-              }
-            } else {
-              console.log(`[AUTH] Non-admin user not found - they must verify via Discord bot: ${discordId}`);
-            }
-          } else if (error) {
-            console.error("[AUTH] Error fetching user (not PGRST116):", error);
-          }
-          
-          // PROFILE SYSTEM DISABLED - Do not fetch/store player data for regular users
-          /* // ORIGINAL CODE (DISABLED)
-          // If user exists, update discord_username if it's missing
-          if (userData && !userData.discord_username && user) {
-            const discordUser = user as any;
-            const discordUsername = discordUser?.name;
+            const { data: userDataById } = await supabaseAdmin
+              .from("users")
+              .select("id, username, team_id, avatar_url, minecraft_username, minecraft_user_id, minecraft_uuid, discord_username, profile_description")
+              .eq("id", userId)
+              .single();
             
-            if (discordUsername) {
-              console.log(`[AUTH] Updating discord_username for user ${userId}: ${discordUsername}`);
-              const { error: updateError } = await supabaseAdmin
-                .from("users")
-                .update({ discord_username: discordUsername })
-                .eq("id", userId);
-              
-              if (updateError) {
-                console.error("[AUTH] Error updating discord_username:", updateError);
-              } else {
-                userData.discord_username = discordUsername;
-              }
-            }
+            userData = userDataById;
           }
           
           if (userData) {
@@ -280,17 +293,20 @@ export const authOptions: NextAuthOptions = {
             token.teamId = userData.team_id;
             token.playerName = userData.username;
             token.minecraftUsername = userData.minecraft_username;
-            // Use Minecraft headshot with UUID - mc-heads.net for better compatibility
-            if (userData.minecraft_user_id) {
-              const uuid = userData.minecraft_user_id.replace(/-/g, '');
+            token.profileDescription = userData.profile_description || "";
+            
+            // Use Minecraft headshot with UUID
+            if (userData.minecraft_uuid || userData.minecraft_user_id) {
+              const uuid = (userData.minecraft_uuid || userData.minecraft_user_id).replace(/-/g, '');
               token.profilePicture = `https://mc-heads.net/avatar/${uuid}/128`;
             } else {
               token.profilePicture = userData.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.username)}&size=128&background=0A0E27&color=00A8E8&bold=true`;
             }
+            
+            console.log("[AUTH] Loaded user data for token:", userData.id);
           }
-          */
         } catch (error) {
-          console.error("Error fetching user data:", error);
+          console.error("[AUTH] Error fetching user data for JWT:", error);
         }
       }
       
