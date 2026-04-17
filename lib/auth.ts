@@ -121,12 +121,53 @@ export const authOptions: NextAuthOptions = {
           if (isAdmin) {
             console.log("[AUTH] Admin user signing in:", userId);
             
-            // Check if admin user exists in database
-            const { data: existingAdmin } = await supabaseAdmin
+            // Check if admin already has a profile (by discord_id or by minecraft info if linked)
+            let existingAdmin = null;
+            
+            // Try finding by discord_id first
+            const { data: adminByDiscordId } = await supabaseAdmin
               .from("users")
               .select("*")
-              .eq("id", userId)
+              .eq("discord_id", discordId)
               .maybeSingle();
+            
+            if (adminByDiscordId) {
+              existingAdmin = adminByDiscordId;
+            } else if (discordLink) {
+              // If admin has linked Minecraft, try finding by minecraft_username
+              const { data: adminByMinecraft } = await supabaseAdmin
+                .from("users")
+                .select("*")
+                .eq("minecraft_username", discordLink.minecraft_username)
+                .maybeSingle();
+              
+              if (adminByMinecraft) {
+                existingAdmin = adminByMinecraft;
+                // Link Discord to existing profile
+                await supabaseAdmin
+                  .from("users")
+                  .update({
+                    discord_id: discordId,
+                    discord_username: user.name,
+                    minecraft_uuid: discordLink.minecraft_uuid,
+                    minecraft_user_id: discordLink.minecraft_uuid,
+                    avatar_url: `https://mc-heads.net/avatar/${discordLink.minecraft_uuid}/128`,
+                  })
+                  .eq("id", adminByMinecraft.id);
+                console.log("[AUTH] Linked Discord to existing admin profile:", adminByMinecraft.id);
+              }
+            }
+            
+            if (!existingAdmin) {
+              // Try by userId format (discord-{id})
+              const { data: adminByUserId } = await supabaseAdmin
+                .from("users")
+                .select("*")
+                .eq("id", userId)
+                .maybeSingle();
+              
+              existingAdmin = adminByUserId;
+            }
             
             if (!existingAdmin) {
               // Create new admin user
