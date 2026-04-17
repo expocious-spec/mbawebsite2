@@ -93,6 +93,11 @@ export const authOptions: NextAuthOptions = {
   ],
   debug: true,
   callbacks: {
+    async redirect({ url, baseUrl }) {
+      // If redirecting after login, go to user's profile page
+      // Otherwise use default behavior
+      return url.startsWith(baseUrl) ? url : baseUrl;
+    },
     async signIn({ user, account, profile }) {
       // Discord authentication - works for both admins and players
       if (account?.provider === "discord") {
@@ -321,23 +326,20 @@ export const authOptions: NextAuthOptions = {
       return false;
     },
     async session({ session, token }) {
-      // Add user ID and Discord info to session
-      if (token.sub) {
-        session.user.id = token.sub;
-      }
-      if (token.discordId) {
-        session.user.discordId = token.discordId as string;
-        session.user.isAdmin = ADMIN_DISCORD_IDS.includes(token.discordId as string);
-      }
-      
       // Add player data to session
       if (token.playerId) {
+        session.user.id = token.playerId as string; // Use playerId as the main ID
         session.user.playerId = token.playerId as string;
         session.user.teamId = token.teamId as string | null;
         session.user.playerName = token.playerName as string;
         session.user.profilePicture = token.profilePicture as string;
         session.user.minecraftUsername = token.minecraftUsername as string;
         session.user.profileDescription = token.profileDescription as string;
+      }
+      
+      if (token.discordId) {
+        session.user.discordId = token.discordId as string;
+        session.user.isAdmin = ADMIN_DISCORD_IDS.includes(token.discordId as string);
       }
       
       return session;
@@ -378,9 +380,11 @@ export const authOptions: NextAuthOptions = {
             token.minecraftUsername = userData.minecraft_username;
             token.profileDescription = userData.profile_description || "";
             
-            // Use Minecraft headshot with UUID
+            // Use Minecraft headshot with UUID (proper format)
             if (userData.minecraft_uuid || userData.minecraft_user_id) {
-              const uuid = (userData.minecraft_uuid || userData.minecraft_user_id).replace(/-/g, '');
+              const rawUuid = userData.minecraft_uuid || userData.minecraft_user_id;
+              // Remove dashes and ensure lowercase for consistency
+              const uuid = String(rawUuid).replace(/-/g, '').toLowerCase();
               token.profilePicture = `https://mc-heads.net/avatar/${uuid}/128`;
             } else {
               token.profilePicture = userData.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.username)}&size=128&background=0A0E27&color=00A8E8&bold=true`;
