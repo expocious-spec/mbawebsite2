@@ -126,17 +126,25 @@ export const authOptions: NextAuthOptions = {
               .from("users")
               .select("*")
               .eq("id", userId)
-              .single();
+              .maybeSingle();
             
             if (!existingAdmin) {
               // Create new admin user
+              // Prefer Minecraft avatar if linked, otherwise use Discord avatar
+              const avatarUrl = discordLink?.minecraft_uuid 
+                ? `https://mc-heads.net/avatar/${discordLink.minecraft_uuid}/128`
+                : user.image;
+              
               await supabaseAdmin.from("users").insert({
                 id: userId,
                 username: user.name || `Admin-${discordId}`,
                 email: user.email,
-                avatar_url: user.image,
+                avatar_url: avatarUrl,
                 discord_username: user.name,
                 discord_id: discordId,
+                minecraft_username: discordLink?.minecraft_username || null,
+                minecraft_uuid: discordLink?.minecraft_uuid || null,
+                minecraft_user_id: discordLink?.minecraft_uuid || null,
                 roles: ['Admin'],
               });
               console.log("[AUTH] Created new admin user");
@@ -147,29 +155,63 @@ export const authOptions: NextAuthOptions = {
 
           // STEP 4: For regular players - Check if user exists in website database
           const minecraftUsername = discordLink.minecraft_username;
+          const minecraftUuid = discordLink.minecraft_uuid;
           
-          const { data: existingUser } = await supabaseAdmin
+          // Try to find existing user by minecraft_username, minecraft_uuid, OR minecraft_user_id
+          // This handles cases where old profiles might have different field names
+          let existingUser = null;
+          
+          // Try by minecraft_username first
+          const { data: userByUsername } = await supabaseAdmin
             .from("users")
             .select("*")
             .eq("minecraft_username", minecraftUsername)
-            .single();
+            .maybeSingle(); // Don't throw error if not found
+
+          if (userByUsername) {
+            existingUser = userByUsername;
+          } else {
+            // Try by minecraft_uuid
+            const { data: userByUuid } = await supabaseAdmin
+              .from("users")
+              .select("*")
+              .eq("minecraft_uuid", minecraftUuid)
+              .maybeSingle();
+            
+            if (userByUuid) {
+              existingUser = userByUuid;
+            } else {
+              // Try by minecraft_user_id (legacy field)
+              const { data: userByUserId } = await supabaseAdmin
+                .from("users")
+                .select("*")
+                .eq("minecraft_user_id", minecraftUuid)
+                .maybeSingle();
+              
+              if (userByUserId) {
+                existingUser = userByUserId;
+              }
+            }
+          }
 
           if (existingUser) {
-            // STEP 5a: User exists - update their discord_id if changed
+            // STEP 5a: User exists - Link Discord account to existing profile
             console.log("[AUTH] Existing user found:", existingUser.id);
             
-            if (existingUser.discord_id !== discordId) {
-              await supabaseAdmin
-                .from("users")
-                .update({ 
-                  discord_id: discordId,
-                  discord_username: discordLink.discord_username || user.name 
-                })
-                .eq("id", existingUser.id);
-              
-              console.log("[AUTH] Updated discord_id for user:", existingUser.id);
-            }
+            // Always update Discord info and ensure minecraft fields are set
+            await supabaseAdmin
+              .from("users")
+              .update({ 
+                discord_id: discordId,
+                discord_username: discordLink.discord_username || user.name,
+                minecraft_username: minecraftUsername,
+                minecraft_uuid: minecraftUuid,
+                minecraft_user_id: minecraftUuid, // Ensure this is set
+                avatar_url: `https://mc-heads.net/avatar/${minecraftUuid}/128`, // Always use Minecraft avatar
+              })
+              .eq("id", existingUser.id);
             
+            console.log("[AUTH] Linked Discord account to existing profile:", existingUser.id);
             return true; // Allow login to existing account
           }
 
@@ -198,7 +240,7 @@ export const authOptions: NextAuthOptions = {
             discord_username: discordLink.discord_username || user.name,
             team_id: teamId,
             profile_description: "", // Empty - user will fill later
-            avatar_url: `https://mc-heads.net/avatar/${discordLink.minecraft_uuid}/128`,
+            avatar_url: `https://mc-heads.net/avatar/${discordLink.minecraft_uuid}/128`, // Always use Minecraft avatar, never Discord
             roles: ['Player'],
             email: user.email,
           };
