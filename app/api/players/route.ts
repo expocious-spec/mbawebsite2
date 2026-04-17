@@ -245,6 +245,7 @@ export async function GET(request: NextRequest) {
           ? getMinecraftHeadshot(user.minecraft_user_id, 256)
           : user.avatar_url || getMinecraftHeadshot(null, 256),
         description: user.description || '',
+        profileDescription: user.profile_description || '',
         discordUsername: user.discord_username || '',
         teamId: user.team_id || null,
         roles: user.roles || ['Player'],

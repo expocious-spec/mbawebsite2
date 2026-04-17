@@ -1,6 +1,6 @@
 'use client';
 
-import { User, Shield, Award, Users as UsersIcon, DollarSign, Calendar, CheckCircle2, Clock, Star, TrendingUp } from 'lucide-react';
+import { User, Shield, Award, Users as UsersIcon, DollarSign, Calendar, CheckCircle2, Clock, Star, TrendingUp, Edit2, Save, X } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
@@ -22,6 +22,10 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [showTotals, setShowTotals] = useState(false); // Toggle for totals vs averages
   const { data: session } = useSession();
+  const [isEditingDescription, setIsEditingDescription] = useState(false);
+  const [description, setDescription] = useState('');
+  const [tempDescription, setTempDescription] = useState('');
+  const [saveMessage, setSaveMessage] = useState('');
 
   useEffect(() => {
     fetchData();
@@ -102,6 +106,8 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
       
       setPlayer(currentPlayer);
       setTeam(teamsData.find((t: any) => t.id === currentPlayer.teamId));
+      setDescription(currentPlayer.profileDescription || '');
+      setTempDescription(currentPlayer.profileDescription || '');
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -223,6 +229,39 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
     : playerLevel === 'collegiate' 
     ? 'Collegiate Athlete' 
     : 'MBA Athlete';
+
+  // Check if logged-in user owns this profile
+  const isOwnProfile = session?.user?.playerId === params.id;
+
+  // Handle description save
+  const handleSaveDescription = async () => {
+    try {
+      const response = await fetch('/api/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ profile_description: tempDescription }),
+      });
+
+      if (response.ok) {
+        setDescription(tempDescription);
+        setIsEditingDescription(false);
+        setSaveMessage('Description saved!');
+        setTimeout(() => setSaveMessage(''), 3000);
+        // Update player data
+        setPlayer({ ...player, profileDescription: tempDescription });
+      } else {
+        alert('Failed to save description');
+      }
+    } catch (error) {
+      console.error('Error saving description:', error);
+      alert('Error saving description');
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setTempDescription(description);
+    setIsEditingDescription(false);
+  };
 
   return (
     <div className="min-h-screen bg-white dark:bg-mba-dark">
@@ -391,6 +430,75 @@ export default function PlayerProfilePage({ params }: { params: { id: string } }
       <div className="max-w-7xl mx-auto px-6 py-8">
         {activeTab === 'overview' && (
           <div className="space-y-8">
+            {/* Player Description Section */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <User className="w-6 h-6 text-mba-blue" />
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">About</h2>
+                </div>
+                {isOwnProfile && !isEditingDescription && (
+                  <button
+                    onClick={() => setIsEditingDescription(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-mba-blue text-white rounded-lg hover:bg-blue-600 transition-colors"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                    Edit
+                  </button>
+                )}
+                {isOwnProfile && isEditingDescription && (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={handleSaveDescription}
+                      className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                    >
+                      <Save className="w-4 h-4" />
+                      Save
+                    </button>
+                    <button
+                      onClick={handleCancelEdit}
+                      className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                    >
+                      <X className="w-4 h-4" />
+                      Cancel
+                    </button>
+                  </div>
+                )}
+              </div>
+              
+              {isEditingDescription ? (
+                <div>
+                  <textarea
+                    value={tempDescription}
+                    onChange={(e) => setTempDescription(e.target.value.slice(0, 500))}
+                    className="w-full h-32 px-4 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-mba-blue text-gray-900 dark:text-white resize-none"
+                    placeholder="Write a description about yourself... (max 500 characters)"
+                    maxLength={500}
+                  />
+                  <div className="flex justify-between items-center mt-2">
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                      {tempDescription.length}/500 characters
+                    </span>
+                    {saveMessage && (
+                      <span className="text-sm text-green-600 dark:text-green-400 font-medium">
+                        {saveMessage}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-gray-700 dark:text-gray-300">
+                  {description ? (
+                    <p className="whitespace-pre-wrap">{description}</p>
+                  ) : (
+                    <p className="text-gray-500 dark:text-gray-400 italic">
+                      {isOwnProfile ? 'Click Edit to add a description about yourself.' : 'No description yet.'}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+
             {/* Accolades Section */}
             {accolades.length > 0 && (
               <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">

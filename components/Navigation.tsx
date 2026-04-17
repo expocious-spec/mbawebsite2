@@ -97,13 +97,13 @@ export default function Navigation() {
               <>
                 {/* Profile Picture Button */}
                 <Link
-                  href="/dashboard"
+                  href={session.user.playerId ? `/players/${session.user.playerId}` : '/dashboard'}
                   className={`ml-2 minecraft-button border-2 p-0.5 ${
-                    pathname === '/dashboard'
+                    pathname === `/players/${session.user.playerId}` || pathname === '/dashboard'
                       ? 'border-blue-500'
                       : 'border-gray-300 dark:border-gray-600'
                   }`}
-                  style={pathname === '/dashboard' ? undefined : { backgroundColor: 'var(--surface)' }}
+                  style={(pathname === `/players/${session.user.playerId}` || pathname === '/dashboard') ? undefined : { backgroundColor: 'var(--surface)' }}
                   title={`Profile - ${session.user.minecraftUsername || session.user.playerName || 'Dashboard'}`}
                 >
                   <div className="w-9 h-9 rounded overflow-hidden bg-gray-200 dark:bg-gray-700">
