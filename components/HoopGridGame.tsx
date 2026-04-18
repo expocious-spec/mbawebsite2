@@ -224,7 +224,8 @@ export default function HoopGridGame() {
         statValue: result.statValue,
         statLabel: result.statLabel,
       };
-      setGuessesRemaining(prev => prev - 1);
+      const newGuessesRemaining = guessesRemaining - 1;
+      setGuessesRemaining(newGuessesRemaining);
       setGrid(newGrid);
 
       if (result.isValid) {
@@ -250,6 +251,11 @@ export default function HoopGridGame() {
           setGuessesRemaining(0);
           setShowCompletionModal(true);
         }
+      }
+
+      // Show completion modal when last guess is used (game over)
+      if (newGuessesRemaining === 0) {
+        setShowCompletionModal(true);
       }
 
       setSelectedCell(null);
@@ -354,26 +360,70 @@ export default function HoopGridGame() {
           <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 px-4">
             <div className="bg-gradient-to-br from-blue-600 to-purple-700 rounded-2xl p-8 max-w-md w-full shadow-2xl border-4 border-yellow-400 transform animate-bounce-in">
               <div className="text-center">
-                <div className="text-6xl mb-4">🎉</div>
-                <h2 className="text-4xl font-bold text-white mb-2">Congratulations!</h2>
-                <p className="text-xl text-blue-100 mb-6">You completed today's HoopGrid!</p>
+                <div className="text-6xl mb-4">{isComplete ? '🎉' : '⏰'}</div>
+                <h2 className="text-4xl font-bold text-white mb-2">{isComplete ? 'Congratulations!' : 'Game Over!'}</h2>
+                <p className="text-xl text-blue-100 mb-6">{isComplete ? 'You completed today\'s HoopGrid!' : 'You\'ve used all your guesses!'}</p>
                 
                 <div className="bg-white/20 rounded-xl p-6 mb-6 backdrop-blur-sm">
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-blue-100 font-semibold">Rarity Score:</span>
-                      <span className="text-2xl font-bold text-yellow-300">{totalRarity.toFixed(1)}%</span>
+                  <div className="space-y-4">
+                    {/* Visual Grid Result */}
+                    <div>
+                      <p className="text-sm text-blue-200 font-semibold mb-3 text-center">Your Grid</p>
+                      <div className="grid grid-cols-3 gap-2">
+                        {grid.flat().map((cell, idx) => (
+                          <div 
+                            key={idx}
+                            className={`aspect-square rounded-lg flex flex-col items-center justify-center p-2 ${
+                              cell?.isCorrect 
+                                ? 'bg-green-500/30 border-2 border-green-400' 
+                                : cell 
+                                ? 'bg-red-500/30 border-2 border-red-400' 
+                                : 'bg-gray-700/30 border-2 border-gray-600'
+                            }`}
+                          >
+                            {cell ? (
+                              <>
+                                {cell.playerPicture && (
+                                  <img 
+                                    src={cell.playerPicture} 
+                                    alt={cell.playerName}
+                                    className="w-10 h-10 rounded-md mb-1"
+                                  />
+                                )}
+                                <div className="text-[10px] font-bold text-white text-center leading-tight">
+                                  {cell.playerName}
+                                </div>
+                                <div className="text-lg mt-0.5">
+                                  {cell.isCorrect ? '✓' : '✗'}
+                                </div>
+                              </>
+                            ) : (
+                              <div className="text-2xl text-gray-500">?</div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                    <div className="text-xs text-blue-200">Lower is better! 0% = all unique picks</div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-blue-100 font-semibold">Correct Cells:</span>
-                      <span className="text-2xl font-bold text-green-300">9/9</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-blue-100 font-semibold">Time:</span>
-                      <span className="text-xl font-bold text-white">
-                        {Math.floor((Date.now() - startTime) / 60000)}m {Math.floor(((Date.now() - startTime) % 60000) / 1000)}s
-                      </span>
+
+                    {/* Stats */}
+                    <div className="space-y-2 pt-2 border-t border-white/20">
+                      <div className="flex justify-between items-center">
+                        <span className="text-blue-100 font-semibold">Rarity Score:</span>
+                        <span className="text-2xl font-bold text-yellow-300">{totalRarity.toFixed(1)}%</span>
+                      </div>
+                      <div className="text-xs text-blue-200">Lower is better! 0% = all unique picks</div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-blue-100 font-semibold">Correct Cells:</span>
+                        <span className="text-2xl font-bold text-green-300">{completedCells}/9</span>
+                      </div>
+                      {isComplete && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-blue-100 font-semibold">Time:</span>
+                          <span className="text-xl font-bold text-white">
+                            {Math.floor((Date.now() - startTime) / 60000)}m {Math.floor(((Date.now() - startTime) % 60000) / 1000)}s
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -396,15 +446,15 @@ export default function HoopGridGame() {
                     ) : (
                       <>
                         <span>📋</span>
-                        <span>Share Results</span>
+                        <span>Copy Score</span>
                       </>
                     )}
                   </button>
                   <button
-                    onClick={() => setShowCompletionModal(false)}
-                    className="w-full bg-white text-blue-600 font-bold py-3 px-6 rounded-lg hover:bg-blue-50 transition-colors text-lg"
+                    onClick={() => window.location.href = '/minigames'}
+                    className="w-full bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors text-lg"
                   >
-                    View Grid
+                    Exit to Menu
                   </button>
                 </div>
               </div>

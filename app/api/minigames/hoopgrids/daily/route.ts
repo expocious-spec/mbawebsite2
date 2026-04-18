@@ -47,12 +47,36 @@ async function generateDailyPuzzle(date: string) {
     throw new Error('Not enough teams in database');
   }
 
+  // Get all previously used teams from past puzzles
+  const { data: previousPuzzles } = await supabaseAdmin
+    .from('hoopgrid_puzzles')
+    .select('column1_value, column2_value, column3_value')
+    .order('puzzle_date', { ascending: false });
+
+  const usedTeamIds = new Set<string>();
+  if (previousPuzzles) {
+    previousPuzzles.forEach(puzzle => {
+      usedTeamIds.add(puzzle.column1_value);
+      usedTeamIds.add(puzzle.column2_value);
+      usedTeamIds.add(puzzle.column3_value);
+    });
+  }
+
+  // Filter out previously used teams
+  let availableTeams = teams.filter(team => !usedTeamIds.has(team.id));
+  
+  // If we've used all teams, reset and use all teams again
+  if (availableTeams.length < 3) {
+    console.log('[HoopGrids] All teams used, resetting team pool');
+    availableTeams = teams;
+  }
+
   // Seed random based on date for consistency
   const seed = new Date(date).getTime();
   const random = seededRandom(seed);
 
   // Shuffle and pick 3 teams for columns
-  const shuffledTeams = shuffle(teams, random);
+  const shuffledTeams = shuffle(availableTeams, random);
   
   // Pick teams that have at least 1 player (lowered from 3)
   const validTeams = [];
@@ -76,7 +100,7 @@ async function generateDailyPuzzle(date: string) {
   // RPG: 79% have 5+, 32% have 8+
   // APG: 81% have 1+, 64% have 2+, 26% have 3+
   // SPG: 96% have 1+, 68% have 2+, 51% have 3+
-  const rowCriteria = [
+  const allRowCriteria = [
     { type: 'stat_threshold', value: 'ppg_5' },
     { type: 'stat_threshold', value: 'ppg_10' },
     { type: 'stat_threshold', value: 'ppg_15' },
@@ -91,8 +115,34 @@ async function generateDailyPuzzle(date: string) {
     { type: 'stat_threshold', value: 'spg_3' },
   ];
 
+  // Get all previously used stat criteria from past puzzles
+  const usedCriteriaValues = new Set<string>();
+  if (previousPuzzles) {
+    const { data: previousPuzzlesWithRows } = await supabaseAdmin
+      .from('hoopgrid_puzzles')
+      .select('row1_value, row2_value, row3_value')
+      .order('puzzle_date', { ascending: false });
+
+    if (previousPuzzlesWithRows) {
+      previousPuzzlesWithRows.forEach(puzzle => {
+        usedCriteriaValues.add(puzzle.row1_value);
+        usedCriteriaValues.add(puzzle.row2_value);
+        usedCriteriaValues.add(puzzle.row3_value);
+      });
+    }
+  }
+
+  // Filter out previously used criteria
+  let availableCriteria = allRowCriteria.filter(criterion => !usedCriteriaValues.has(criterion.value));
+  
+  // If we've used all criteria, reset and use all criteria again
+  if (availableCriteria.length < 3) {
+    console.log('[HoopGrids] All criteria used, resetting criteria pool');
+    availableCriteria = allRowCriteria;
+  }
+
   // Shuffle and pick valid criteria with at least 1 matching player (lowered from 3)
-  const shuffledCriteria = shuffle(rowCriteria, random);
+  const shuffledCriteria = shuffle(availableCriteria, random);
   const selectedCriteria: Array<{ type: string; value: string }> = [];
   
   for (const criterion of shuffledCriteria) {
