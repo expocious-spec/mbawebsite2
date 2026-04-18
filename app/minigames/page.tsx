@@ -7,6 +7,8 @@ import { useSession } from 'next-auth/react';
 export default function MinigamesPage() {
   const { data: session } = useSession();
   const [hoopgridsCompleted, setHoopgridsCompleted] = useState(false);
+  const [leaderboard, setLeaderboard] = useState<any[]>([]);
+  const [loadingLeaderboard, setLoadingLeaderboard] = useState(true);
 
   useEffect(() => {
     const checkHoopgridsStatus = async () => {
@@ -30,6 +32,22 @@ export default function MinigamesPage() {
 
     checkHoopgridsStatus();
   }, [session?.user?.id]);
+
+  useEffect(() => {
+    const fetchLeaderboard = async () => {
+      try {
+        const res = await fetch('/api/minigames/hoopgrids/leaderboard');
+        const data = await res.json();
+        setLeaderboard(data.leaderboard || []);
+      } catch (error) {
+        console.error('Error fetching leaderboard:', error);
+      } finally {
+        setLoadingLeaderboard(false);
+      }
+    };
+
+    fetchLeaderboard();
+  }, []);
   const games = [
     {
       id: 'hoopgrids',
@@ -117,6 +135,100 @@ export default function MinigamesPage() {
             );
           })}
         </div>
+
+        {/* HoopGrids Daily Leaderboard */}
+        {leaderboard.length > 0 && (
+          <div className="mt-16">
+            <div className="bg-gradient-to-r from-yellow-600 to-orange-600 rounded-t-xl p-6">
+              <h2 className="text-3xl font-bold text-white flex items-center gap-3">
+                <span>🏆</span>
+                <span>Today's HoopGrids Leaderboard</span>
+              </h2>
+              <p className="text-yellow-100 mt-2">Lowest rarity score wins • Resets daily at midnight</p>
+            </div>
+            
+            <div className="bg-gray-800 rounded-b-xl border-2 border-gray-700 border-t-0 overflow-hidden">
+              {loadingLeaderboard ? (
+                <div className="p-8 text-center text-gray-400">Loading leaderboard...</div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-gray-900 border-b border-gray-700">
+                      <tr>
+                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Rank</th>
+                        <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Player</th>
+                        <th className="px-6 py-4 text-center text-xs font-bold text-gray-400 uppercase tracking-wider">Rarity Score</th>
+                        <th className="px-6 py-4 text-center text-xs font-bold text-gray-400 uppercase tracking-wider hidden sm:table-cell">Time</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-700">
+                      {leaderboard.slice(0, 10).map((entry) => {
+                        const isCurrentUser = session?.user?.id === entry.userId;
+                        const minutes = Math.floor((entry.completionTime || 0) / 60);
+                        const seconds = (entry.completionTime || 0) % 60;
+                        
+                        return (
+                          <tr 
+                            key={entry.userId} 
+                            className={`${isCurrentUser ? 'bg-blue-600/20 border-l-4 border-l-blue-500' : 'hover:bg-gray-700/50'} transition-colors`}
+                          >
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="flex items-center">
+                                {entry.rank === 1 && <span className="text-2xl">🥇</span>}
+                                {entry.rank === 2 && <span className="text-2xl">🥈</span>}
+                                {entry.rank === 3 && <span className="text-2xl">🥉</span>}
+                                {entry.rank > 3 && (
+                                  <span className="text-lg font-bold text-gray-400">#{entry.rank}</span>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="flex items-center gap-3">
+                                {entry.profilePicture ? (
+                                  <img 
+                                    src={entry.profilePicture} 
+                                    alt={entry.displayName}
+                                    className="w-10 h-10 rounded-lg"
+                                  />
+                                ) : (
+                                  <div className="w-10 h-10 rounded-lg bg-gray-700 flex items-center justify-center">
+                                    <span className="text-xl">👤</span>
+                                  </div>
+                                )}
+                                <div>
+                                  <div className="font-semibold text-white flex items-center gap-2">
+                                    {entry.displayName}
+                                    {isCurrentUser && (
+                                      <span className="text-xs bg-blue-600 px-2 py-0.5 rounded-full">You</span>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 text-center">
+                              <div className="inline-flex items-center gap-1">
+                                <span className="text-lg font-bold text-yellow-400">{entry.rarityScore.toFixed(1)}%</span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 text-center text-gray-300 hidden sm:table-cell">
+                              {minutes}:{seconds.toString().padStart(2, '0')}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+              
+              {leaderboard.length > 10 && (
+                <div className="p-4 bg-gray-900 text-center text-gray-400 text-sm border-t border-gray-700">
+                  Showing top 10 of {leaderboard.length} players
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Info Section */}
         <div className="mt-16 p-8 bg-gray-800 rounded-xl border border-gray-700">
