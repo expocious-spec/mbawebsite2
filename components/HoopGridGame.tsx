@@ -38,6 +38,8 @@ interface CellState {
   playerPicture?: string;
   isCorrect?: boolean;
   rarity?: number;
+  statValue?: string;
+  statLabel?: string;
 }
 
 interface Player {
@@ -132,6 +134,8 @@ export default function HoopGridGame() {
                 playerPicture: attempt.player_picture,
                 isCorrect: attempt.is_correct,
                 rarity: attempt.rarity,
+                statValue: attempt.stat_value,
+                statLabel: attempt.stat_label,
               };
             });
             setGrid(loadedGrid);
@@ -216,6 +220,8 @@ export default function HoopGridGame() {
         playerPicture: player.profilePicture,
         isCorrect: result.isValid,
         rarity: result.rarity,
+        statValue: result.statValue,
+        statLabel: result.statLabel,
       };
       setGuessesRemaining(prev => prev - 1);
       setGrid(newGrid);
@@ -437,8 +443,13 @@ export default function HoopGridGame() {
                             />
                           )}
                           <div className="font-bold text-xs text-white text-center">{cell.playerName}</div>
+                          {cell.statValue && cell.statLabel && (
+                            <div className={`text-xs mt-1 font-bold ${cell.isCorrect ? 'text-blue-200' : 'text-gray-400'}`}>
+                              {cell.statValue} {cell.statLabel}
+                            </div>
+                          )}
                           {cell.isCorrect && (
-                            <div className="text-xs text-green-300 mt-1 font-semibold">
+                            <div className="text-xs text-green-300 mt-0.5 font-semibold">
                               {cell.rarity === 0 ? '✨ Unique!' : `${cell.rarity} picks`}
                             </div>
                           )}

@@ -47,6 +47,8 @@ export async function GET(request: NextRequest) {
             ...attempt,
             player_name: player?.minecraftUsername || player?.displayName || 'Unknown',
             player_picture: player?.profilePicture,
+            stat_value: attempt.stat_value,
+            stat_label: attempt.stat_label,
           };
         })
       );

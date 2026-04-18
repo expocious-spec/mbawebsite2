@@ -30,6 +30,9 @@ export async function POST(request: Request) {
     // Validate the guess
     const isValid = await validatePlayerForCell(playerId, colType, colValue, rowType, rowValue);
 
+    // Get the player's actual stat value for display
+    const statInfo = await getPlayerStatInfo(playerId, rowType, rowValue);
+
     // Calculate rarity (how many others guessed this player for ANY cell today)
     const { count } = await supabaseAdmin
       .from('hoopgrid_attempts')
@@ -51,6 +54,8 @@ export async function POST(request: Request) {
           cell_col: col,
           guessed_player_id: playerId,
           is_correct: isValid,
+          stat_value: statInfo.value,
+          stat_label: statInfo.label,
         });
     }
 
@@ -58,6 +63,8 @@ export async function POST(request: Request) {
       isValid,
       rarity,
       playerId,
+      statValue: statInfo.value,
+      statLabel: statInfo.label,
     });
   } catch (error) {
     console.error('Error validating guess:', error);
@@ -175,6 +182,70 @@ async function validateStatThreshold(playerId: string, threshold: string): Promi
   }
 
   return false;
+}
+
+async function getPlayerStatInfo(playerId: string, criteriaType: string, criteriaValue: string): Promise<{ value: string; label: string }> {
+  // For stat thresholds, calculate and return the actual stat
+  if (criteriaType === 'stat_threshold') {
+    const [stat, _] = criteriaValue.split('_');
+    
+    // Get all game stats for player
+    const { data: gameStats } = await supabaseAdmin
+      .from('game_stats')
+      .select('points, rebounds, assists, steals, game_id')
+      .eq('player_id', playerId);
+
+    if (!gameStats || gameStats.length === 0) {
+      return { value: 'N/A', label: stat.toUpperCase() };
+    }
+
+    // Get games to group by season
+    const gameIds = gameStats.map(gs => gs.game_id);
+    const { data: games } = await supabaseAdmin
+      .from('games')
+      .select('id, season')
+      .in('id', gameIds);
+
+    if (!games) {
+      return { value: 'N/A', label: stat.toUpperCase() };
+    }
+
+    // Group by season and calculate averages
+    const seasonMap = new Map<string, { total: number; games: number }>();
+    const gameSeasonMap = new Map(games.map(g => [g.id, g.season]));
+
+    for (const gs of gameStats) {
+      const season = gameSeasonMap.get(gs.game_id);
+      if (!season) continue;
+
+      const statValue = stat === 'ppg' ? gs.points : 
+                       stat === 'rpg' ? gs.rebounds :
+                       stat === 'apg' ? gs.assists :
+                       stat === 'spg' ? gs.steals : 0;
+
+      const current = seasonMap.get(season) || { total: 0, games: 0 };
+      current.total += statValue || 0;
+      current.games += 1;
+      seasonMap.set(season, current);
+    }
+
+    // Get the best season average
+    let bestAverage = 0;
+    for (const [_, data] of Array.from(seasonMap.entries())) {
+      const average = data.total / data.games;
+      if (average > bestAverage) {
+        bestAverage = average;
+      }
+    }
+
+    return { 
+      value: bestAverage.toFixed(1), 
+      label: stat.toUpperCase() 
+    };
+  }
+
+  // For other criteria types, return empty
+  return { value: '', label: '' };
 }
 
 async function validateAccolade(playerId: string, accolade: string): Promise<boolean> {
