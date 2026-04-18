@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 
@@ -58,9 +58,44 @@ export default function HoopGridGame() {
   const [loading, setLoading] = useState(true);
   const [totalRarity, setTotalRarity] = useState(0);
   const [guessesRemaining, setGuessesRemaining] = useState(9);
+  const [alreadyCompleted, setAlreadyCompleted] = useState(false);
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [startTime] = useState(Date.now());
+  const [timeToNextPuzzle, setTimeToNextPuzzle] = useState('');
+  const searchTimeoutRef = useRef<NodeJS.Timeout>();
 
   useEffect(() => {
     loadPuzzle();
+  }, [session?.user?.id]);
+
+  // Cleanup search timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Countdown timer
+  useEffect(() => {
+    const updateCountdown = () => {
+      const now = new Date();
+      const tomorrow = new Date(now);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(0, 0, 0, 0);
+      
+      const diff = tomorrow.getTime() - now.getTime();
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+      
+      setTimeToNextPuzzle(`${hours}h ${minutes}m ${seconds}s`);
+    };
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+    return () => clearInterval(interval);
   }, []);
 
   const loadPuzzle = async () => {
@@ -68,6 +103,31 @@ export default function HoopGridGame() {
       const res = await fetch('/api/minigames/hoopgrids/daily');
       const data = await res.json();
       setPuzzle(data);
+
+      // Check if user already completed today's puzzle
+      if (session?.user?.id && data.id) {
+        const completionRes = await fetch(`/api/minigames/hoopgrids/completion?puzzleId=${data.id}&userId=${session.user.id}`);
+        const completionData = await completionRes.json();
+        if (completionData.completed) {
+          setAlreadyCompleted(true);
+          // Load their previous grid
+          if (completionData.attempts) {
+            const loadedGrid: (CellState | null)[][] = Array(3).fill(null).map(() => Array(3).fill(null));
+            completionData.attempts.forEach((attempt: any) => {
+              loadedGrid[attempt.cell_row][attempt.cell_col] = {
+                playerId: attempt.guessed_player_id,
+                playerName: attempt.player_name,
+                playerPicture: attempt.player_picture,
+                isCorrect: attempt.is_correct,
+                rarity: attempt.rarity,
+              };
+            });
+            setGrid(loadedGrid);
+            setTotalRarity(completionData.rarity_score || 0);
+            setGuessesRemaining(0);
+          }
+        }
+      }
     } catch (error) {
       console.error('Failed to load puzzle:', error);
     } finally {
@@ -75,30 +135,38 @@ export default function HoopGridGame() {
     }
   };
 
-  const searchPlayers = async (query: string) => {
+  // Debounced search
+  const debouncedSearch = useCallback((query: string) => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
     if (!query.trim()) {
       setSearchResults([]);
       return;
     }
 
-    try {
-      const res = await fetch(`/api/players?search=${encodeURIComponent(query)}`);
-      const players = await res.json();
-      setSearchResults(players.slice(0, 10));
-    } catch (error) {
-      console.error('Search failed:', error);
-    }
-  };
+    searchTimeoutRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/players?search=${encodeURIComponent(query)}`);
+        const players = await res.json();
+        setSearchResults(players.slice(0, 10));
+      } catch (error) {
+        console.error('Search failed:', error);
+      }
+    }, 300); // 300ms debounce
+  }, []);
 
-  const handleCellClick = (row: number, col: number) => {
-    if (grid[row][col]) return; // Already guessed this cell
-    if (guessesRemaining === 0) return; // No guesses left
+  const handleCellClick = useCallback((row: number, col: number) => {
+    if (grid[row][col]) return;
+    if (guessesRemaining === 0) return;
+    if (alreadyCompleted) return;
     setSelectedCell({ row, col });
     setSearchQuery('');
     setSearchResults([]);
-  };
+  }, [grid, guessesRemaining, alreadyCompleted]);
 
-  const handlePlayerSelect = async (player: Player) => {
+  const handlePlayerSelect = useCallback(async (player: Player) => {
     if (!selectedCell || !puzzle) return;
 
     const { row, col } = selectedCell;
@@ -132,6 +200,24 @@ export default function HoopGridGame() {
 
       if (result.isValid) {
         setTotalRarity(prev => prev + result.rarity);
+        
+        // Check if puzzle is complete
+        const correctCount = newGrid.flat().filter(cell => cell?.isCorrect).length;
+        if (correctCount === 9 && userId) {
+          // Save completion
+          const completionTime = Math.floor((Date.now() - startTime) / 1000);
+          await fetch('/api/minigames/hoopgrids/completion', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              puzzleId: puzzle.id,
+              userId,
+              rarityScore: result.rarity + (totalRarity || 0),
+              completionTime,
+            }),
+          });
+          setShowCompletionModal(true);
+        }
       }
 
       setSelectedCell(null);
@@ -140,7 +226,16 @@ export default function HoopGridGame() {
     } catch (error) {
       console.error('Validation failed:', error);
     }
-  };
+  }, [selectedCell, puzzle, session, grid, totalRarity, startTime]);
+
+  // Memoized calculations for performance
+  const completedCells = useMemo(() => 
+    grid.flat().filter(cell => cell?.isCorrect).length, 
+    [grid]
+  );
+  
+  const isComplete = useMemo(() => completedCells === 9, [completedCells]);
+  const isGameOver = useMemo(() => guessesRemaining === 0 || isComplete, [guessesRemaining, isComplete]);
 
   if (loading) {
     return (
@@ -160,10 +255,6 @@ export default function HoopGridGame() {
     );
   }
 
-  const completedCells = grid.flat().filter(cell => cell?.isCorrect).length;
-  const isComplete = completedCells === 9;
-  const isGameOver = guessesRemaining === 0 || isComplete;
-
   return (
     <div className="min-h-screen bg-gray-900 py-8 px-4">
       <div className="max-w-7xl mx-auto">
@@ -181,6 +272,11 @@ export default function HoopGridGame() {
               day: 'numeric' 
             })}
           </p>
+          {alreadyCompleted && (
+            <div className="mt-3 inline-block bg-green-600 text-white px-6 py-2 rounded-lg font-semibold">
+              ✓ Completed • Next puzzle in {timeToNextPuzzle}
+            </div>
+          )}
         </div>
 
         {/* Score */}
@@ -192,10 +288,54 @@ export default function HoopGridGame() {
             <div className="text-sm text-blue-100 mt-1">
               {completedCells}/9 Correct • {guessesRemaining} Guesses Left
             </div>
-            {isComplete && <div className="text-lg mt-2 text-green-300">🎉 Perfect Game!</div>}
-            {isGameOver && !isComplete && <div className="text-lg mt-2 text-red-300">Game Over</div>}
+            {isComplete && !alreadyCompleted && <div className="text-lg mt-2 text-green-300">🎉 Perfect Game!</div>}
+            {isGameOver && !isComplete && !alreadyCompleted && <div className="text-lg mt-2 text-red-300">Game Over</div>}
           </div>
         </div>
+
+        {/* Completion Modal */}
+        {showCompletionModal && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+            <div className="bg-gradient-to-br from-blue-600 to-purple-700 rounded-2xl p-8 max-w-md w-full shadow-2xl border-4 border-yellow-400 transform animate-bounce-in">
+              <div className="text-center">
+                <div className="text-6xl mb-4">🎉</div>
+                <h2 className="text-4xl font-bold text-white mb-2">Congratulations!</h2>
+                <p className="text-xl text-blue-100 mb-6">You completed today's HoopGrid!</p>
+                
+                <div className="bg-white/20 rounded-xl p-6 mb-6 backdrop-blur-sm">
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-blue-100 font-semibold">Rarity Score:</span>
+                      <span className="text-2xl font-bold text-yellow-300">{totalRarity.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-blue-100 font-semibold">Correct Cells:</span>
+                      <span className="text-2xl font-bold text-green-300">9/9</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-blue-100 font-semibold">Time:</span>
+                      <span className="text-xl font-bold text-white">
+                        {Math.floor((Date.now() - startTime) / 60000)}m {Math.floor(((Date.now() - startTime) % 60000) / 1000)}s
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-gray-900/50 rounded-xl p-4 mb-6">
+                  <p className="text-sm text-blue-200 font-semibold mb-2">Next Puzzle Available In:</p>
+                  <p className="text-3xl font-bold text-yellow-300">{timeToNextPuzzle}</p>
+                </div>
+
+                <button
+                  onClick={() => setShowCompletionModal(false)}
+                  className="w-full bg-white text-blue-600 font-bold py-3 px-6 rounded-lg hover:bg-blue-50 transition-colors text-lg"
+                >
+                  View Grid
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Grid */}
         <div className="flex justify-center mb-8">
@@ -293,7 +433,7 @@ export default function HoopGridGame() {
         </div>
 
         {/* Player search */}
-        {selectedCell && !isGameOver && (
+        {selectedCell && !isGameOver && !alreadyCompleted && (
           <div className="max-w-md mx-auto bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-2xl border border-gray-700">
             <h3 className="text-lg font-bold mb-3 text-center text-gray-100">
               Select: {puzzle.rows[selectedCell.row].label}
@@ -304,8 +444,9 @@ export default function HoopGridGame() {
               type="text"
               value={searchQuery}
               onChange={(e) => {
-                setSearchQuery(e.target.value);
-                searchPlayers(e.target.value);
+                const value = e.target.value;
+                setSearchQuery(value);
+                debouncedSearch(value);
               }}
               placeholder="Search for a player..."
               className="w-full px-4 py-3 bg-gray-900 border-2 border-gray-700 rounded-lg focus:outline-none focus:border-blue-500 text-white placeholder-gray-400"
@@ -350,9 +491,34 @@ export default function HoopGridGame() {
             <p>⭐ Lower rarity scores are better (unique picks score 0)</p>
             <p>✅ Green = Correct | ❌ Red = Wrong</p>
             <p>🏆 Complete all 9 cells to finish the puzzle!</p>
+            <p className="pt-2 border-t border-gray-700 font-semibold text-yellow-400">
+              ⏰ One puzzle per day • Resets at midnight
+            </p>
           </div>
         </div>
       </div>
+
+      <style jsx>{`
+        @keyframes bounce-in {
+          0% {
+            transform: scale(0.3);
+            opacity: 0;
+          }
+          50% {
+            transform: scale(1.05);
+          }
+          70% {
+            transform: scale(0.9);
+          }
+          100% {
+            transform: scale(1);
+            opacity: 1;
+          }
+        }
+        .animate-bounce-in {
+          animation: bounce-in 0.6s ease-out;
+        }
+      `}</style>
     </div>
   );
 }
