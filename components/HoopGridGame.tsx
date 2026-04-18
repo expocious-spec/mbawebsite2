@@ -257,6 +257,15 @@ export default function HoopGridGame() {
     }
   }, [selectedCell, puzzle, session, grid, totalRarity, startTime, usedPlayerIds]);
 
+  // Memoized calculations for performance
+  const completedCells = useMemo(() => 
+    grid.flat().filter(cell => cell?.isCorrect).length, 
+    [grid]
+  );
+  
+  const isComplete = useMemo(() => completedCells === 9, [completedCells]);
+  const isGameOver = useMemo(() => guessesRemaining === 0 || isComplete, [guessesRemaining, isComplete]);
+
   const handleCopyResults = useCallback(() => {
     if (!puzzle) return;
 
@@ -274,15 +283,6 @@ export default function HoopGridGame() {
       console.error('Failed to copy:', err);
     });
   }, [puzzle, grid, totalRarity, completedCells]);
-
-  // Memoized calculations for performance
-  const completedCells = useMemo(() => 
-    grid.flat().filter(cell => cell?.isCorrect).length, 
-    [grid]
-  );
-  
-  const isComplete = useMemo(() => completedCells === 9, [completedCells]);
-  const isGameOver = useMemo(() => guessesRemaining === 0 || isComplete, [guessesRemaining, isComplete]);
 
   if (loading) {
     return (
