@@ -1,11 +1,35 @@
-import Link from 'next/link';
+'use client';
 
-export const metadata = {
-  title: 'Minigames - MBA',
-  description: 'Play fun minigames to test your MBA knowledge',
-};
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { useSession } from 'next-auth/react';
 
 export default function MinigamesPage() {
+  const { data: session } = useSession();
+  const [hoopgridsCompleted, setHoopgridsCompleted] = useState(false);
+
+  useEffect(() => {
+    const checkHoopgridsStatus = async () => {
+      if (!session?.user?.id) return;
+      
+      try {
+        // Get today's puzzle
+        const puzzleRes = await fetch('/api/minigames/hoopgrids/daily');
+        const puzzleData = await puzzleRes.json();
+        
+        if (puzzleData.id) {
+          // Check if completed
+          const completionRes = await fetch(`/api/minigames/hoopgrids/completion?puzzleId=${puzzleData.id}&userId=${session.user.id}`);
+          const completionData = await completionRes.json();
+          setHoopgridsCompleted(completionData.completed || false);
+        }
+      } catch (error) {
+        console.error('Error checking hoopgrids status:', error);
+      }
+    };
+
+    checkHoopgridsStatus();
+  }, [session?.user?.id]);
   const games = [
     {
       id: 'hoopgrids',
@@ -46,32 +70,52 @@ export default function MinigamesPage() {
 
         {/* Games Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {games.map((game) => (
-            <div key={game.id} className="relative">
-              {game.available ? (
-                <Link 
-                  href={game.href}
-                  className="block p-6 bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl border-2 border-gray-700 hover:border-blue-500 transition-all hover:scale-105 hover:shadow-xl"
-                >
-                  <div className="text-6xl mb-4">{game.emoji}</div>
-                  <h2 className="text-2xl font-bold mb-2">{game.title}</h2>
-                  <p className="text-gray-400">{game.description}</p>
-                  <div className="mt-4 inline-block px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold">
-                    Play Now →
+          {games.map((game) => {
+            const isCompleted = game.id === 'hoopgrids' && hoopgridsCompleted;
+            
+            return (
+              <div key={game.id} className="relative">
+                {game.available ? (
+                  <div className="block p-6 bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl border-2 border-gray-700 hover:border-blue-500 transition-all">
+                    <div className="text-6xl mb-4">{game.emoji}</div>
+                    <h2 className="text-2xl font-bold mb-2">{game.title}</h2>
+                    <p className="text-gray-400">{game.description}</p>
+                    
+                    {isCompleted ? (
+                      <div className="mt-4 flex gap-3">
+                        <Link 
+                          href={game.href}
+                          className="flex-1 text-center px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                        >
+                          View Grid
+                        </Link>
+                        <div className="px-4 py-2 bg-green-600 text-white rounded-lg font-semibold flex items-center gap-2">
+                          <span>✓</span>
+                          <span className="hidden sm:inline">Done</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <Link 
+                        href={game.href}
+                        className="mt-4 inline-block px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                      >
+                        Play Now →
+                      </Link>
+                    )}
                   </div>
-                </Link>
-              ) : (
-                <div className="p-6 bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl border-2 border-gray-700 opacity-50">
-                  <div className="text-6xl mb-4">{game.emoji}</div>
-                  <h2 className="text-2xl font-bold mb-2">{game.title}</h2>
-                  <p className="text-gray-400">{game.description}</p>
-                  <div className="mt-4 inline-block px-4 py-2 bg-gray-600 text-gray-300 rounded-lg font-semibold">
-                    Coming Soon
+                ) : (
+                  <div className="p-6 bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl border-2 border-gray-700 opacity-50">
+                    <div className="text-6xl mb-4">{game.emoji}</div>
+                    <h2 className="text-2xl font-bold mb-2">{game.title}</h2>
+                    <p className="text-gray-400">{game.description}</p>
+                    <div className="mt-4 inline-block px-4 py-2 bg-gray-600 text-gray-300 rounded-lg font-semibold">
+                      Coming Soon
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
-          ))}
+                )}
+              </div>
+            );
+          })}
         </div>
 
         {/* Info Section */}

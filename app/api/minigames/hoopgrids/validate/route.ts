@@ -33,15 +33,27 @@ export async function POST(request: Request) {
     // Get the player's actual stat value for display
     const statInfo = await getPlayerStatInfo(playerId, rowType, rowValue);
 
-    // Calculate rarity (how many others guessed this player for ANY cell today)
-    const { count } = await supabaseAdmin
+    // Calculate rarity as a percentage
+    // Count how many people have completed this puzzle
+    const { count: totalCompletions } = await supabaseAdmin
+      .from('hoopgrid_completions')
+      .select('*', { count: 'exact', head: true })
+      .eq('puzzle_id', puzzleId);
+
+    // Count how many times this player was correctly guessed for this specific cell
+    const { count: timesGuessed } = await supabaseAdmin
       .from('hoopgrid_attempts')
       .select('*', { count: 'exact', head: true })
       .eq('puzzle_id', puzzleId)
+      .eq('cell_row', row)
+      .eq('cell_col', col)
       .eq('guessed_player_id', playerId)
       .eq('is_correct', true);
 
-    const rarity = count || 0;
+    // Calculate rarity percentage (0-100)
+    // If no one has completed yet, use 0 (unique)
+    const totalPlayers = (totalCompletions || 0) + 1; // +1 for current player
+    const rarity = totalPlayers > 0 ? ((timesGuessed || 0) / totalPlayers) * 100 : 0;
 
     // Store the attempt
     if (userId) {
@@ -61,7 +73,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       isValid,
-      rarity,
+      rarity: parseFloat(rarity.toFixed(1)),
       playerId,
       statValue: statInfo.value,
       statLabel: statInfo.label,

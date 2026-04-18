@@ -65,6 +65,7 @@ export default function HoopGridGame() {
   const [startTime] = useState(Date.now());
   const [timeToNextPuzzle, setTimeToNextPuzzle] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [copySuccess, setCopySuccess] = useState(false);
   const searchTimeoutRef = useRef<NodeJS.Timeout>();
 
   // Track used player IDs
@@ -256,6 +257,24 @@ export default function HoopGridGame() {
     }
   }, [selectedCell, puzzle, session, grid, totalRarity, startTime, usedPlayerIds]);
 
+  const handleCopyResults = useCallback(() => {
+    if (!puzzle) return;
+
+    const date = new Date(puzzle.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const gridDisplay = grid.map(row => 
+      row.map(cell => cell?.isCorrect ? '🟩' : (cell ? '🟥' : '⬜')).join('')
+    ).join('\n');
+
+    const shareText = `MBA HoopGrids - ${date}\n\n${gridDisplay}\n\nRarity: ${totalRarity.toFixed(1)}%\nScore: ${completedCells}/9\n\nPlay at: ${window.location.origin}/minigames/hoopgrids`;
+
+    navigator.clipboard.writeText(shareText).then(() => {
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    }).catch(err => {
+      console.error('Failed to copy:', err);
+    });
+  }, [puzzle, grid, totalRarity, completedCells]);
+
   // Memoized calculations for performance
   const completedCells = useMemo(() => 
     grid.flat().filter(cell => cell?.isCorrect).length, 
@@ -300,9 +319,12 @@ export default function HoopGridGame() {
               day: 'numeric' 
             })}
           </p>
+          <div className="mt-3 inline-block bg-gray-800 text-gray-300 px-6 py-2 rounded-lg border border-gray-700">
+            <span className="text-yellow-400 font-semibold">⏰</span> Next puzzle in {timeToNextPuzzle}
+          </div>
           {alreadyCompleted && (
-            <div className="mt-3 inline-block bg-green-600 text-white px-6 py-2 rounded-lg font-semibold">
-              ✓ Completed • Next puzzle in {timeToNextPuzzle}
+            <div className="mt-2 inline-block bg-green-600 text-white px-6 py-2 rounded-lg font-semibold">
+              ✓ Completed Today
             </div>
           )}
         </div>
@@ -311,10 +333,13 @@ export default function HoopGridGame() {
         <div className="text-center mb-8">
           <div className="inline-block bg-blue-600 rounded-xl px-8 py-4">
             <div className="text-3xl font-bold text-white">
-              Rarity Score: {totalRarity.toFixed(2)}
+              Rarity Score: {totalRarity.toFixed(1)}%
             </div>
             <div className="text-sm text-blue-100 mt-1">
               {completedCells}/9 Correct • {guessesRemaining} Guesses Left
+            </div>
+            <div className="text-xs text-blue-200 mt-1">
+              Lower is better!
             </div>
             {isComplete && !alreadyCompleted && <div className="text-lg mt-2 text-green-300">🎉 Perfect Game!</div>}
             {isGameOver && !isComplete && !alreadyCompleted && <div className="text-lg mt-2 text-red-300">Game Over</div>}
@@ -334,8 +359,9 @@ export default function HoopGridGame() {
                   <div className="space-y-3">
                     <div className="flex justify-between items-center">
                       <span className="text-blue-100 font-semibold">Rarity Score:</span>
-                      <span className="text-2xl font-bold text-yellow-300">{totalRarity.toFixed(2)}</span>
+                      <span className="text-2xl font-bold text-yellow-300">{totalRarity.toFixed(1)}%</span>
                     </div>
+                    <div className="text-xs text-blue-200">Lower is better! 0% = all unique picks</div>
                     <div className="flex justify-between items-center">
                       <span className="text-blue-100 font-semibold">Correct Cells:</span>
                       <span className="text-2xl font-bold text-green-300">9/9</span>
@@ -349,17 +375,35 @@ export default function HoopGridGame() {
                   </div>
                 </div>
 
-                <div className="bg-gray-900/50 rounded-xl p-4 mb-6">
+                <div className="bg-gray-900/50 rounded-xl p-4 mb-4">
                   <p className="text-sm text-blue-200 font-semibold mb-2">Next Puzzle Available In:</p>
                   <p className="text-3xl font-bold text-yellow-300">{timeToNextPuzzle}</p>
                 </div>
 
-                <button
-                  onClick={() => setShowCompletionModal(false)}
-                  className="w-full bg-white text-blue-600 font-bold py-3 px-6 rounded-lg hover:bg-blue-50 transition-colors text-lg"
-                >
-                  View Grid
-                </button>
+                <div className="space-y-3">
+                  <button
+                    onClick={handleCopyResults}
+                    className="w-full bg-green-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-700 transition-colors text-lg flex items-center justify-center gap-2"
+                  >
+                    {copySuccess ? (
+                      <>
+                        <span>✓</span>
+                        <span>Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>📋</span>
+                        <span>Share Results</span>
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => setShowCompletionModal(false)}
+                    className="w-full bg-white text-blue-600 font-bold py-3 px-6 rounded-lg hover:bg-blue-50 transition-colors text-lg"
+                  >
+                    View Grid
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -450,7 +494,7 @@ export default function HoopGridGame() {
                           )}
                           {cell.isCorrect && (
                             <div className="text-xs text-green-300 mt-0.5 font-semibold">
-                              {cell.rarity === 0 ? '✨ Unique!' : `${cell.rarity} picks`}
+                              {cell.rarity === 0 ? '✨ 0%' : `${(cell.rarity || 0).toFixed(1)}%`}
                             </div>
                           )}
                         </div>
@@ -528,7 +572,7 @@ export default function HoopGridGame() {
             <p>🎯 You have 9 guesses to complete the grid</p>
             <p>🔍 Find a player that matches both the row and column criteria</p>
             <p>🚫 Each player can only be used once per grid</p>
-            <p>⭐ Lower rarity scores are better (unique picks score 0)</p>
+            <p>⭐ Rarity % = how many people picked that player (lower is better!)</p>
             <p>✅ Green = Correct | ❌ Red = Wrong</p>
             <p>🏆 Complete all 9 cells to finish the puzzle!</p>
             <p className="pt-2 border-t border-gray-700 font-semibold text-yellow-400">
