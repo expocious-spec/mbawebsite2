@@ -137,20 +137,25 @@ export default function MinigamesPage() {
         </div>
 
         {/* HoopGrids Daily Leaderboard */}
-        {leaderboard.length > 0 && (
-          <div className="mt-16">
-            <div className="bg-gradient-to-r from-yellow-600 to-orange-600 rounded-t-xl p-6">
-              <h2 className="text-3xl font-bold text-white flex items-center gap-3">
-                <span>🏆</span>
-                <span>Today's HoopGrids Leaderboard</span>
-              </h2>
-              <p className="text-yellow-100 mt-2">Lowest rarity score wins • Resets daily at midnight</p>
-            </div>
-            
-            <div className="bg-gray-800 rounded-b-xl border-2 border-gray-700 border-t-0 overflow-hidden">
-              {loadingLeaderboard ? (
-                <div className="p-8 text-center text-gray-400">Loading leaderboard...</div>
-              ) : (
+        <div className="mt-16">
+          <div className="bg-gradient-to-r from-yellow-600 to-orange-600 rounded-t-xl p-6">
+            <h2 className="text-3xl font-bold text-white flex items-center gap-3">
+              <span>🏆</span>
+              <span>Today's HoopGrids Leaderboard</span>
+            </h2>
+            <p className="text-yellow-100 mt-2">Lowest rarity score wins • Resets daily at midnight</p>
+          </div>
+          
+          <div className="bg-gray-800 rounded-b-xl border-2 border-gray-700 border-t-0 overflow-hidden">
+            {loadingLeaderboard ? (
+              <div className="p-8 text-center text-gray-400">Loading leaderboard...</div>
+            ) : leaderboard.length === 0 ? (
+              <div className="p-12 text-center">
+                <div className="text-6xl mb-4">🎯</div>
+                <h3 className="text-2xl font-bold text-white mb-2">No completions yet today!</h3>
+                <p className="text-gray-400">Be the first to complete today's HoopGrid and claim the top spot.</p>
+              </div>
+            ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead className="bg-gray-900 border-b border-gray-700">
@@ -219,16 +224,16 @@ export default function MinigamesPage() {
                     </tbody>
                   </table>
                 </div>
-              )}
+              )
+            }
               
-              {leaderboard.length > 10 && (
-                <div className="p-4 bg-gray-900 text-center text-gray-400 text-sm border-t border-gray-700">
-                  Showing top 10 of {leaderboard.length} players
-                </div>
-              )}
-            </div>
+            {leaderboard.length > 10 && (
+              <div className="p-4 bg-gray-900 text-center text-gray-400 text-sm border-t border-gray-700">
+                Showing top 10 of {leaderboard.length} players
+              </div>
+            )}
           </div>
-        )}
+        </div>
 
         {/* Info Section */}
         <div className="mt-16 p-8 bg-gray-800 rounded-xl border border-gray-700">

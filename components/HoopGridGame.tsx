@@ -228,7 +228,8 @@ export default function HoopGridGame() {
       setGrid(newGrid);
 
       if (result.isValid) {
-        setTotalRarity(prev => prev + result.rarity);
+        const newRarity = totalRarity + result.rarity;
+        setTotalRarity(newRarity);
         
         // Check if puzzle is complete
         const correctCount = newGrid.flat().filter(cell => cell?.isCorrect).length;
@@ -241,10 +242,12 @@ export default function HoopGridGame() {
             body: JSON.stringify({
               puzzleId: puzzle.id,
               userId,
-              rarityScore: result.rarity + (totalRarity || 0),
+              rarityScore: newRarity,
               completionTime,
             }),
           });
+          setAlreadyCompleted(true);
+          setGuessesRemaining(0);
           setShowCompletionModal(true);
         }
       }
