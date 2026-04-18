@@ -62,7 +62,19 @@ export default function HoopGridGame() {
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [startTime] = useState(Date.now());
   const [timeToNextPuzzle, setTimeToNextPuzzle] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
   const searchTimeoutRef = useRef<NodeJS.Timeout>();
+
+  // Track used player IDs
+  const usedPlayerIds = useMemo(() => {
+    const ids = new Set<string>();
+    grid.flat().forEach(cell => {
+      if (cell?.playerId) {
+        ids.add(cell.playerId);
+      }
+    });
+    return ids;
+  }, [grid]);
 
   useEffect(() => {
     loadPuzzle();
@@ -150,12 +162,14 @@ export default function HoopGridGame() {
       try {
         const res = await fetch(`/api/players?search=${encodeURIComponent(query)}`);
         const players = await res.json();
-        setSearchResults(players.slice(0, 10));
+        // Filter out already used players
+        const availablePlayers = players.filter((p: Player) => !usedPlayerIds.has(p.id));
+        setSearchResults(availablePlayers.slice(0, 10));
       } catch (error) {
         console.error('Search failed:', error);
       }
     }, 300); // 300ms debounce
-  }, []);
+  }, [usedPlayerIds]);
 
   const handleCellClick = useCallback((row: number, col: number) => {
     if (grid[row][col]) return;
@@ -164,11 +178,19 @@ export default function HoopGridGame() {
     setSelectedCell({ row, col });
     setSearchQuery('');
     setSearchResults([]);
+    setErrorMessage(''); // Clear any previous error
   }, [grid, guessesRemaining, alreadyCompleted]);
 
   const handlePlayerSelect = useCallback(async (player: Player) => {
     if (!selectedCell || !puzzle) return;
 
+    // Check if player has already been used
+    if (usedPlayerIds.has(player.id)) {
+      setErrorMessage('This player has already been used in the grid!');
+      return;
+    }
+
+    setErrorMessage(''); // Clear error
     const { row, col } = selectedCell;
     const userId = session?.user?.id;
 
@@ -226,7 +248,7 @@ export default function HoopGridGame() {
     } catch (error) {
       console.error('Validation failed:', error);
     }
-  }, [selectedCell, puzzle, session, grid, totalRarity, startTime]);
+  }, [selectedCell, puzzle, session, grid, totalRarity, startTime, usedPlayerIds]);
 
   // Memoized calculations for performance
   const completedCells = useMemo(() => 
@@ -452,6 +474,12 @@ export default function HoopGridGame() {
               className="w-full px-4 py-3 bg-gray-900 border-2 border-gray-700 rounded-lg focus:outline-none focus:border-blue-500 text-white placeholder-gray-400"
               autoFocus
             />
+            {errorMessage && (
+              <div className="mt-3 bg-red-500/20 border-2 border-red-500 rounded-lg px-4 py-3 text-red-200 text-sm font-semibold flex items-center gap-2">
+                <span className="text-xl">⚠️</span>
+                {errorMessage}
+              </div>
+            )}
             {searchResults.length > 0 && (
               <div className="mt-3 bg-gray-900 border-2 border-gray-700 rounded-xl max-h-80 overflow-y-auto">
                 {searchResults.map(player => (
@@ -488,6 +516,7 @@ export default function HoopGridGame() {
           <div className="space-y-2 text-gray-300 text-sm">
             <p>🎯 You have 9 guesses to complete the grid</p>
             <p>🔍 Find a player that matches both the row and column criteria</p>
+            <p>🚫 Each player can only be used once per grid</p>
             <p>⭐ Lower rarity scores are better (unique picks score 0)</p>
             <p>✅ Green = Correct | ❌ Red = Wrong</p>
             <p>🏆 Complete all 9 cells to finish the puzzle!</p>
