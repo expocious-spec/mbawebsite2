@@ -8,7 +8,7 @@ import Image from 'next/image';
 
 interface Transaction {
   id: string;
-  type: 'contract' | 'role_assignment' | 'trade' | 'release';
+  type: 'contract' | 'role_assignment' | 'trade' | 'release' | 'demand';
   playerId: string;
   teamId: string;
   fromUserId?: string;
@@ -261,8 +261,6 @@ export default function TransactionsPage() {
         return <TrendingDown className="w-6 h-6 text-orange-500" />;
       }
       return <UserCog className="w-6 h-6 text-purple-500" />;
-    } else if (transaction.type === 'sign') {
-      return <CheckCircle2 className="w-6 h-6 text-green-500" />;
     } else if (transaction.type === 'release') {
       return <TrendingDown className="w-6 h-6 text-orange-500" />;
     } else if (transaction.type === 'trade') {
