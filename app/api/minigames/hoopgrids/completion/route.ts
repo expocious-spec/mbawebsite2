@@ -103,6 +103,23 @@ export async function POST(request: NextRequest) {
 
     if (error) throw error;
 
+    // Send to Discord webhook (non-blocking)
+    try {
+      fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/minigames/hoopgrids/webhook`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          puzzleId,
+          userId,
+          rarityScore,
+          completionTime,
+        }),
+      }).catch(err => console.error('Webhook call failed:', err));
+    } catch (webhookError) {
+      // Don't fail the completion if webhook fails
+      console.error('Error triggering webhook:', webhookError);
+    }
+
     return NextResponse.json({ success: true, completion: data });
   } catch (error) {
     console.error('Error saving completion:', error);
