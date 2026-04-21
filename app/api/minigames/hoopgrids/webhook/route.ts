@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
       .order('rarity_score', { ascending: true })
       .order('completion_time', { ascending: true });
 
-    const userRank = completions?.findIndex(c => c.user_id === userId) + 1 || 0;
+    const userRank = completions ? completions.findIndex(c => c.user_id === userId) + 1 : 0;
 
     // Get user's attempt details
     const { data: attempts } = await supabaseAdmin
