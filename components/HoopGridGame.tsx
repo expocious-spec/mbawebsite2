@@ -143,15 +143,15 @@ export default function HoopGridGame() {
 
     searchTimeoutRef.current = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/players?search=${encodeURIComponent(query)}`);
+        const res = await fetch(`/api/minigames/hoopgrids/search?q=${encodeURIComponent(query)}`);
         const players = await res.json();
         // Filter out already used players
         const availablePlayers = players.filter((p: Player) => !usedPlayerIds.has(p.id));
-        setSearchResults(availablePlayers.slice(0, 10));
+        setSearchResults(availablePlayers);
       } catch (error) {
         console.error('Search failed:', error);
       }
-    }, 300); // 300ms debounce
+    }, 150); // 150ms debounce - faster response
   }, [usedPlayerIds]);
 
   const handleCellClick = useCallback((row: number, col: number) => {
