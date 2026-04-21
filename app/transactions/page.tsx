@@ -286,8 +286,6 @@ export default function TransactionsPage() {
         return <span className="px-3 py-1 rounded-full text-xs font-medium bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400">Demotion</span>;
       }
       return <span className="px-3 py-1 rounded-full text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400">Role Change</span>;
-    } else if (transaction.type === 'sign') {
-      return <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">Signed</span>;
     } else if (transaction.type === 'release') {
       return <span className="px-3 py-1 rounded-full text-xs font-medium bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400">Released</span>;
     } else if (transaction.type === 'trade') {
