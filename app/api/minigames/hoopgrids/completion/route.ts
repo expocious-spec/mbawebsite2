@@ -39,14 +39,19 @@ export async function GET(request: NextRequest) {
         (attempts || []).map(async (attempt) => {
           const { data: player } = await supabaseAdmin
             .from('users')
-            .select('displayName, minecraftUsername, profilePicture')
+            .select('username, minecraft_username, minecraft_user_id, avatar_url')
             .eq('id', attempt.guessed_player_id)
             .single();
 
+          // Generate Minecraft avatar from UUID if available
+          const avatarUrl = player?.minecraft_user_id 
+            ? `https://crafatar.com/avatars/${player.minecraft_user_id}?size=128&overlay`
+            : player?.avatar_url;
+
           return {
             ...attempt,
-            player_name: player?.minecraftUsername || player?.displayName || 'Unknown',
-            player_picture: player?.profilePicture,
+            player_name: player?.minecraft_username || player?.username || 'Unknown',
+            player_picture: avatarUrl,
             stat_value: attempt.stat_value,
             stat_label: attempt.stat_label,
           };

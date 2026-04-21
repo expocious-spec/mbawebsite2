@@ -51,7 +51,7 @@ interface Player {
 }
 
 export default function HoopGridGame() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [puzzle, setPuzzle] = useState<Puzzle | null>(null);
   const [grid, setGrid] = useState<(CellState | null)[][]>(Array(3).fill(null).map(() => Array(3).fill(null)));
   const [selectedCell, setSelectedCell] = useState<{ row: number; col: number } | null>(null);
@@ -299,11 +299,30 @@ export default function HoopGridGame() {
     });
   }, [puzzle, grid, totalRarity, completedCells]);
 
-  if (loading) {
+  if (loading || status === 'loading') {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-900">
         <div className="text-2xl font-bold text-blue-400">
           Loading puzzle...
+        </div>
+      </div>
+    );
+  }
+
+  // Require authentication
+  if (!session || status === 'unauthenticated') {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-900">
+        <div className="max-w-md text-center">
+          <div className="text-6xl mb-4">🔒</div>
+          <h2 className="text-3xl font-bold text-white mb-4">Login Required</h2>
+          <p className="text-gray-300 mb-6">You must be logged in to play HoopGrids.</p>
+          <button
+            onClick={() => window.location.href = '/auth/signin'}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg transition-colors"
+          >
+            Sign In to Play
+          </button>
         </div>
       </div>
     );

@@ -33,7 +33,7 @@ export async function GET() {
     const userIds = completions.map(c => c.user_id);
     const { data: users } = await supabaseAdmin
       .from('users')
-      .select('id, displayName, minecraftUsername, profilePicture')
+      .select('id, username, minecraft_username, minecraft_user_id, avatar_url')
       .in('id', userIds);
 
     // Map users by ID for quick lookup
@@ -42,11 +42,16 @@ export async function GET() {
     // Build leaderboard with user info
     const leaderboard = completions.map((completion, index) => {
       const user = userMap.get(completion.user_id);
+      // Generate Minecraft avatar from UUID if available
+      const avatarUrl = user?.minecraft_user_id 
+        ? `https://crafatar.com/avatars/${user.minecraft_user_id}?size=128&overlay`
+        : user?.avatar_url;
+      
       return {
         rank: index + 1,
         userId: completion.user_id,
-        displayName: user?.minecraftUsername || user?.displayName || 'Anonymous',
-        profilePicture: user?.profilePicture,
+        displayName: user?.minecraft_username || user?.username || 'Anonymous',
+        profilePicture: avatarUrl,
         rarityScore: completion.rarity_score,
         completionTime: completion.completion_time,
         completedAt: completion.completed_at,
