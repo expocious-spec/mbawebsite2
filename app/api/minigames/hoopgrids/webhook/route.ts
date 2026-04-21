@@ -1,10 +1,10 @@
 import { supabaseAdmin } from '@/lib/supabase';
 import { NextRequest, NextResponse } from 'next/server';
 
-// Send completion data to Discord webhook
+// Send completion data to Discord bot API
 export async function POST(request: NextRequest) {
   try {
-    const { puzzleId, userId, rarityScore, completionTime, correctCells } = await request.json();
+    const { puzzleId, userId, rarityScore, completionTime } = await request.json();
 
     if (!puzzleId || !userId) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
     // Get user details
     const { data: user } = await supabaseAdmin
       .from('users')
-      .select('username, discord_username, discord_user_id, minecraft_username, avatar_url')
+      .select('username, discord_username, discord_user_id, minecraft_username, avatar_url, minecraft_user_id')
       .eq('id', userId)
       .single();
 
@@ -48,115 +48,76 @@ export async function POST(request: NextRequest) {
     const totalCells = 9;
     const correctCount = attempts?.filter(a => a.is_correct).length || 0;
     const completionPercentage = Math.round((correctCount / totalCells) * 100);
+    const isPerfect = correctCount === 9;
 
-    // Calculate accuracy emoji
-    const getAccuracyEmoji = (correct: number) => {
-      if (correct === 9) return '🏆';
-      if (correct >= 7) return '⭐';
-      if (correct >= 5) return '✅';
-      return '📊';
-    };
-
-    // Format time
-    const formatTime = (seconds: number) => {
-      const mins = Math.floor(seconds / 60);
-      const secs = seconds % 60;
-      return mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
-    };
-
-    // Prepare Discord embed data
-    const webhookData = {
-      userId: user.discord_user_id,
-      username: user.discord_username || user.username,
-      minecraftUsername: user.minecraft_username,
-      avatarUrl: user.avatar_url,
-      puzzleDate: puzzle?.puzzle_date || 'Unknown',
-      rarityScore: parseFloat(rarityScore.toFixed(2)),
-      completionTime: completionTime,
-      formattedTime: formatTime(completionTime),
-      correctCells: correctCount,
-      totalCells: totalCells,
-      completionPercentage: completionPercentage,
-      rank: userRank,
-      totalPlayers: completions?.length || 0,
-      emoji: getAccuracyEmoji(correctCount),
+    // Prepare data payload for Discord bot
+    const botPayload = {
+      minigame: 'hoopgrids',
+      minigameName: 'HoopGrids',
+      player: {
+        userId: user.discord_user_id,
+        username: user.username,
+        discordUsername: user.discord_username,
+        minecraftUsername: user.minecraft_username,
+        minecraftUserId: user.minecraft_user_id,
+        avatarUrl: user.avatar_url,
+      },
+      completion: {
+        puzzleDate: puzzle?.puzzle_date || 'Unknown',
+        score: {
+          correct: correctCount,
+          total: totalCells,
+          percentage: completionPercentage,
+          isPerfect: isPerfect,
+        },
+        rarity: {
+          score: parseFloat(rarityScore.toFixed(2)),
+          formatted: `${parseFloat(rarityScore.toFixed(2))}%`,
+        },
+        time: {
+          seconds: completionTime,
+          formatted: completionTime >= 60 
+            ? `${Math.floor(completionTime / 60)}m ${completionTime % 60}s`
+            : `${completionTime}s`,
+        },
+        rank: {
+          position: userRank,
+          total: completions?.length || 0,
+          formatted: `#${userRank} of ${completions?.length || 0}`,
+        },
+      },
       timestamp: new Date().toISOString(),
     };
 
-    // Send to Discord webhook (environment variable)
-    const webhookUrl = process.env.HOOPGRIDS_DISCORD_WEBHOOK_URL;
+    // Send to Discord bot API
+    const botApiUrl = process.env.DISCORD_BOT_API_URL;
     
-    if (webhookUrl) {
+    if (botApiUrl) {
       try {
-        const discordResponse = await fetch(webhookUrl, {
+        const botResponse = await fetch(`${botApiUrl}/minigames/completion`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            embeds: [{
-              title: `${webhookData.emoji} HoopGrids Completion`,
-              description: `**${webhookData.username}** completed today's HoopGrids!`,
-              color: correctCount === 9 ? 0xFFD700 : // Gold for perfect
-                     correctCount >= 7 ? 0x00FF00 : // Green for great
-                     correctCount >= 5 ? 0x3B82F6 : // Blue for good
-                     0x9CA3AF, // Gray for okay
-              fields: [
-                {
-                  name: '📊 Score',
-                  value: `${correctCount}/${totalCells} correct (${completionPercentage}%)`,
-                  inline: true
-                },
-                {
-                  name: '🎯 Rarity',
-                  value: `${webhookData.rarityScore}%`,
-                  inline: true
-                },
-                {
-                  name: '⏱️ Time',
-                  value: webhookData.formattedTime,
-                  inline: true
-                },
-                {
-                  name: '🏆 Rank',
-                  value: `#${webhookData.rank} of ${webhookData.totalPlayers}`,
-                  inline: true
-                },
-                {
-                  name: '📅 Date',
-                  value: webhookData.puzzleDate,
-                  inline: true
-                },
-                {
-                  name: '🎮 Player',
-                  value: webhookData.minecraftUsername || webhookData.username,
-                  inline: true
-                }
-              ],
-              thumbnail: webhookData.avatarUrl ? {
-                url: webhookData.avatarUrl
-              } : undefined,
-              timestamp: webhookData.timestamp,
-              footer: {
-                text: 'MBA HoopGrids'
-              }
-            }]
-          }),
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${process.env.BOT_SECRET_KEY || ''}`,
+          },
+          body: JSON.stringify(botPayload),
         });
 
-        if (!discordResponse.ok) {
-          console.error('Discord webhook failed:', await discordResponse.text());
+        if (!botResponse.ok) {
+          console.error('Bot API call failed:', await botResponse.text());
         }
-      } catch (webhookError) {
-        console.error('Error sending to Discord webhook:', webhookError);
-        // Don't fail the request if webhook fails
+      } catch (botError) {
+        console.error('Error sending to bot API:', botError);
+        // Don't fail the request if bot call fails
       }
     } else {
-      console.warn('HOOPGRIDS_DISCORD_WEBHOOK_URL not configured');
+      console.warn('DISCORD_BOT_API_URL not configured');
     }
 
     return NextResponse.json({ 
       success: true, 
-      data: webhookData,
-      webhookSent: !!webhookUrl 
+      data: botPayload,
+      botNotified: !!botApiUrl 
     });
   } catch (error) {
     console.error('Error in webhook handler:', error);
