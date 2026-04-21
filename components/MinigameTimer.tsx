@@ -7,16 +7,22 @@ export default function MinigameTimer() {
 
   useEffect(() => {
     const updateCountdown = () => {
-      // Use UTC midnight for consistency with API
+      // Use EST midnight for consistency with API
       const now = new Date();
-      const tomorrow = new Date(Date.UTC(
-        now.getUTCFullYear(),
-        now.getUTCMonth(),
-        now.getUTCDate() + 1,
-        0, 0, 0, 0
-      ));
       
-      const diff = tomorrow.getTime() - now.getTime();
+      // Get current time in EST
+      const estNow = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+      
+      // Get tomorrow at midnight EST
+      const tomorrow = new Date(estNow);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(0, 0, 0, 0);
+      
+      // Convert back to UTC for calculation
+      const estOffset = new Date().getTimezoneOffset() * 60000;
+      const tomorrowEST = new Date(tomorrow.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+      const diff = tomorrowEST.getTime() - estNow.getTime();
+      
       const hours = Math.floor(diff / (1000 * 60 * 60));
       const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((diff % (1000 * 60)) / 1000);
@@ -34,7 +40,7 @@ export default function MinigameTimer() {
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-sm font-medium text-gray-400">Next Daily Reset</h3>
-          <p className="text-xs text-gray-500 mt-0.5">All minigames reset at midnight UTC</p>
+          <p className="text-xs text-gray-500 mt-0.5">All minigames reset at midnight EST</p>
         </div>
         <div className="text-right">
           <div className="text-2xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400 bg-clip-text text-transparent">

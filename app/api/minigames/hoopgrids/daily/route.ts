@@ -5,11 +5,10 @@ import { validateCriterionHasPlayers, validateTeamHasPlayers } from '@/lib/hoopg
 // Generate or fetch today's hoopgrid puzzle
 export async function GET() {
   try {
-    // Use UTC date consistently
+    // Use EST timezone (America/New_York)
     const now = new Date();
-    const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
-      .toISOString()
-      .split('T')[0]; // YYYY-MM-DD in UTC
+    const estDate = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+    const today = `${estDate.getFullYear()}-${String(estDate.getMonth() + 1).padStart(2, '0')}-${String(estDate.getDate()).padStart(2, '0')}`; // YYYY-MM-DD in EST
 
     // Check if puzzle exists for today
     const { data: existingPuzzle } = await supabaseAdmin

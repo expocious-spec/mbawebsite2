@@ -110,7 +110,7 @@ export default function MinigamesAdmin() {
         <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
           <li className="flex items-start">
             <span className="text-purple-500 mr-2">•</span>
-            <span>Puzzles are generated using UTC dates and rotate at midnight UTC</span>
+            <span>Puzzles are generated using EST dates and rotate at midnight EST</span>
           </li>
           <li className="flex items-start">
             <span className="text-purple-500 mr-2">•</span>
@@ -130,10 +130,13 @@ export default function MinigamesAdmin() {
       {/* Current Time Info */}
       <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
         <p className="text-sm text-blue-800 dark:text-blue-200">
-          <strong>Current UTC Time:</strong> {new Date().toUTCString()}
+          <strong>Current EST Time:</strong> {new Date().toLocaleString('en-US', { timeZone: 'America/New_York', dateStyle: 'full', timeStyle: 'long' })}
         </p>
         <p className="text-sm text-blue-800 dark:text-blue-200 mt-1">
-          <strong>Current UTC Date:</strong> {new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate())).toISOString().split('T')[0]}
+          <strong>Current EST Date:</strong> {(() => {
+            const estDate = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }));
+            return `${estDate.getFullYear()}-${String(estDate.getMonth() + 1).padStart(2, '0')}-${String(estDate.getDate()).padStart(2, '0')}`;
+          })()}
         </p>
       </div>
     </div>

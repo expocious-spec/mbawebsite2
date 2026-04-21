@@ -15,11 +15,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get today's UTC date
+    // Get today's EST date
     const now = new Date();
-    const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
-      .toISOString()
-      .split('T')[0];
+    const estDate = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+    const today = `${estDate.getFullYear()}-${String(estDate.getMonth() + 1).padStart(2, '0')}-${String(estDate.getDate()).padStart(2, '0')}`;
 
     // Delete today's puzzle (if exists)
     const { error: deleteError } = await supabaseAdmin
