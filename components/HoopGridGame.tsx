@@ -63,7 +63,6 @@ export default function HoopGridGame() {
   const [alreadyCompleted, setAlreadyCompleted] = useState(false);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [startTime] = useState(Date.now());
-  const [timeToNextPuzzle, setTimeToNextPuzzle] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [copySuccess, setCopySuccess] = useState(false);
   const searchTimeoutRef = useRef<NodeJS.Timeout>();
@@ -90,27 +89,6 @@ export default function HoopGridGame() {
         clearTimeout(searchTimeoutRef.current);
       }
     };
-  }, []);
-
-  // Countdown timer
-  useEffect(() => {
-    const updateCountdown = () => {
-      const now = new Date();
-      const tomorrow = new Date(now);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      tomorrow.setHours(0, 0, 0, 0);
-      
-      const diff = tomorrow.getTime() - now.getTime();
-      const hours = Math.floor(diff / (1000 * 60 * 60));
-      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-      
-      setTimeToNextPuzzle(`${hours}h ${minutes}m ${seconds}s`);
-    };
-
-    updateCountdown();
-    const interval = setInterval(updateCountdown, 1000);
-    return () => clearInterval(interval);
   }, []);
 
   const loadPuzzle = async () => {
@@ -235,7 +213,7 @@ export default function HoopGridGame() {
         // Check if puzzle is complete
         const correctCount = newGrid.flat().filter(cell => cell?.isCorrect).length;
         if (correctCount === 9 && userId) {
-          // Save completion
+          // Save completion - perfect game
           const completionTime = Math.floor((Date.now() - startTime) / 1000);
           await fetch('/api/minigames/hoopgrids/completion', {
             method: 'POST',
@@ -250,12 +228,40 @@ export default function HoopGridGame() {
           setAlreadyCompleted(true);
           setGuessesRemaining(0);
           setShowCompletionModal(true);
+        } else if (newGuessesRemaining === 0 && userId) {
+          // Save completion - used all guesses but not perfect
+          const completionTime = Math.floor((Date.now() - startTime) / 1000);
+          await fetch('/api/minigames/hoopgrids/completion', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              puzzleId: puzzle.id,
+              userId,
+              rarityScore: newRarity,
+              completionTime,
+            }),
+          });
+          setAlreadyCompleted(true);
+          setShowCompletionModal(true);
         }
-      }
-
-      // Show completion modal when last guess is used (game over)
-      if (newGuessesRemaining === 0) {
-        setShowCompletionModal(true);
+      } else {
+        // Wrong answer - check if game over
+        if (newGuessesRemaining === 0 && userId) {
+          // Save completion - game over
+          const completionTime = Math.floor((Date.now() - startTime) / 1000);
+          await fetch('/api/minigames/hoopgrids/completion', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              puzzleId: puzzle.id,
+              userId,
+              rarityScore: totalRarity,
+              completionTime,
+            }),
+          });
+          setAlreadyCompleted(true);
+          setShowCompletionModal(true);
+        }
       }
 
       setSelectedCell(null);
@@ -328,9 +334,6 @@ export default function HoopGridGame() {
               day: 'numeric' 
             })}
           </p>
-          <div className="mt-3 inline-block bg-gray-800 text-gray-300 px-6 py-2 rounded-lg border border-gray-700">
-            <span className="text-yellow-400 font-semibold">⏰</span> Next puzzle in {timeToNextPuzzle}
-          </div>
           {alreadyCompleted && (
             <div className="mt-2 inline-block bg-green-600 text-white px-6 py-2 rounded-lg font-semibold">
               ✓ Completed Today
@@ -358,27 +361,27 @@ export default function HoopGridGame() {
         {/* Completion Modal */}
         {showCompletionModal && (
           <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 px-4">
-            <div className="bg-gradient-to-br from-blue-600 to-purple-700 rounded-2xl p-8 max-w-md w-full shadow-2xl border-4 border-yellow-400 transform animate-bounce-in">
+            <div className="bg-gray-800 rounded-xl p-6 max-w-sm w-full shadow-2xl border-2 border-gray-700 transform animate-bounce-in">
               <div className="text-center">
-                <div className="text-6xl mb-4">{isComplete ? '🎉' : '⏰'}</div>
-                <h2 className="text-4xl font-bold text-white mb-2">{isComplete ? 'Congratulations!' : 'Game Over!'}</h2>
-                <p className="text-xl text-blue-100 mb-6">{isComplete ? 'You completed today\'s HoopGrid!' : 'You\'ve used all your guesses!'}</p>
+                <div className="text-5xl mb-3">{isComplete ? '🎉' : '⏰'}</div>
+                <h2 className="text-2xl font-bold text-white mb-1">{isComplete ? 'Congratulations!' : 'Game Over!'}</h2>
+                <p className="text-sm text-gray-300 mb-4">{isComplete ? 'You completed today\'s HoopGrid!' : 'You\'ve used all your guesses!'}</p>
                 
-                <div className="bg-white/20 rounded-xl p-6 mb-6 backdrop-blur-sm">
-                  <div className="space-y-4">
+                <div className="bg-gray-900/80 rounded-lg p-4 mb-4">
+                  <div className="space-y-3">
                     {/* Visual Grid Result */}
                     <div>
-                      <p className="text-sm text-blue-200 font-semibold mb-3 text-center">Your Grid</p>
-                      <div className="grid grid-cols-3 gap-2">
+                      <p className="text-xs text-gray-400 font-semibold mb-2 text-center">Your Grid</p>
+                      <div className="grid grid-cols-3 gap-1.5">
                         {grid.flat().map((cell, idx) => (
                           <div 
                             key={idx}
-                            className={`aspect-square rounded-lg flex flex-col items-center justify-center p-2 ${
+                            className={`aspect-square rounded-md flex flex-col items-center justify-center p-1.5 ${
                               cell?.isCorrect 
-                                ? 'bg-green-500/30 border-2 border-green-400' 
+                                ? 'bg-green-500/20 border border-green-400' 
                                 : cell 
-                                ? 'bg-red-500/30 border-2 border-red-400' 
-                                : 'bg-gray-700/30 border-2 border-gray-600'
+                                ? 'bg-red-500/20 border border-red-400' 
+                                : 'bg-gray-700/30 border border-gray-600'
                             }`}
                           >
                             {cell ? (
@@ -387,18 +390,18 @@ export default function HoopGridGame() {
                                   <img 
                                     src={cell.playerPicture} 
                                     alt={cell.playerName}
-                                    className="w-10 h-10 rounded-md mb-1"
+                                    className="w-8 h-8 rounded-sm mb-0.5"
                                   />
                                 )}
-                                <div className="text-[10px] font-bold text-white text-center leading-tight">
+                                <div className="text-[9px] font-bold text-white text-center leading-tight line-clamp-1">
                                   {cell.playerName}
                                 </div>
-                                <div className="text-lg mt-0.5">
+                                <div className="text-sm mt-0.5">
                                   {cell.isCorrect ? '✓' : '✗'}
                                 </div>
                               </>
                             ) : (
-                              <div className="text-2xl text-gray-500">?</div>
+                              <div className="text-xl text-gray-500">?</div>
                             )}
                           </div>
                         ))}
@@ -406,20 +409,20 @@ export default function HoopGridGame() {
                     </div>
 
                     {/* Stats */}
-                    <div className="space-y-2 pt-2 border-t border-white/20">
+                    <div className="space-y-1.5 pt-2 border-t border-gray-700">
                       <div className="flex justify-between items-center">
-                        <span className="text-blue-100 font-semibold">Rarity Score:</span>
-                        <span className="text-2xl font-bold text-yellow-300">{totalRarity.toFixed(1)}%</span>
+                        <span className="text-gray-300 text-sm font-semibold">Rarity Score:</span>
+                        <span className="text-xl font-bold text-yellow-400">{totalRarity.toFixed(1)}%</span>
                       </div>
-                      <div className="text-xs text-blue-200">Lower is better! 0% = all unique picks</div>
+                      <div className="text-[10px] text-gray-400">Lower is better! 0% = all unique picks</div>
                       <div className="flex justify-between items-center">
-                        <span className="text-blue-100 font-semibold">Correct Cells:</span>
-                        <span className="text-2xl font-bold text-green-300">{completedCells}/9</span>
+                        <span className="text-gray-300 text-sm font-semibold">Correct Cells:</span>
+                        <span className="text-xl font-bold text-green-400">{completedCells}/9</span>
                       </div>
                       {isComplete && (
                         <div className="flex justify-between items-center">
-                          <span className="text-blue-100 font-semibold">Time:</span>
-                          <span className="text-xl font-bold text-white">
+                          <span className="text-gray-300 text-sm font-semibold">Time:</span>
+                          <span className="text-lg font-bold text-blue-400">
                             {Math.floor((Date.now() - startTime) / 60000)}m {Math.floor(((Date.now() - startTime) % 60000) / 1000)}s
                           </span>
                         </div>
@@ -428,15 +431,10 @@ export default function HoopGridGame() {
                   </div>
                 </div>
 
-                <div className="bg-gray-900/50 rounded-xl p-4 mb-4">
-                  <p className="text-sm text-blue-200 font-semibold mb-2">Next Puzzle Available In:</p>
-                  <p className="text-3xl font-bold text-yellow-300">{timeToNextPuzzle}</p>
-                </div>
-
-                <div className="space-y-3">
+                <div className="space-y-2">
                   <button
                     onClick={handleCopyResults}
-                    className="w-full bg-green-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-700 transition-colors text-lg flex items-center justify-center gap-2"
+                    className="w-full bg-green-600 text-white font-bold py-2.5 px-4 rounded-lg hover:bg-green-700 transition-colors text-sm flex items-center justify-center gap-2"
                   >
                     {copySuccess ? (
                       <>
@@ -452,7 +450,7 @@ export default function HoopGridGame() {
                   </button>
                   <button
                     onClick={() => window.location.href = '/minigames'}
-                    className="w-full bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors text-lg"
+                    className="w-full bg-blue-600 text-white font-bold py-2.5 px-4 rounded-lg hover:bg-blue-700 transition-colors text-sm"
                   >
                     Exit to Menu
                   </button>

@@ -261,6 +261,14 @@ export default function TransactionsPage() {
         return <TrendingDown className="w-6 h-6 text-orange-500" />;
       }
       return <UserCog className="w-6 h-6 text-purple-500" />;
+    } else if (transaction.type === 'sign') {
+      return <CheckCircle2 className="w-6 h-6 text-green-500" />;
+    } else if (transaction.type === 'release') {
+      return <TrendingDown className="w-6 h-6 text-orange-500" />;
+    } else if (transaction.type === 'trade') {
+      return <TrendingUp className="w-6 h-6 text-blue-500" />;
+    } else if (transaction.type === 'demand') {
+      return <Clock className="w-6 h-6 text-red-500" />;
     }
     return <FileText className="w-6 h-6 text-gray-500" />;
   };
@@ -280,6 +288,14 @@ export default function TransactionsPage() {
         return <span className="px-3 py-1 rounded-full text-xs font-medium bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400">Demotion</span>;
       }
       return <span className="px-3 py-1 rounded-full text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400">Role Change</span>;
+    } else if (transaction.type === 'sign') {
+      return <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">Signed</span>;
+    } else if (transaction.type === 'release') {
+      return <span className="px-3 py-1 rounded-full text-xs font-medium bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400">Released</span>;
+    } else if (transaction.type === 'trade') {
+      return <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">Traded</span>;
+    } else if (transaction.type === 'demand') {
+      return <span className="px-3 py-1 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400">Demand</span>;
     }
     return <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-400">{transaction.type}</span>;
   };
@@ -321,8 +337,10 @@ export default function TransactionsPage() {
               <option value="all">All Types</option>
               <option value="contract">Contracts</option>
               <option value="role_assignment">Role Changes</option>
+              <option value="sign">Signings</option>
               <option value="trade">Trades</option>
               <option value="release">Releases</option>
+              <option value="demand">Demands</option>
             </select>
           </div>
 

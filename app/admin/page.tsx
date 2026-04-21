@@ -1,14 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { Shield, UserPlus, Users, Calendar, FileText, LogOut, TrendingUp, Award, Settings, Tv, Send } from 'lucide-react';
+import { Shield, UserPlus, Users, Calendar, FileText, LogOut, TrendingUp, Award, Settings, Tv, Send, Gamepad2 } from 'lucide-react';
 import { useSession, signIn, signOut } from 'next-auth/react';
-import { PlayersAdmin, TeamsAdmin, GamesAdmin, ArticlesAdmin, GameStatsAdmin, AccoladesAdmin, LiveStreamAdmin, ContractOffersAdmin } from '@/components/admin';
+import { PlayersAdmin, TeamsAdmin, GamesAdmin, ArticlesAdmin, GameStatsAdmin, AccoladesAdmin, LiveStreamAdmin, ContractOffersAdmin, MinigamesAdmin } from '@/components/admin';
 import SeasonsAdmin from '@/components/admin/SeasonsAdmin';
 
 export default function AdminPage() {
   const { data: session, status } = useSession();
-  const [activeTab, setActiveTab] = useState<'players' | 'teams' | 'games' | 'articles' | 'gamestats' | 'accolades' | 'seasons' | 'livestream' | 'contracts'>('players');
+  const [activeTab, setActiveTab] = useState<'players' | 'teams' | 'games' | 'articles' | 'gamestats' | 'accolades' | 'seasons' | 'livestream' | 'contracts' | 'minigames'>('players');
 
   // Show loading state while checking authentication
   if (status === 'loading') {
@@ -187,6 +187,17 @@ export default function AdminPage() {
           <Tv className="w-5 h-5" />
           <span>Live Stream</span>
         </button>
+        <button
+          onClick={() => setActiveTab('minigames')}
+          className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-medium transition-colors ${
+            activeTab === 'minigames'
+              ? 'bg-mba-blue text-white'
+              : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+          }`}
+        >
+          <Gamepad2 className="w-5 h-5" />
+          <span>Minigames</span>
+        </button>
       </div>
 
       {/* Content */}
@@ -200,6 +211,7 @@ export default function AdminPage() {
         {activeTab === 'seasons' && <SeasonsAdmin />}
         {activeTab === 'contracts' && <ContractOffersAdmin />}
         {activeTab === 'livestream' && <LiveStreamAdmin />}
+        {activeTab === 'minigames' && <MinigamesAdmin />}
       </div>
     </div>
   );

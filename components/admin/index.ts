@@ -7,5 +7,6 @@ export { default as AccoladesAdmin } from './AccoladesAdmin';
 export { default as LiveStreamAdmin } from './LiveStreamAdmin';
 export { default as ContractOffersAdmin } from './ContractOffersAdmin';
 export { default as SeasonsAdmin } from './SeasonsAdmin';
+export { default as MinigamesAdmin } from './MinigamesAdmin';
 export { default as BulkGameStatsModal } from './BulkGameStatsModal';
 

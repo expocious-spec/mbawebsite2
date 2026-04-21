@@ -5,7 +5,11 @@ import { validateCriterionHasPlayers, validateTeamHasPlayers } from '@/lib/hoopg
 // Generate or fetch today's hoopgrid puzzle
 export async function GET() {
   try {
-    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    // Use UTC date consistently
+    const now = new Date();
+    const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
+      .toISOString()
+      .split('T')[0]; // YYYY-MM-DD in UTC
 
     // Check if puzzle exists for today
     const { data: existingPuzzle } = await supabaseAdmin

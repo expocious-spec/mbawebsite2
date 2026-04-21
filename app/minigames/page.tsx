@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
+import MinigameTimer from '@/components/MinigameTimer';
 
 export default function MinigamesPage() {
   const { data: session } = useSession();
@@ -79,11 +80,16 @@ export default function MinigamesPage() {
     <div className="min-h-screen p-4 md:p-8">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-8">
           <h1 className="text-5xl font-bold mb-4">🎮 MBA Minigames</h1>
           <p className="text-xl text-gray-400">
             Test your knowledge and have fun with these interactive games
           </p>
+        </div>
+
+        {/* Timer */}
+        <div className="mb-8">
+          <MinigameTimer />
         </div>
 
         {/* Games Grid */}
