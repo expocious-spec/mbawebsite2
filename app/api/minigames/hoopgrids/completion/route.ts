@@ -1,5 +1,6 @@
 import { supabaseAdmin } from '@/lib/supabase';
 import { NextRequest, NextResponse } from 'next/server';
+import { getMinecraftHeadshot } from '@/lib/minecraft';
 
 // Check if user has completed today's puzzle
 export async function GET(request: NextRequest) {
@@ -43,15 +44,12 @@ export async function GET(request: NextRequest) {
             .eq('id', attempt.guessed_player_id)
             .single();
 
-          // Generate Minecraft avatar from UUID if available
-          const avatarUrl = player?.minecraft_user_id 
-            ? `https://crafatar.com/avatars/${player.minecraft_user_id}?size=128&overlay`
-            : player?.avatar_url;
-
           return {
             ...attempt,
             player_name: player?.minecraft_username || player?.username || 'Unknown',
-            player_picture: avatarUrl,
+            player_picture: player?.minecraft_user_id
+              ? getMinecraftHeadshot(player.minecraft_user_id, 128)
+              : player?.avatar_url || getMinecraftHeadshot(null, 128),
             stat_value: attempt.stat_value,
             stat_label: attempt.stat_label,
           };

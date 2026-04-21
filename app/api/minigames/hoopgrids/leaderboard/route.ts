@@ -1,5 +1,6 @@
 import { supabaseAdmin } from '@/lib/supabase';
 import { NextResponse } from 'next/server';
+import { getMinecraftHeadshot } from '@/lib/minecraft';
 
 // Get today's HoopGrids leaderboard
 export async function GET() {
@@ -42,16 +43,14 @@ export async function GET() {
     // Build leaderboard with user info
     const leaderboard = completions.map((completion, index) => {
       const user = userMap.get(completion.user_id);
-      // Generate Minecraft avatar from UUID if available
-      const avatarUrl = user?.minecraft_user_id 
-        ? `https://crafatar.com/avatars/${user.minecraft_user_id}?size=128&overlay`
-        : user?.avatar_url;
       
       return {
         rank: index + 1,
         userId: completion.user_id,
         displayName: user?.minecraft_username || user?.username || 'Anonymous',
-        profilePicture: avatarUrl,
+        profilePicture: user?.minecraft_user_id
+          ? getMinecraftHeadshot(user.minecraft_user_id, 128)
+          : user?.avatar_url || getMinecraftHeadshot(null, 128),
         rarityScore: completion.rarity_score,
         completionTime: completion.completion_time,
         completedAt: completion.completed_at,
