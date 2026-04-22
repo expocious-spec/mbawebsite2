@@ -70,6 +70,48 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    // Even if not completed, check for existing attempts (partial progress)
+    const { data: attempts } = await supabaseAdmin
+      .from('hoopgrid_attempts')
+      .select('*')
+      .eq('puzzle_id', puzzleId)
+      .eq('user_id', userId)
+      .order('created_at', { ascending: true });
+
+    if (attempts && attempts.length > 0) {
+      // Get player details for each attempt
+      const attemptsWithDetails = await Promise.all(
+        attempts.map(async (attempt) => {
+          const { data: player } = await supabaseAdmin
+            .from('users')
+            .select('username, minecraft_username, minecraft_user_id, avatar_url')
+            .eq('id', attempt.guessed_player_id)
+            .single();
+
+          return {
+            ...attempt,
+            player_name: player?.minecraft_username || player?.username || 'Unknown',
+            player_picture: player?.minecraft_user_id
+              ? getMinecraftHeadshot(player.minecraft_user_id, 128)
+              : player?.avatar_url || getMinecraftHeadshot(null, 128),
+            stat_value: attempt.stat_value,
+            stat_label: attempt.stat_label,
+          };
+        })
+      );
+
+      return NextResponse.json({
+        completed: false,
+        attempts: attemptsWithDetails,
+      }, {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        },
+      });
+    }
+
     return NextResponse.json({ completed: false }, {
       headers: {
         'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',

@@ -101,25 +101,42 @@ export default function HoopGridGame() {
       if (session?.user?.id && data.id) {
         const completionRes = await fetch(`/api/minigames/hoopgrids/completion?puzzleId=${data.id}&userId=${session.user.id}`);
         const completionData = await completionRes.json();
-        if (completionData.completed) {
-          setAlreadyCompleted(true);
-          // Load their previous grid
-          if (completionData.attempts) {
-            const loadedGrid: (CellState | null)[][] = Array(3).fill(null).map(() => Array(3).fill(null));
-            completionData.attempts.forEach((attempt: any) => {
-              loadedGrid[attempt.cell_row][attempt.cell_col] = {
-                playerId: attempt.guessed_player_id,
-                playerName: attempt.player_name,
-                playerPicture: attempt.player_picture,
-                isCorrect: attempt.is_correct,
-                rarity: attempt.rarity,
-                statValue: attempt.stat_value,
-                statLabel: attempt.stat_label,
-              };
-            });
-            setGrid(loadedGrid);
+        
+        // Load their previous attempts (whether completed or not)
+        if (completionData.attempts && completionData.attempts.length > 0) {
+          const loadedGrid: (CellState | null)[][] = Array(3).fill(null).map(() => Array(3).fill(null));
+          let totalRaritySum = 0;
+          let correctGuesses = 0;
+          
+          completionData.attempts.forEach((attempt: any) => {
+            loadedGrid[attempt.cell_row][attempt.cell_col] = {
+              playerId: attempt.guessed_player_id,
+              playerName: attempt.player_name,
+              playerPicture: attempt.player_picture,
+              isCorrect: attempt.is_correct,
+              rarity: attempt.rarity,
+              statValue: attempt.stat_value,
+              statLabel: attempt.stat_label,
+            };
+            
+            if (attempt.is_correct) {
+              totalRaritySum += attempt.rarity || 0;
+              correctGuesses++;
+            }
+          });
+          
+          setGrid(loadedGrid);
+          
+          if (completionData.completed) {
+            // Puzzle is fully completed
+            setAlreadyCompleted(true);
             setTotalRarity(completionData.rarity_score || 0);
             setGuessesRemaining(0);
+          } else {
+            // Partial progress - restore guesses remaining
+            const attemptCount = completionData.attempts.length;
+            setGuessesRemaining(9 - attemptCount);
+            setTotalRarity(correctGuesses > 0 ? totalRaritySum / correctGuesses : 0);
           }
         }
       }
