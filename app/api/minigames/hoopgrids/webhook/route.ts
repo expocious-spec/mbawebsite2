@@ -3,9 +3,13 @@ import { NextRequest, NextResponse } from 'next/server';
 
 // Send completion data to Discord bot API
 export async function POST(request: NextRequest) {
+  console.log('[HoopGrids Webhook] ========== WEBHOOK ENDPOINT CALLED ==========');
   try {
     console.log('[HoopGrids Webhook] Received webhook request');
-    const { puzzleId, userId, rarityScore, completionTime } = await request.json();
+    const body = await request.json();
+    console.log('[HoopGrids Webhook] Raw body:', JSON.stringify(body));
+    
+    const { puzzleId, userId, rarityScore, completionTime } = body;
     console.log('[HoopGrids Webhook] Parsed data:', { puzzleId, userId, rarityScore, completionTime });
 
     if (!puzzleId || !userId) {
@@ -156,7 +160,15 @@ export async function POST(request: NextRequest) {
       botNotified: !!botApiUrl 
     });
   } catch (error) {
-    console.error('Error in webhook handler:', error);
-    return NextResponse.json({ error: 'Failed to process webhook' }, { status: 500 });
+    console.error('[HoopGrids Webhook] ❌ FATAL ERROR in webhook handler');
+    console.error('[HoopGrids Webhook] Error details:', {
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      type: error instanceof Error ? error.constructor.name : typeof error,
+    });
+    return NextResponse.json({ 
+      error: 'Failed to process webhook',
+      details: error instanceof Error ? error.message : String(error)
+    }, { status: 500 });
   }
 }

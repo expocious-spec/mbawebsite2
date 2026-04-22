@@ -166,6 +166,10 @@ export async function POST(request: NextRequest) {
       const webhookUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/minigames/hoopgrids/webhook`;
       console.log('[HoopGrids Completion] Webhook URL:', webhookUrl);
       
+      console.log('[HoopGrids Completion] Starting fetch to webhook...');
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 25000); // 25 second timeout
+      
       const webhookResponse = await fetch(webhookUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -175,18 +179,32 @@ export async function POST(request: NextRequest) {
           rarityScore,
           completionTime,
         }),
+        signal: controller.signal,
       });
       
+      clearTimeout(timeoutId);
       console.log('[HoopGrids Completion] Webhook responded with status:', webhookResponse.status);
+      
       const responseText = await webhookResponse.text();
-      console.log('[HoopGrids Completion] Webhook response:', responseText);
+      console.log('[HoopGrids Completion] Webhook response body:', responseText.substring(0, 200));
       
       if (!webhookResponse.ok) {
         console.error('[HoopGrids Completion] Webhook failed with status:', webhookResponse.status);
+        console.error('[HoopGrids Completion] Error body:', responseText);
+      } else {
+        console.log('[HoopGrids Completion] ✅ Webhook completed successfully');
       }
     } catch (webhookError) {
       // Don't fail the completion if webhook fails
-      console.error('[HoopGrids Completion] Error triggering webhook:', webhookError);
+      if (webhookError instanceof Error) {
+        console.error('[HoopGrids Completion] Webhook error:', {
+          name: webhookError.name,
+          message: webhookError.message,
+          stack: webhookError.stack?.substring(0, 300),
+        });
+      } else {
+        console.error('[HoopGrids Completion] Webhook error (unknown):', String(webhookError));
+      }
     }
 
     return NextResponse.json({ success: true, completion: data });
