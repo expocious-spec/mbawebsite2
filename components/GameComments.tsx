@@ -65,14 +65,20 @@ export default function GameComments({ gameId, isAdmin = false }: GameCommentsPr
   }, [gameId]);
 
   const checkMinecraftLink = async () => {
-    if (!session?.user?.id) return;
+    if (!session?.user?.id) {
+      console.log('[Comments] No session user id');
+      return;
+    }
     
     try {
       // Check if user has Discord-Minecraft link (same as minigames)
       const userId = session.user.id;
+      console.log('[Comments] Checking link for userId:', userId);
       const discordId = userId.startsWith('discord-') ? userId.replace('discord-', '') : null;
+      console.log('[Comments] Extracted discordId:', discordId);
       
       if (!discordId) {
+        console.log('[Comments] No valid Discord ID found');
         setHasMinecraftLinked(false);
         return;
       }
@@ -80,9 +86,10 @@ export default function GameComments({ gameId, isAdmin = false }: GameCommentsPr
       // Check bot_discord_links table
       const res = await fetch(`/api/discord/check-link?discordId=${discordId}`);
       const data = await res.json();
+      console.log('[Comments] Link check response:', data);
       setHasMinecraftLinked(!!data.linked);
     } catch (error) {
-      console.error('Error checking Minecraft link:', error);
+      console.error('[Comments] Error checking Minecraft link:', error);
       setHasMinecraftLinked(false);
     }
   };

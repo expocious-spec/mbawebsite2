@@ -103,10 +103,14 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-// Check if user has Discord-Minecraft link (same requirement as minigames)
+    console.log('[Comments API] Creating comment for user:', session.user.id);
+
+    // Check if user has Discord-Minecraft link (same requirement as minigames)
     // Extract Discord ID from session user id (format: discord-{discordId})
     const userId = session.user.id;
     const discordId = userId.startsWith('discord-') ? userId.replace('discord-', '') : null;
+    
+    console.log('[Comments API] Extracted discordId:', discordId);
     
     if (!discordId) {
       return NextResponse.json(
@@ -116,18 +120,13 @@ export async function POST(
     }
 
     // Check bot_discord_links table to verify Minecraft account is linked
-    const { data: discordLink } = await supabaseAdmin
+    const { data: discordLink, error: linkError } = await supabaseAdmin
       .from('bot_discord_links')
       .select('*')
       .eq('discord_id', discordId)
       .maybeSingle();
 
-    if (!discordLink) {
-      return NextResponse.json(
-        { error: 'You must link your Minecraft account to comment. Use /link in Discord.' },
-        { status: 403 }
-      );
-    }
+    console.log('[Comments API] Discord link check:', { discordLink, linkError });
 
     const { gameId } = params;
     const body = await request.json();

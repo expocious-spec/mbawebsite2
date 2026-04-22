@@ -7,16 +7,20 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const discordId = searchParams.get('discordId');
 
+    console.log('[Discord Link Check] Checking for discordId:', discordId);
+
     if (!discordId) {
       return NextResponse.json({ error: 'Discord ID required' }, { status: 400 });
     }
 
     // Check bot_discord_links table
-    const { data: discordLink } = await supabaseAdmin
+    const { data: discordLink, error } = await supabaseAdmin
       .from('bot_discord_links')
       .select('*')
       .eq('discord_id', discordId)
       .maybeSingle();
+
+    console.log('[Discord Link Check] Query result:', { discordLink, error });
 
     return NextResponse.json({
       linked: !!discordLink,
