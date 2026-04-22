@@ -137,7 +137,7 @@ export async function POST(request: NextRequest) {
           formatted: `#${userRank} of ${completions?.length || 0}`,
         },
       },
-      timestamp: new Date().toISOString(),
+      timestamp: Math.floor(Date.now() / 1000), // Unix timestamp in seconds (timezone-agnostic)
     };
 
     // Send to Discord bot API
