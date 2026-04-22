@@ -232,7 +232,7 @@ export default function GameComments({ gameId, isAdmin = false }: GameCommentsPr
     return date.toLocaleDateString();
   };
 
-  // Parse mentions in text and render them
+  // Parse mentions in text and render them as clickable links
   const renderTextWithMentions = (text: string) => {
     // Match @mentions (format: @username)
     const mentionRegex = /@(\w+)/g;
@@ -245,14 +245,18 @@ export default function GameComments({ gameId, isAdmin = false }: GameCommentsPr
       if (match.index > lastIndex) {
         parts.push(text.substring(lastIndex, match.index));
       }
-      // Add mention as styled span
+      // Add mention as clickable link
+      const username = match[1];
       parts.push(
-        <span
+        <a
+          href={`/players?search=${encodeURIComponent(username)}`}
+          target="_blank"
+          rel="noopener noreferrer"
           key={match.index}
           className="text-purple-600 dark:text-purple-400 font-semibold hover:underline cursor-pointer"
         >
           @{match[1]}
-        </span>
+        </a>
       );
       lastIndex = match.index + match[0].length;
     }
@@ -472,8 +476,13 @@ export default function GameComments({ gameId, isAdmin = false }: GameCommentsPr
                           key={player.id}
                           type="button"
                           onClick={() => insertMention(player.minecraftUsername || player.displayName, setNewComment, newComment)}
-                          className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                          className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-3"
                         >
+                          <img
+                            src={player.minecraftUserId ? `https://mc-heads.net/avatar/${player.minecraftUserId}/32` : player.avatarUrl || '/default-avatar.png'}
+                            alt={player.minecraftUsername || player.displayName}
+                            className="w-8 h-8 rounded"
+                          />
                           <span className="font-medium text-gray-900 dark:text-white">
                             {player.minecraftUsername || player.displayName}
                           </span>
@@ -560,8 +569,13 @@ export default function GameComments({ gameId, isAdmin = false }: GameCommentsPr
                       key={player.id}
                       type="button"
                       onClick={() => insertMention(player.minecraftUsername || player.displayName, setNewComment, newComment)}
-                      className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                      className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-3"
                     >
+                      <img
+                        src={player.minecraftUserId ? `https://mc-heads.net/avatar/${player.minecraftUserId}/32` : player.avatarUrl || '/default-avatar.png'}
+                        alt={player.minecraftUsername || player.displayName}
+                        className="w-8 h-8 rounded"
+                      />
                       <span className="font-medium text-gray-900 dark:text-white">
                         {player.minecraftUsername || player.displayName}
                       </span>

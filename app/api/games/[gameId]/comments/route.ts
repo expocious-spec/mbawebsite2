@@ -105,28 +105,7 @@ export async function POST(
 
     console.log('[Comments API] Creating comment for user:', session.user.id);
 
-    // Check if user has Discord-Minecraft link (same requirement as minigames)
-    // Extract Discord ID from session user id (format: discord-{discordId})
     const userId = session.user.id;
-    const discordId = userId.startsWith('discord-') ? userId.replace('discord-', '') : null;
-    
-    console.log('[Comments API] Extracted discordId:', discordId);
-    
-    if (!discordId) {
-      return NextResponse.json(
-        { error: 'Invalid session format' },
-        { status: 403 }
-      );
-    }
-
-    // Check bot_discord_links table to verify Minecraft account is linked
-    const { data: discordLink, error: linkError } = await supabaseAdmin
-      .from('bot_discord_links')
-      .select('*')
-      .eq('discord_id', discordId)
-      .maybeSingle();
-
-    console.log('[Comments API] Discord link check:', { discordLink, linkError });
 
     const { gameId } = params;
     const body = await request.json();
