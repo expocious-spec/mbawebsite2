@@ -130,6 +130,14 @@ export async function POST(request: NextRequest) {
   try {
     const { puzzleId, userId, rarityScore, completionTime } = await request.json();
 
+    console.log('[HoopGrids Completion] Received completion request:', { 
+      puzzleId, 
+      userId,
+      userIdType: typeof userId,
+      rarityScore, 
+      completionTime 
+    });
+
     if (!puzzleId || !userId || rarityScore === undefined) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }

@@ -19,18 +19,50 @@ export async function POST(request: NextRequest) {
 
     // Get user details
     console.log('[HoopGrids Webhook] Fetching user details for:', userId);
-    const { data: user, error: userError } = await supabaseAdmin
+    
+    // Try to find user by ID first
+    let user = null;
+    let userError = null;
+    
+    const { data: userById, error: errorById } = await supabaseAdmin
       .from('users')
       .select('username, discord_username, discord_user_id, minecraft_username, avatar_url, minecraft_user_id')
       .eq('id', userId)
-      .single();
+      .maybeSingle();
 
-    if (userError) {
-      console.error('[HoopGrids Webhook] Error fetching user:', userError);
+    if (userById) {
+      user = userById;
+    } else {
+      // If not found by ID, try by minecraft_username (fallback for username-based IDs)
+      console.log('[HoopGrids Webhook] User not found by ID, trying minecraft_username:', userId);
+      const { data: userByUsername, error: errorByUsername } = await supabaseAdmin
+        .from('users')
+        .select('username, discord_username, discord_user_id, minecraft_username, avatar_url, minecraft_user_id')
+        .eq('minecraft_username', userId)
+        .maybeSingle();
+      
+      if (userByUsername) {
+        user = userByUsername;
+        console.log('[HoopGrids Webhook] Found user by minecraft_username');
+      } else {
+        // Try by username as last resort
+        const { data: userByUsernameField, error: errorByUsernameField } = await supabaseAdmin
+          .from('users')
+          .select('username, discord_username, discord_user_id, minecraft_username, avatar_url, minecraft_user_id')
+          .eq('username', userId)
+          .maybeSingle();
+        
+        user = userByUsernameField;
+        userError = errorByUsernameField;
+        if (user) {
+          console.log('[HoopGrids Webhook] Found user by username field');
+        }
+      }
     }
 
     if (!user) {
-      console.error('[HoopGrids Webhook] User not found:', userId);
+      console.error('[HoopGrids Webhook] User not found after all attempts:', userId);
+      console.error('[HoopGrids Webhook] Last error:', userError);
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 

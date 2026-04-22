@@ -224,6 +224,12 @@ export default function HoopGridGame() {
     const { row, col } = selectedCell;
     const userId = session?.user?.id;
 
+    console.log('[HoopGrids Game] Submitting guess:', {
+      userId,
+      userIdType: typeof userId,
+      sessionUser: session?.user,
+    });
+
     try {
       const res = await fetch('/api/minigames/hoopgrids/validate', {
         method: 'POST',
