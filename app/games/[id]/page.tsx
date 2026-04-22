@@ -2,12 +2,15 @@
 
 import { useEffect, useState } from 'react';
 import { notFound, useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowLeft, Calendar, Trophy, Users, Crown } from 'lucide-react';
+import GameComments from '@/components/GameComments';
 
 export default function GameDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
+  const { data: session } = useSession();
   const [game, setGame] = useState<any>(null);
   const [homeTeam, setHomeTeam] = useState<any>(null);
   const [awayTeam, setAwayTeam] = useState<any>(null);
@@ -425,6 +428,13 @@ export default function GameDetailPage({ params }: { params: { id: string } }) {
       {(game.status === 'completed' || game.status === 'live') && gameStats.length === 0 && (
         <div className="bg-white dark:bg-gray-800 rounded-lg p-8 shadow-lg border border-gray-200 dark:border-gray-700 text-center">
           <p className="text-gray-600 dark:text-gray-400">No player statistics available for this game yet.</p>
+        </div>
+      )}
+
+      {/* Comments Section - Only show for completed games */}
+      {game.status === 'completed' && (
+        <div className="mt-6">
+          <GameComments gameId={params.id} isAdmin={session?.user?.isAdmin} />
         </div>
       )}
     </div>
