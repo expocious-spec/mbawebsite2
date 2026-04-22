@@ -572,7 +572,7 @@ export default function GameComments({ gameId, isAdmin = false }: GameCommentsPr
                     <button
                       key={player.id}
                       type="button"
-                      onClick={() => insertMention(player.minecraftUsername || player.displayName, setNewComment, newComment)}
+                      onClick={() => insertMention(player.minecraftUsername || player.displayName, player.id, setNewComment, newComment)}
                       className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-3"
                     >
                       <img
