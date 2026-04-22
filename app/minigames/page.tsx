@@ -15,8 +15,8 @@ export default function MinigamesPage() {
     if (!session?.user?.id) return;
     
     try {
-      // Get today's puzzle
-      const puzzleRes = await fetch('/api/minigames/hoopgrids/daily', {
+      // Get today's puzzle with cache busting
+      const puzzleRes = await fetch(`/api/minigames/hoopgrids/daily?t=${Date.now()}`, {
         cache: 'no-store',
       });
       const puzzleData = await puzzleRes.json();
@@ -46,7 +46,7 @@ export default function MinigamesPage() {
   const fetchLeaderboard = async () => {
     setLoadingLeaderboard(true);
     try {
-      const res = await fetch('/api/minigames/hoopgrids/leaderboard', {
+      const res = await fetch(`/api/minigames/hoopgrids/leaderboard?t=${Date.now()}`, {
         cache: 'no-store',
       });
       const data = await res.json();

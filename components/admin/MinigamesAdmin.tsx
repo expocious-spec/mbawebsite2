@@ -30,10 +30,12 @@ export default function MinigamesAdmin() {
           text: data.message || 'Minigames reset successfully!',
         });
         
-        // Reload the page after 2 seconds to clear all caches
+        // Force hard reload after 1.5 seconds to clear all caches
         setTimeout(() => {
+          // Use hard reload to bypass cache
+          window.location.href = window.location.href.split('#')[0];
           window.location.reload();
-        }, 2000);
+        }, 1500);
       } else {
         setMessage({
           type: 'error',

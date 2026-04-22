@@ -38,6 +38,8 @@ export async function GET() {
 
     if (error) throw error;
 
+    console.log('[HoopGrids] Generated new puzzle for', today, 'with ID:', createdPuzzle.id);
+
     return NextResponse.json(await formatPuzzle(createdPuzzle), {
       headers: {
         'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
@@ -87,8 +89,13 @@ async function generateDailyPuzzle(date: string) {
   }
 
   // Seed random based on date for consistency
-  const seed = new Date(date).getTime();
+  // BUT add current timestamp to make resets generate different puzzles
+  const dateSeed = new Date(date).getTime();
+  const timeSeed = Date.now();
+  const seed = dateSeed + (timeSeed % 1000000); // Mix date with current time for variation
   const random = seededRandom(seed);
+  
+  console.log('[HoopGrids] Generating puzzle with seed:', seed);
 
   // Shuffle and pick 3 teams for columns
   const shuffledTeams = shuffle(availableTeams, random);

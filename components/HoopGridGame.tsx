@@ -93,7 +93,11 @@ export default function HoopGridGame() {
 
   const loadPuzzle = async () => {
     try {
-      const res = await fetch('/api/minigames/hoopgrids/daily');
+      // Add cache busting to ensure fresh puzzle data
+      const cacheBuster = `?t=${Date.now()}`;
+      const res = await fetch(`/api/minigames/hoopgrids/daily${cacheBuster}`, {
+        cache: 'no-store',
+      });
       const data = await res.json();
       setPuzzle(data);
 
