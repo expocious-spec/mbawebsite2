@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
       minigame: 'hoopgrids',
       minigameName: 'HoopGrids',
       player: {
-        userId: '123456789', // Fake Discord user ID
+        userId: '1116798128901865582', // Real Discord user ID for testing
         username: 'TestPlayer',
         discordUsername: 'TestPlayer#1234',
         minecraftUsername: 'TestMinecraftPlayer',
