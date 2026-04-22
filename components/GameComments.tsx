@@ -53,7 +53,6 @@ export default function GameComments({ gameId, isAdmin = false }: GameCommentsPr
   const [editContent, setEditContent] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [hasMinecraftLinked, setHasMinecraftLinked] = useState(false);
   const [mentionSearch, setMentionSearch] = useState('');
   const [mentionResults, setMentionResults] = useState<any[]>([]);
   const [showMentionDropdown, setShowMentionDropdown] = useState(false);
@@ -61,38 +60,11 @@ export default function GameComments({ gameId, isAdmin = false }: GameCommentsPr
 
   useEffect(() => {
     fetchComments();
-    checkMinecraftLink();
   }, [gameId]);
 
-  const checkMinecraftLink = async () => {
-    if (!session?.user?.id) {
-      console.log('[Comments] No session user id');
-      return;
-    }
-    
-    try {
-      // Check if user has Discord-Minecraft link (same as minigames)
-      const userId = session.user.id;
-      console.log('[Comments] Checking link for userId:', userId);
-      const discordId = userId.startsWith('discord-') ? userId.replace('discord-', '') : null;
-      console.log('[Comments] Extracted discordId:', discordId);
-      
-      if (!discordId) {
-        console.log('[Comments] No valid Discord ID found');
-        setHasMinecraftLinked(false);
-        return;
-      }
-      
-      // Check bot_discord_links table
-      const res = await fetch(`/api/discord/check-link?discordId=${discordId}`);
-      const data = await res.json();
-      console.log('[Comments] Link check response:', data);
-      setHasMinecraftLinked(!!data.linked);
-    } catch (error) {
-      console.error('[Comments] Error checking Minecraft link:', error);
-      setHasMinecraftLinked(false);
-    }
-  };
+  // If user is logged in, they already passed Discord-Minecraft link check during auth
+  // (Same as minigames - no additional check needed)
+  const isLoggedIn = !!session?.user?.id;
 
   const fetchComments = async () => {
     try {
@@ -112,11 +84,6 @@ export default function GameComments({ gameId, isAdmin = false }: GameCommentsPr
     
     if (!session) {
       setError('You must be logged in to comment');
-      return;
-    }
-
-    if (!hasMinecraftLinked) {
-      setError('You must link your Minecraft account to comment');
       return;
     }
 
@@ -439,7 +406,7 @@ export default function GameComments({ gameId, isAdmin = false }: GameCommentsPr
                   {!isReply && (
                     <button
                       onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
-                      disabled={!session || !hasMinecraftLinked}
+                      disabled={!session}
                       className="flex items-center gap-1 text-sm text-gray-500 hover:text-purple-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                       <Reply className="w-4 h-4" />
@@ -554,8 +521,7 @@ export default function GameComments({ gameId, isAdmin = false }: GameCommentsPr
 
       {/* New Comment Form */}
       {session ? (
-        hasMinecraftLinked ? (
-          <form onSubmit={(e) => handleSubmitComment(e, null)} className="mb-6">
+        <form onSubmit={(e) => handleSubmitComment(e, null)} className="mb-6">
             <div className="relative">
               <textarea
                 value={newComment}
@@ -593,17 +559,6 @@ export default function GameComments({ gameId, isAdmin = false }: GameCommentsPr
               </button>
             </div>
           </form>
-        ) : (
-          <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-            <p className="text-sm text-yellow-800 dark:text-yellow-200">
-              You must link your Minecraft account to comment. Join our{' '}
-              <a href="https://discord.gg/C3pETBx98T" target="_blank" rel="noopener noreferrer" className="underline hover:text-yellow-600">
-                Discord server
-              </a>
-              {' '}and use the /link command.
-            </p>
-          </div>
-        )
       ) : (
         <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
           <p className="text-sm text-blue-800 dark:text-blue-200">
