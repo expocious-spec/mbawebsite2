@@ -37,6 +37,7 @@ export default function MinigamesAdmin() {
           window.location.reload();
         }, 1500);
       } else {
+        console.error('Reset failed:', data);
         setMessage({
           type: 'error',
           text: data.error || 'Failed to reset minigames',
