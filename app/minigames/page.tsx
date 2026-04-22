@@ -11,43 +11,59 @@ export default function MinigamesPage() {
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [loadingLeaderboard, setLoadingLeaderboard] = useState(true);
 
-  useEffect(() => {
-    const checkHoopgridsStatus = async () => {
-      if (!session?.user?.id) return;
+  const checkHoopgridsStatus = async () => {
+    if (!session?.user?.id) return;
+    
+    try {
+      // Get today's puzzle
+      const puzzleRes = await fetch('/api/minigames/hoopgrids/daily', {
+        cache: 'no-store',
+      });
+      const puzzleData = await puzzleRes.json();
       
-      try {
-        // Get today's puzzle
-        const puzzleRes = await fetch('/api/minigames/hoopgrids/daily');
-        const puzzleData = await puzzleRes.json();
-        
-        if (puzzleData.id) {
-          // Check if completed
-          const completionRes = await fetch(`/api/minigames/hoopgrids/completion?puzzleId=${puzzleData.id}&userId=${session.user.id}`);
-          const completionData = await completionRes.json();
-          setHoopgridsCompleted(completionData.completed || false);
-        }
-      } catch (error) {
-        console.error('Error checking hoopgrids status:', error);
+      if (puzzleData.id) {
+        // Check if completed
+        const completionRes = await fetch(`/api/minigames/hoopgrids/completion?puzzleId=${puzzleData.id}&userId=${session.user.id}`, {
+          cache: 'no-store',
+        });
+        const completionData = await completionRes.json();
+        setHoopgridsCompleted(completionData.completed || false);
       }
-    };
+    } catch (error) {
+      console.error('Error checking hoopgrids status:', error);
+    }
+  };
 
+  useEffect(() => {
     checkHoopgridsStatus();
+    
+    // Auto-refresh completion status every 30 seconds
+    const interval = setInterval(checkHoopgridsStatus, 30000);
+    return () => clearInterval(interval);
   }, [session?.user?.id]);
 
-  useEffect(() => {
-    const fetchLeaderboard = async () => {
-      try {
-        const res = await fetch('/api/minigames/hoopgrids/leaderboard');
-        const data = await res.json();
-        setLeaderboard(data.leaderboard || []);
-      } catch (error) {
-        console.error('Error fetching leaderboard:', error);
-      } finally {
-        setLoadingLeaderboard(false);
-      }
-    };
+  // Fetch leaderboard function
+  const fetchLeaderboard = async () => {
+    setLoadingLeaderboard(true);
+    try {
+      const res = await fetch('/api/minigames/hoopgrids/leaderboard', {
+        cache: 'no-store',
+      });
+      const data = await res.json();
+      setLeaderboard(data.leaderboard || []);
+    } catch (error) {
+      console.error('Error fetching leaderboard:', error);
+    } finally {
+      setLoadingLeaderboard(false);
+    }
+  };
 
+  useEffect(() => {
     fetchLeaderboard();
+    
+    // Auto-refresh leaderboard every 30 seconds
+    const interval = setInterval(fetchLeaderboard, 30000);
+    return () => clearInterval(interval);
   }, []);
   const games = [
     {
@@ -145,11 +161,26 @@ export default function MinigamesPage() {
         {/* HoopGrids Daily Leaderboard */}
         <div className="mt-16">
           <div className="bg-gradient-to-r from-yellow-600 to-orange-600 rounded-t-xl p-6">
-            <h2 className="text-3xl font-bold text-white flex items-center gap-3">
-              <span>🏆</span>
-              <span>Today's HoopGrids Leaderboard</span>
-            </h2>
-            <p className="text-yellow-100 mt-2">Lowest rarity score wins • Resets daily at midnight</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-3xl font-bold text-white flex items-center gap-3">
+                  <span>🏆</span>
+                  <span>Today's HoopGrids Leaderboard</span>
+                </h2>
+                <p className="text-yellow-100 mt-2">Lowest rarity score wins • Resets daily at midnight</p>
+              </div>
+              <button
+                onClick={fetchLeaderboard}
+                disabled={loadingLeaderboard}
+                className="px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg font-semibold transition-all disabled:opacity-50 flex items-center gap-2"
+                title="Refresh leaderboard"
+              >
+                <svg className={`w-5 h-5 ${loadingLeaderboard ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                <span className="hidden sm:inline">Refresh</span>
+              </button>
+            </div>
           </div>
           
           <div className="bg-gray-800 rounded-b-xl border-2 border-gray-700 border-t-0 overflow-hidden">

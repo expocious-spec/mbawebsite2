@@ -207,6 +207,20 @@ export default function HoopGridGame() {
         }),
       });
 
+      // Handle puzzle not found error (e.g., after admin reset)
+      if (res.status === 404) {
+        setErrorMessage('Puzzle has been reset! Reloading...');
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
+        return;
+      }
+
+      if (!res.ok) {
+        setErrorMessage('Failed to validate answer. Please try again.');
+        return;
+      }
+
       const result = await res.json();
 
       const newGrid = grid.map(r => [...r]);
