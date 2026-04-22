@@ -14,7 +14,7 @@ export function getMinecraftHeadshot(minecraftUuidOrUsername: string | null | un
   const uuid = String(minecraftUuidOrUsername).replace(/-/g, '').toLowerCase();
   
   // mc-heads.net provides better CORS support and fallback
-  return `https://mc-heads.net/avatar/${uuid}/${size}`;
+  return `https://mc-heads.net/avatar/${uuid}`;
 }
 
 /**
@@ -29,5 +29,5 @@ export function getMinecraftSkinRender(minecraftUuidOrUsername: string | null | 
   const uuid = String(minecraftUuidOrUsername).replace(/-/g, '').toLowerCase();
   
   // mc-heads.net body render
-  return `https://mc-heads.net/body/${uuid}/${size}`;
+  return `https://mc-heads.net/body/${uuid}`;
 }
