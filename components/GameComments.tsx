@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { 
   MessageSquare, 
   Heart, 
@@ -234,8 +235,8 @@ export default function GameComments({ gameId, isAdmin = false }: GameCommentsPr
 
   // Parse mentions in text and render them as clickable links
   const renderTextWithMentions = (text: string) => {
-    // Match @mentions (format: @username)
-    const mentionRegex = /@(\w+)/g;
+    // Match @mentions with optional user ID (format: @[username](userId) or @username)
+    const mentionRegex = /@\[([^\]]+)\]\(([^)]+)\)|@(\w+)/g;
     const parts = [];
     let lastIndex = 0;
     let match;
@@ -245,18 +246,20 @@ export default function GameComments({ gameId, isAdmin = false }: GameCommentsPr
       if (match.index > lastIndex) {
         parts.push(text.substring(lastIndex, match.index));
       }
+      
+      // Check if it's the new format @[username](userId) or old format @username
+      const username = match[1] || match[3];
+      const userId = match[2];
+      
       // Add mention as clickable link
-      const username = match[1];
       parts.push(
-        <a
-          href={`/players?search=${encodeURIComponent(username)}`}
-          target="_blank"
-          rel="noopener noreferrer"
+        <Link
+          href={userId ? `/players/${userId}` : `/players?search=${encodeURIComponent(username)}`}
           key={match.index}
           className="text-purple-600 dark:text-purple-400 font-semibold hover:underline cursor-pointer"
         >
-          @{match[1]}
-        </a>
+          @{username}
+        </Link>
       );
       lastIndex = match.index + match[0].length;
     }
@@ -310,11 +313,12 @@ export default function GameComments({ gameId, isAdmin = false }: GameCommentsPr
   };
 
   // Insert mention into text
-  const insertMention = (username: string, setter: (v: string) => void, value: string) => {
+  const insertMention = (username: string, userId: string, setter: (v: string) => void, value: string) => {
     const lastAtSymbol = value.lastIndexOf('@');
     const beforeMention = value.substring(0, lastAtSymbol);
     const afterMention = value.substring(lastAtSymbol + 1 + mentionSearch.length);
-    setter(`${beforeMention}@${username} ${afterMention}`);
+    // Store as @[username](userId) format for proper linking
+    setter(`${beforeMention}@[${username}](${userId}) ${afterMention}`);
     setShowMentionDropdown(false);
     setMentionSearch('');
     setMentionResults([]);
@@ -333,22 +337,22 @@ export default function GameComments({ gameId, isAdmin = false }: GameCommentsPr
       >
         <div className="flex gap-3 p-4">
           {/* Minecraft Avatar */}
-          <div className="flex-shrink-0">
+          <Link href={`/players/${comment.user.id}`} className="flex-shrink-0">
             <Image
               src={getMinecraftAvatarUrl(comment.user.minecraft_user_id)}
               alt={comment.user.minecraft_username}
               width={40}
               height={40}
-              className="rounded"
+              className="rounded hover:opacity-80 transition-opacity cursor-pointer"
             />
-          </div>
+          </Link>
 
           {/* Comment Content */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <span className="font-semibold text-gray-900 dark:text-white">
+              <Link href={`/players/${comment.user.id}`} className="font-semibold text-gray-900 dark:text-white hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
                 {comment.user.minecraft_username}
-              </span>
+              </Link>
               <span className="text-xs text-gray-500">
                 {formatTimeAgo(comment.created_at)}
               </span>
@@ -475,7 +479,7 @@ export default function GameComments({ gameId, isAdmin = false }: GameCommentsPr
                         <button
                           key={player.id}
                           type="button"
-                          onClick={() => insertMention(player.minecraftUsername || player.displayName, setNewComment, newComment)}
+                          onClick={() => insertMention(player.minecraftUsername || player.displayName, player.id, player.id, setNewComment, newComment)}
                           className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-3"
                         >
                           <img
