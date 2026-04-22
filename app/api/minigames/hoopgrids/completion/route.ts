@@ -160,13 +160,13 @@ export async function POST(request: NextRequest) {
 
     if (error) throw error;
 
-    // Send to Discord webhook (non-blocking)
+    // Send to Discord webhook
     try {
       console.log('[HoopGrids Completion] Triggering webhook for user:', userId);
       const webhookUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/minigames/hoopgrids/webhook`;
       console.log('[HoopGrids Completion] Webhook URL:', webhookUrl);
       
-      fetch(webhookUrl, {
+      const webhookResponse = await fetch(webhookUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -175,15 +175,15 @@ export async function POST(request: NextRequest) {
           rarityScore,
           completionTime,
         }),
-      })
-        .then(res => {
-          console.log('[HoopGrids Completion] Webhook responded with status:', res.status);
-          return res.text();
-        })
-        .then(text => {
-          console.log('[HoopGrids Completion] Webhook response:', text);
-        })
-        .catch(err => console.error('[HoopGrids Completion] Webhook call failed:', err));
+      });
+      
+      console.log('[HoopGrids Completion] Webhook responded with status:', webhookResponse.status);
+      const responseText = await webhookResponse.text();
+      console.log('[HoopGrids Completion] Webhook response:', responseText);
+      
+      if (!webhookResponse.ok) {
+        console.error('[HoopGrids Completion] Webhook failed with status:', webhookResponse.status);
+      }
     } catch (webhookError) {
       // Don't fail the completion if webhook fails
       console.error('[HoopGrids Completion] Error triggering webhook:', webhookError);
