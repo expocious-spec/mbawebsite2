@@ -279,19 +279,23 @@ export default function GameComments({ gameId, isAdmin = false }: GameCommentsPr
       // Check if there's a space after @, if so, cancel mention
       if (!textAfterAt.includes(' ') && textAfterAt.length >= 0) {
         setMentionSearch(textAfterAt);
-        setShowMentionDropdown(true);
         
         // Search for players
         if (textAfterAt.length >= 1) {
+          console.log('[Mention] Searching for:', textAfterAt);
           try {
             const res = await fetch(`/api/players?search=${encodeURIComponent(textAfterAt)}`);
             const data = await res.json();
+            console.log('[Mention] Results:', data);
             setMentionResults(data.slice(0, 5)); // Show top 5 results
+            setShowMentionDropdown(data.length > 0);
           } catch (error) {
-            console.error('Error searching players:', error);
+            console.error('[Mention] Error searching players:', error);
+            setShowMentionDropdown(false);
           }
         } else {
           setMentionResults([]);
+          setShowMentionDropdown(false);
         }
       } else {
         setShowMentionDropdown(false);
@@ -452,33 +456,51 @@ export default function GameComments({ gameId, isAdmin = false }: GameCommentsPr
             {/* Reply Form */}
             {replyingTo === comment.id && (
               <form onSubmit={(e) => handleSubmitComment(e, comment.id)} className="mt-3">
-                <div className="flex gap-2">
+                <div className="relative">
                   <textarea
                     value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                    placeholder="Write a reply..."
-                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white resize-none"
+                    onChange={(e) => handleTextChange(e.target.value, setNewComment)}
+                    placeholder="Write a reply... (Use @ to mention players)"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white resize-none"
                     rows={2}
                   />
-                  <div className="flex flex-col gap-2">
-                    <button
-                      type="submit"
-                      disabled={submitting || !newComment.trim()}
-                      className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <Send className="w-4 h-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setReplyingTo(null);
-                        setNewComment('');
-                      }}
-                      className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
+                  {/* Mention Dropdown for Reply */}
+                  {showMentionDropdown && mentionResults.length > 0 && (
+                    <div className="absolute z-10 mt-1 w-64 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                      {mentionResults.map((player) => (
+                        <button
+                          key={player.id}
+                          type="button"
+                          onClick={() => insertMention(player.minecraftUsername || player.displayName, setNewComment, newComment)}
+                          className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                        >
+                          <span className="font-medium text-gray-900 dark:text-white">
+                            {player.minecraftUsername || player.displayName}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="flex gap-2 mt-2">
+                  <button
+                    type="submit"
+                    disabled={submitting || !newComment.trim()}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  >
+                    <Send className="w-4 h-4" />
+                    <span>Reply</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setReplyingTo(null);
+                      setNewComment('');
+                    }}
+                    className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
                 </div>
               </form>
             )}
@@ -537,11 +559,11 @@ export default function GameComments({ gameId, isAdmin = false }: GameCommentsPr
                     <button
                       key={player.id}
                       type="button"
-                      onClick={() => insertMention(player.minecraft_username || player.username, setNewComment, newComment)}
+                      onClick={() => insertMention(player.minecraftUsername || player.displayName, setNewComment, newComment)}
                       className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
                     >
                       <span className="font-medium text-gray-900 dark:text-white">
-                        {player.minecraft_username || player.username}
+                        {player.minecraftUsername || player.displayName}
                       </span>
                     </button>
                   ))}
