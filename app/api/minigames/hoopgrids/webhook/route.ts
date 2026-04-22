@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     
     const { data: userById, error: errorById } = await supabaseAdmin
       .from('users')
-      .select('username, discord_username, discord_user_id, minecraft_username, avatar_url, minecraft_user_id')
+      .select('username, discord_username, discord_id, minecraft_username, avatar_url, minecraft_user_id')
       .eq('id', userId)
       .maybeSingle();
 
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
       console.log('[HoopGrids Webhook] User not found by ID, trying minecraft_username:', userId);
       const { data: userByUsername, error: errorByUsername } = await supabaseAdmin
         .from('users')
-        .select('username, discord_username, discord_user_id, minecraft_username, avatar_url, minecraft_user_id')
+        .select('username, discord_username, discord_id, minecraft_username, avatar_url, minecraft_user_id')
         .eq('minecraft_username', userId)
         .maybeSingle();
       
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
         // Try by username as last resort
         const { data: userByUsernameField, error: errorByUsernameField } = await supabaseAdmin
           .from('users')
-          .select('username, discord_username, discord_user_id, minecraft_username, avatar_url, minecraft_user_id')
+          .select('username, discord_username, discord_id, minecraft_username, avatar_url, minecraft_user_id')
           .eq('username', userId)
           .maybeSingle();
         
@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
 
     console.log('[HoopGrids Webhook] Found user:', {
       username: user.username,
-      discordUserId: user.discord_user_id,
+      discordId: user.discord_id,
       minecraftUsername: user.minecraft_username,
     });
 
@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
       minigame: 'hoopgrids',
       minigameName: 'HoopGrids',
       player: {
-        userId: user.discord_user_id,
+        userId: user.discord_id,
         username: user.username,
         discordUsername: user.discord_username,
         minecraftUsername: user.minecraft_username,
