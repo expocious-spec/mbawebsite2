@@ -63,6 +63,8 @@ export async function POST(request: NextRequest) {
     }
 
     try {
+      console.log(`[Test Webhook] Attempting to connect to: ${botApiUrl}/minigames/completion`);
+      
       const botResponse = await fetch(`${botApiUrl}/minigames/completion`, {
         method: 'POST',
         headers: { 
@@ -70,8 +72,11 @@ export async function POST(request: NextRequest) {
           'Authorization': `Bearer ${process.env.BOT_SECRET_KEY || ''}`,
         },
         body: JSON.stringify(fakePayload),
+        signal: AbortSignal.timeout(10000), // 10 second timeout
       });
 
+      console.log(`[Test Webhook] Response status: ${botResponse.status}`);
+      
       const responseText = await botResponse.text();
       let responseData;
       try {
@@ -81,28 +86,66 @@ export async function POST(request: NextRequest) {
       }
 
       if (!botResponse.ok) {
+        console.error(`[Test Webhook] Bot returned error: ${botResponse.status}`, responseData);
         return NextResponse.json({ 
           success: false,
-          error: 'Bot API returned an error',
+          error: `Bot API returned HTTP ${botResponse.status}`,
           status: botResponse.status,
           response: responseData,
           sentData: fakePayload,
+          endpoint: `${botApiUrl}/minigames/completion`,
+          troubleshooting: [
+            `Check if your bot has a POST endpoint at /minigames/completion`,
+            `Verify the bot is running at ${botApiUrl}`,
+            `Check bot logs for incoming request details`,
+            `Ensure the endpoint returns a 200 status code`,
+          ],
         }, { status: 200 }); // Return 200 so we can see the error
       }
 
+      console.log(`[Test Webhook] Success!`, responseData);
       return NextResponse.json({ 
         success: true,
-        message: 'Test webhook sent successfully to Discord bot!',
+        message: '✅ Test webhook sent successfully to Discord bot!',
         botResponse: responseData,
         sentData: fakePayload,
+        endpoint: `${botApiUrl}/minigames/completion`,
       });
     } catch (botError: any) {
+      console.error(`[Test Webhook] Connection failed:`, botError);
+      
+      // Provide more specific error messages
+      let errorDetails = botError.message;
+      let troubleshooting = [
+        `Verify your bot is running at ${botApiUrl}`,
+        `Check if port 8080 is accessible and not blocked by firewall`,
+        `Try accessing ${botApiUrl}/minigames/completion in a browser or Postman`,
+        `Check your bot's console logs for any startup errors`,
+      ];
+
+      if (botError.message?.includes('ECONNREFUSED')) {
+        errorDetails = 'Connection refused - bot is not accepting connections';
+        troubleshooting.unshift('Your bot is not running or not listening on the specified port');
+      } else if (botError.message?.includes('ETIMEDOUT')) {
+        errorDetails = 'Connection timed out - bot took too long to respond';
+        troubleshooting.unshift('Check if there\'s a firewall blocking the connection');
+      } else if (botError.message?.includes('ENOTFOUND')) {
+        errorDetails = 'Host not found - DNS lookup failed';
+        troubleshooting.unshift('Check if the IP address is correct in DISCORD_BOT_API_URL');
+      } else if (botError.message?.includes('aborted')) {
+        errorDetails = 'Request timed out after 10 seconds';
+        troubleshooting.unshift('Your bot might be running but not responding to requests');
+      }
+
       return NextResponse.json({ 
         success: false,
         error: 'Failed to connect to Discord bot API',
-        details: botError.message,
+        details: errorDetails,
+        originalError: botError.message,
         botApiUrl: botApiUrl,
+        endpoint: `${botApiUrl}/minigames/completion`,
         sentData: fakePayload,
+        troubleshooting: troubleshooting,
       }, { status: 200 }); // Return 200 so we can see the error
     }
   } catch (error: any) {

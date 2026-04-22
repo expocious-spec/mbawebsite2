@@ -183,10 +183,33 @@ export default function MinigamesAdmin() {
                 }`}
               >
                 <p className="text-sm font-medium mb-2">{webhookMessage.text}</p>
+                
+                {/* Show troubleshooting steps if available */}
+                {webhookMessage.details?.troubleshooting && (
+                  <div className="mt-3 p-3 bg-black/5 dark:bg-white/5 rounded">
+                    <p className="text-xs font-semibold mb-2">🔧 Troubleshooting Steps:</p>
+                    <ul className="text-xs space-y-1">
+                      {webhookMessage.details.troubleshooting.map((step: string, i: number) => (
+                        <li key={i} className="flex items-start">
+                          <span className="mr-2">{i + 1}.</span>
+                          <span>{step}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                
+                {/* Show endpoint being called */}
+                {webhookMessage.details?.endpoint && (
+                  <div className="mt-2 text-xs">
+                    <span className="font-semibold">Endpoint:</span> <code className="bg-black/10 dark:bg-white/10 px-1 py-0.5 rounded">{webhookMessage.details.endpoint}</code>
+                  </div>
+                )}
+                
                 {webhookMessage.details && (
-                  <details className="text-xs mt-2">
-                    <summary className="cursor-pointer font-semibold mb-1">View Details</summary>
-                    <pre className="mt-2 p-2 bg-black/10 dark:bg-white/10 rounded overflow-x-auto">
+                  <details className="text-xs mt-3">
+                    <summary className="cursor-pointer font-semibold mb-1">View Full Response</summary>
+                    <pre className="mt-2 p-2 bg-black/10 dark:bg-white/10 rounded overflow-x-auto max-h-96">
                       {JSON.stringify(webhookMessage.details, null, 2)}
                     </pre>
                   </details>
