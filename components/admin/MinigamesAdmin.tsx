@@ -1,11 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { RefreshCw, Gamepad2, AlertTriangle } from 'lucide-react';
+import { RefreshCw, Gamepad2, AlertTriangle, Send } from 'lucide-react';
 
 export default function MinigamesAdmin() {
   const [resetting, setResetting] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [testingWebhook, setTestingWebhook] = useState(false);
+  const [webhookMessage, setWebhookMessage] = useState<{ type: 'success' | 'error'; text: string; details?: any } | null>(null);
 
   const handleReset = async () => {
     if (!confirm('Are you sure you want to reset today\'s minigames? This will delete the current puzzle and all completion data for today. A new puzzle will be generated.')) {
@@ -46,6 +48,41 @@ export default function MinigamesAdmin() {
       });
     } finally {
       setResetting(false);
+    }
+  };
+
+  const handleTestWebhook = async () => {
+    setTestingWebhook(true);
+    setWebhookMessage(null);
+
+    try {
+      const response = await fetch('/api/admin/minigames/test-webhook', {
+        method: 'POST',
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setWebhookMessage({
+          type: 'success',
+          text: data.message || 'Test webhook sent successfully!',
+          details: data,
+        });
+      } else {
+        setWebhookMessage({
+          type: 'error',
+          text: data.error || 'Failed to send test webhook',
+          details: data,
+        });
+      }
+    } catch (error) {
+      console.error('Error testing webhook:', error);
+      setWebhookMessage({
+        type: 'error',
+        text: 'An error occurred while testing the webhook',
+      });
+    } finally {
+      setTestingWebhook(false);
     }
   };
 
@@ -103,6 +140,57 @@ export default function MinigamesAdmin() {
                 }`}
               >
                 <p className="text-sm font-medium">{message.text}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Test Discord Webhook Section */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg p-6 border-2 border-blue-200 dark:border-blue-800">
+        <div className="flex items-start space-x-4">
+          <div className="flex-shrink-0">
+            <div className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center">
+              <Send className="w-6 h-6 text-white" />
+            </div>
+          </div>
+          <div className="flex-1">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Test Discord Bot Webhook</h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              Send a fake HoopGrids completion to your Discord bot to test the embed and notification system.
+              Make sure DISCORD_BOT_API_URL is configured in your environment variables.
+            </p>
+
+            <button
+              onClick={handleTestWebhook}
+              disabled={testingWebhook}
+              className={`px-6 py-3 rounded-lg font-semibold transition-all flex items-center space-x-2 ${
+                testingWebhook
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl'
+              }`}
+            >
+              <Send className={`w-5 h-5 ${testingWebhook ? 'animate-pulse' : ''}`} />
+              <span>{testingWebhook ? 'Sending...' : 'Send Test Webhook'}</span>
+            </button>
+
+            {webhookMessage && (
+              <div
+                className={`mt-4 p-4 rounded-lg border ${
+                  webhookMessage.type === 'success'
+                    ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-800 dark:text-green-200'
+                    : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-800 dark:text-red-200'
+                }`}
+              >
+                <p className="text-sm font-medium mb-2">{webhookMessage.text}</p>
+                {webhookMessage.details && (
+                  <details className="text-xs mt-2">
+                    <summary className="cursor-pointer font-semibold mb-1">View Details</summary>
+                    <pre className="mt-2 p-2 bg-black/10 dark:bg-white/10 rounded overflow-x-auto">
+                      {JSON.stringify(webhookMessage.details, null, 2)}
+                    </pre>
+                  </details>
+                )}
               </div>
             )}
           </div>
