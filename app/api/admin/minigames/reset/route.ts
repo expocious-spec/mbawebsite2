@@ -63,11 +63,42 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({
-      success: true,
-      message: 'Minigames reset successfully! Leaderboard cleared, all attempts deleted, and puzzle will be reshuffled on next load.',
-      date: today,
-    });
+    console.log('[Admin Reset] Puzzle deleted, generating new puzzle...');
+
+    // Immediately generate a new puzzle by calling the daily endpoint
+    try {
+      const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+      const dailyResponse = await fetch(`${baseUrl}/api/minigames/hoopgrids/daily`, {
+        method: 'GET',
+        headers: {
+          'Cache-Control': 'no-cache',
+        },
+      });
+
+      if (!dailyResponse.ok) {
+        console.error('[Admin Reset] Failed to generate new puzzle:', await dailyResponse.text());
+        return NextResponse.json({
+          success: false,
+          error: 'Puzzle deleted but failed to generate new one. Try reloading the page.',
+        }, { status: 500 });
+      }
+
+      const newPuzzle = await dailyResponse.json();
+      console.log('[Admin Reset] New puzzle generated:', newPuzzle.id);
+
+      return NextResponse.json({
+        success: true,
+        message: 'Minigames reset successfully! New puzzle generated and ready to play.',
+        date: today,
+        puzzleId: newPuzzle.id,
+      });
+    } catch (generateError) {
+      console.error('[Admin Reset] Error generating new puzzle:', generateError);
+      return NextResponse.json({
+        success: false,
+        error: 'Puzzle deleted but failed to generate new one. Try reloading the page.',
+      }, { status: 500 });
+    }
   } catch (error) {
     console.error('Error resetting minigames:', error);
     return NextResponse.json(
