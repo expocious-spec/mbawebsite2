@@ -82,6 +82,32 @@ export default function HoopGridGame() {
     loadPuzzle();
   }, [session?.user?.id]);
 
+  // Auto-detect puzzle changes (e.g., after admin reset)
+  useEffect(() => {
+    if (!puzzle) return;
+    
+    const checkPuzzleChange = async () => {
+      try {
+        const res = await fetch(`/api/minigames/hoopgrids/daily?t=${Date.now()}`, {
+          cache: 'no-store',
+        });
+        const data = await res.json();
+        
+        // If puzzle ID changed, reload the page to get fresh state
+        if (data.id && data.id !== puzzle.id) {
+          console.log('[HoopGrids] Puzzle changed! Old:', puzzle.id, 'New:', data.id);
+          window.location.reload();
+        }
+      } catch (error) {
+        console.error('[HoopGrids] Error checking for puzzle changes:', error);
+      }
+    };
+    
+    // Check every 10 seconds
+    const interval = setInterval(checkPuzzleChange, 10000);
+    return () => clearInterval(interval);
+  }, [puzzle]);
+
   // Cleanup search timeout on unmount
   useEffect(() => {
     return () => {

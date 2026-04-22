@@ -109,8 +109,8 @@ export default function MinigamesAdmin() {
           <div className="flex-1">
             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Reset Today's Minigames</h3>
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-              This will delete today's puzzle and all completion data, allowing you to test the puzzle generation and rotation system. 
-              A new puzzle will be automatically generated on the next page load.
+              This will delete today's puzzle and all completion data. A new puzzle with different teams and stats will be 
+              automatically generated. Open HoopGrids game pages will auto-refresh within 10 seconds.
             </p>
 
             <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3 mb-4 flex items-start space-x-2">
@@ -142,6 +142,11 @@ export default function MinigamesAdmin() {
                 }`}
               >
                 <p className="text-sm font-medium">{message.text}</p>
+                {message.type === 'success' && (
+                  <p className="text-xs mt-2 opacity-80">
+                    ✨ Any open HoopGrids game pages will automatically refresh with the new puzzle within 10 seconds.
+                  </p>
+                )}
               </div>
             )}
           </div>
