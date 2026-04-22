@@ -103,16 +103,28 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Check if user has Minecraft account linked
-    const { data: user } = await supabaseAdmin
-      .from('users')
-      .select('minecraft_user_id')
-      .eq('id', session.user.id)
-      .single();
-
-    if (!user?.minecraft_user_id) {
+// Check if user has Discord-Minecraft link (same requirement as minigames)
+    // Extract Discord ID from session user id (format: discord-{discordId})
+    const userId = session.user.id;
+    const discordId = userId.startsWith('discord-') ? userId.replace('discord-', '') : null;
+    
+    if (!discordId) {
       return NextResponse.json(
-        { error: 'You must link your Minecraft account to comment' },
+        { error: 'Invalid session format' },
+        { status: 403 }
+      );
+    }
+
+    // Check bot_discord_links table to verify Minecraft account is linked
+    const { data: discordLink } = await supabaseAdmin
+      .from('bot_discord_links')
+      .select('*')
+      .eq('discord_id', discordId)
+      .maybeSingle();
+
+    if (!discordLink) {
+      return NextResponse.json(
+        { error: 'You must link your Minecraft account to comment. Use /link in Discord.' },
         { status: 403 }
       );
     }

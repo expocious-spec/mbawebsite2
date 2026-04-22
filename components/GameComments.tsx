@@ -68,11 +68,22 @@ export default function GameComments({ gameId, isAdmin = false }: GameCommentsPr
     if (!session?.user?.id) return;
     
     try {
-      const res = await fetch('/api/user/profile');
+      // Check if user has Discord-Minecraft link (same as minigames)
+      const userId = session.user.id;
+      const discordId = userId.startsWith('discord-') ? userId.replace('discord-', '') : null;
+      
+      if (!discordId) {
+        setHasMinecraftLinked(false);
+        return;
+      }
+      
+      // Check bot_discord_links table
+      const res = await fetch(`/api/discord/check-link?discordId=${discordId}`);
       const data = await res.json();
-      setHasMinecraftLinked(!!data.minecraft_user_id);
+      setHasMinecraftLinked(!!data.linked);
     } catch (error) {
       console.error('Error checking Minecraft link:', error);
+      setHasMinecraftLinked(false);
     }
   };
 
@@ -578,10 +589,11 @@ export default function GameComments({ gameId, isAdmin = false }: GameCommentsPr
         ) : (
           <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
             <p className="text-sm text-yellow-800 dark:text-yellow-200">
-              You must link your Minecraft account to comment.{' '}
-              <a href="/links" className="underline hover:text-yellow-600">
-                Link your account
+              You must link your Minecraft account to comment. Join our{' '}
+              <a href="https://discord.gg/C3pETBx98T" target="_blank" rel="noopener noreferrer" className="underline hover:text-yellow-600">
+                Discord server
               </a>
+              {' '}and use the /link command.
             </p>
           </div>
         )
