@@ -92,8 +92,15 @@ export async function POST(request: NextRequest) {
     // Send to Discord bot API
     const botApiUrl = process.env.DISCORD_BOT_API_URL;
     
+    console.log('[HoopGrids Webhook] Preparing to send to bot:', {
+      botApiUrl,
+      discordUserId: botPayload.player.userId,
+      username: botPayload.player.username,
+    });
+    
     if (botApiUrl) {
       try {
+        console.log('[HoopGrids Webhook] Sending to bot API...');
         const botResponse = await fetch(`${botApiUrl}/minigames/completion`, {
           method: 'POST',
           headers: { 
@@ -103,15 +110,20 @@ export async function POST(request: NextRequest) {
           body: JSON.stringify(botPayload),
         });
 
+        console.log('[HoopGrids Webhook] Bot response status:', botResponse.status);
+        
         if (!botResponse.ok) {
-          console.error('Bot API call failed:', await botResponse.text());
+          const errorText = await botResponse.text();
+          console.error('[HoopGrids Webhook] Bot API call failed:', errorText);
+        } else {
+          console.log('[HoopGrids Webhook] Successfully sent to bot!');
         }
       } catch (botError) {
-        console.error('Error sending to bot API:', botError);
+        console.error('[HoopGrids Webhook] Error sending to bot API:', botError);
         // Don't fail the request if bot call fails
       }
     } else {
-      console.warn('DISCORD_BOT_API_URL not configured');
+      console.warn('[HoopGrids Webhook] DISCORD_BOT_API_URL not configured');
     }
 
     return NextResponse.json({ 
