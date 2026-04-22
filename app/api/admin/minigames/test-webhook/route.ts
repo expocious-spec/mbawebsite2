@@ -118,7 +118,6 @@ export async function POST(request: NextRequest) {
       let errorDetails = botError.message;
       let troubleshooting = [
         `Verify your bot is running at ${botApiUrl}`,
-        `Check if port 8080 is accessible and not blocked by firewall`,
         `Try accessing ${botApiUrl}/minigames/completion in a browser or Postman`,
         `Check your bot's console logs for any startup errors`,
       ];
