@@ -18,7 +18,13 @@ export async function GET() {
       .single();
 
     if (!puzzle) {
-      return NextResponse.json({ leaderboard: [] });
+      return NextResponse.json({ leaderboard: [] }, {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        },
+      });
     }
 
     // Get all completions for today's puzzle
@@ -30,7 +36,13 @@ export async function GET() {
       .limit(50); // Top 50 players
 
     if (!completions || completions.length === 0) {
-      return NextResponse.json({ leaderboard: [] });
+      return NextResponse.json({ leaderboard: [] }, {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        },
+      });
     }
 
     // Get user details for each completion
@@ -60,7 +72,13 @@ export async function GET() {
       };
     });
 
-    return NextResponse.json({ leaderboard });
+    return NextResponse.json({ leaderboard }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      },
+    });
   } catch (error) {
     console.error('Error fetching leaderboard:', error);
     return NextResponse.json({ error: 'Failed to fetch leaderboard' }, { status: 500 });

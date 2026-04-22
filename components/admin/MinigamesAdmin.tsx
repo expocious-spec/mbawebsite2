@@ -27,6 +27,11 @@ export default function MinigamesAdmin() {
           type: 'success',
           text: data.message || 'Minigames reset successfully!',
         });
+        
+        // Reload the page after 2 seconds to clear all caches
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
       } else {
         setMessage({
           type: 'error',

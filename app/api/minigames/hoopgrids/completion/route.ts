@@ -61,10 +61,22 @@ export async function GET(request: NextRequest) {
         rarity_score: completion.rarity_score,
         completion_time: completion.completion_time,
         attempts: attemptsWithDetails,
+      }, {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        },
       });
     }
 
-    return NextResponse.json({ completed: false });
+    return NextResponse.json({ completed: false }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      },
+    });
   } catch (error) {
     console.error('Error checking completion:', error);
     return NextResponse.json({ error: 'Failed to check completion' }, { status: 500 });

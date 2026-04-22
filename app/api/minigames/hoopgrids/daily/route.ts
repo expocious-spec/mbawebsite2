@@ -18,7 +18,13 @@ export async function GET() {
       .single();
 
     if (existingPuzzle) {
-      return NextResponse.json(await formatPuzzle(existingPuzzle));
+      return NextResponse.json(await formatPuzzle(existingPuzzle), {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        },
+      });
     }
 
     // Generate new puzzle for today
@@ -32,7 +38,13 @@ export async function GET() {
 
     if (error) throw error;
 
-    return NextResponse.json(await formatPuzzle(createdPuzzle));
+    return NextResponse.json(await formatPuzzle(createdPuzzle), {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      },
+    });
   } catch (error) {
     console.error('Error fetching daily hoopgrid:', error);
     return NextResponse.json({ error: 'Failed to load puzzle' }, { status: 500 });
