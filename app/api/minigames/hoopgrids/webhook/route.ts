@@ -119,6 +119,16 @@ export async function POST(request: NextRequest) {
       isPerfect,
     });
 
+    // Format puzzle date as MM/DD/YYYY for Discord
+    let formattedDate = 'Unknown';
+    if (puzzle?.puzzle_date) {
+      const dateObj = new Date(puzzle.puzzle_date + 'T00:00:00'); // Add time to avoid timezone issues
+      const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const day = String(dateObj.getDate()).padStart(2, '0');
+      const year = dateObj.getFullYear();
+      formattedDate = `${month}/${day}/${year}`;
+    }
+
     // Prepare data payload for Discord bot
     const botPayload = {
       minigame: 'hoopgrids',
@@ -132,7 +142,7 @@ export async function POST(request: NextRequest) {
         avatarUrl: user.avatar_url,
       },
       completion: {
-        puzzleDate: puzzle?.puzzle_date || 'Unknown',
+        puzzleDate: formattedDate,
         score: {
           correct: correctCount,
           total: totalCells,
