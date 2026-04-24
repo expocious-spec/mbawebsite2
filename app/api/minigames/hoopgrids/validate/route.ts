@@ -66,6 +66,7 @@ export async function POST(request: Request) {
           cell_col: col,
           guessed_player_id: playerId,
           is_correct: isValid,
+          rarity: parseFloat(rarity.toFixed(1)),
           stat_value: statInfo.value,
           stat_label: statInfo.label,
         });

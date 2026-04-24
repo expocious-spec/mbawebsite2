@@ -72,6 +72,10 @@ export async function POST(request: NextRequest) {
       minecraftUsername: user.minecraft_username,
     });
 
+    // Small delay to ensure all attempts are saved before querying
+    // This prevents race condition where webhook is called before last validate completes
+    await new Promise(resolve => setTimeout(resolve, 500));
+
     // Get puzzle details
     const { data: puzzle } = await supabaseAdmin
       .from('hoopgrid_puzzles')
@@ -96,10 +100,24 @@ export async function POST(request: NextRequest) {
       .eq('puzzle_id', puzzleId)
       .eq('user_id', userId);
 
+    console.log('[HoopGrids Webhook] Found attempts:', attempts?.length || 0);
+    console.log('[HoopGrids Webhook] Attempt details:', attempts?.map(a => ({ 
+      row: a.cell_row, 
+      col: a.cell_col, 
+      correct: a.is_correct 
+    })));
+
     const totalCells = 9;
     const correctCount = attempts?.filter(a => a.is_correct).length || 0;
     const completionPercentage = Math.round((correctCount / totalCells) * 100);
     const isPerfect = correctCount === 9;
+
+    console.log('[HoopGrids Webhook] Calculated score:', {
+      correctCount,
+      totalCells,
+      percentage: completionPercentage,
+      isPerfect,
+    });
 
     // Prepare data payload for Discord bot
     const botPayload = {
