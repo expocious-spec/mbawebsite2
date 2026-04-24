@@ -5,10 +5,19 @@ import { getMinecraftHeadshot } from '@/lib/minecraft';
 // Get today's HoopGrids leaderboard
 export async function GET() {
   try {
-    // Use EST timezone (America/New_York) for consistency with daily puzzle
+    // Use EST timezone (America/New_York) - properly extract date components
     const now = new Date();
-    const estDate = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
-    const today = `${estDate.getFullYear()}-${String(estDate.getMonth() + 1).padStart(2, '0')}-${String(estDate.getDate()).padStart(2, '0')}`; // YYYY-MM-DD in EST
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/New_York',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    });
+    const parts = formatter.formatToParts(now);
+    const year = parts.find(p => p.type === 'year')!.value;
+    const month = parts.find(p => p.type === 'month')!.value;
+    const day = parts.find(p => p.type === 'day')!.value;
+    const today = `${year}-${month}-${day}`; // YYYY-MM-DD in EST
 
     // Get today's puzzle
     const { data: puzzle } = await supabaseAdmin

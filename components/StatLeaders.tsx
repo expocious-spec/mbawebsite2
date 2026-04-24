@@ -72,7 +72,7 @@ function PlayerAvatar({ entry }: { entry: LeaderEntry }) {
   const src = entry.avatarUrl;
   if (!src) {
     return (
-      <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center text-gray-400 text-xs font-bold flex-shrink-0">
+      <div className="w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center text-gray-700 dark:text-gray-400 text-xs font-bold flex-shrink-0">
         {entry.username?.charAt(0).toUpperCase()}
       </div>
     );
@@ -83,7 +83,7 @@ function PlayerAvatar({ entry }: { entry: LeaderEntry }) {
       alt={entry.username}
       width={40}
       height={40}
-      className="w-10 h-10 rounded-full object-cover flex-shrink-0 bg-gray-700"
+      className="w-10 h-10 rounded-full object-cover flex-shrink-0 bg-gray-300 dark:bg-gray-700"
       onError={(e) => {
         (e.target as HTMLImageElement).src =
           `https://ui-avatars.com/api/?name=${encodeURIComponent(entry.username)}&size=40&background=374151&color=9ca3af&bold=true`;
@@ -111,7 +111,7 @@ function StatSection({
   return (
     <div className="mb-1">
       {/* Section header */}
-      <div className={`flex items-center justify-between px-3 py-1.5 ${config.bgColor} border-l-4 ${config.borderColor}`}>
+      <div className={`flex items-center justify-between px-3 py-1.5 bg-gray-50 dark:${config.bgColor} border-l-4 ${config.borderColor}`}>
         <span className={`text-xs font-bold tracking-widest ${config.color}`}>{config.label}</span>
         <span className={`text-sm font-bold ${config.color}`}>
           {formatStat(leaderValue, config.isPercent)}
@@ -121,11 +121,11 @@ function StatSection({
       {/* League Leader */}
       {leader && (
         <Link href={`/players/${leader.playerId}`}>
-          <div className={`flex items-center gap-3 px-3 py-3 ${config.bgColor} border-b border-gray-700/50 hover:brightness-110 transition-all`}>
+          <div className={`flex items-center gap-3 px-3 py-3 bg-gray-50 dark:${config.bgColor} border-b border-gray-200 dark:border-gray-700/50 hover:bg-gray-100 dark:hover:brightness-110 transition-all`}>
             <PlayerAvatar entry={leader} />
             <div className="flex-1 min-w-0">
-              <div className="font-bold text-white text-sm truncate">{leader.username}</div>
-              <div className="text-xs text-gray-400">League Leader</div>
+              <div className="font-bold text-gray-900 dark:text-white text-sm truncate">{leader.username}</div>
+              <div className="text-xs text-gray-600 dark:text-gray-400">League Leader</div>
             </div>
             <span className={`text-2xl font-black ${config.color} tabular-nums`}>
               {formatStat(leaderValue, config.isPercent)}
@@ -137,11 +137,11 @@ function StatSection({
       {/* Ranks 2–5 */}
       {rest.map((entry, i) => (
         <Link key={entry.playerId} href={`/players/${entry.playerId}`}>
-          <div className="flex items-center gap-2 px-3 py-2 border-b border-gray-700/30 hover:bg-white/5 transition-colors">
-            <span className="text-xs text-gray-500 w-4 text-center flex-shrink-0">{i + 2}</span>
+          <div className="flex items-center gap-2 px-3 py-2 border-b border-gray-200 dark:border-gray-700/30 hover:bg-gray-100 dark:hover:bg-white/5 transition-colors">
+            <span className="text-xs text-gray-500 dark:text-gray-500 w-4 text-center flex-shrink-0">{i + 2}</span>
             <PlayerAvatar entry={entry} />
-            <span className="flex-1 text-sm text-gray-200 truncate">{entry.username}</span>
-            <span className="text-sm font-semibold text-gray-300 tabular-nums">
+            <span className="flex-1 text-sm text-gray-900 dark:text-gray-200 truncate">{entry.username}</span>
+            <span className="text-sm font-semibold text-gray-700 dark:text-gray-300 tabular-nums">
               {formatStat(entry[config.statKey] ?? 0, config.isPercent)}
             </span>
           </div>
@@ -171,20 +171,20 @@ export default function StatLeaders({ seasonId }: { seasonId?: string | null }) 
   }, [seasonId]);
 
   return (
-    <div className="bg-gray-900 dark:bg-gray-900 rounded-lg overflow-hidden border border-gray-700">
+    <div className="bg-white dark:bg-gray-900 rounded-lg overflow-hidden border border-gray-300 dark:border-gray-700">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 bg-gray-800 border-b border-gray-700">
+      <div className="flex items-center justify-between px-4 py-3 bg-gray-100 dark:bg-gray-800 border-b border-gray-300 dark:border-gray-700">
         <div className="flex items-center gap-2">
-          <Trophy className="w-4 h-4 text-yellow-400" />
-          <span className="font-bold text-white text-sm tracking-wide">LEADERS</span>
+          <Trophy className="w-4 h-4 text-yellow-500 dark:text-yellow-400" />
+          <span className="font-bold text-gray-900 dark:text-white text-sm tracking-wide">LEADERS</span>
         </div>
-        <Link href="/stats" className="text-xs text-gray-400 hover:text-white transition-colors">
+        <Link href="/stats" className="text-xs text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
           View All Stats →
         </Link>
       </div>
 
       {loading ? (
-        <div className="p-6 text-center text-gray-500 text-sm">Loading leaders...</div>
+        <div className="p-6 text-center text-gray-600 dark:text-gray-500 text-sm">Loading leaders...</div>
       ) : (
         <div>
           {STAT_CONFIGS.map(cfg => (

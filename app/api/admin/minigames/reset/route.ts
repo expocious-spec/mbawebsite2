@@ -22,12 +22,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get today's EST date
+    // Get today's EST date - properly extract date components
     const now = new Date();
-    const estDate = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
-    const today = `${estDate.getFullYear()}-${String(estDate.getMonth() + 1).padStart(2, '0')}-${String(estDate.getDate()).padStart(2, '0')}`;
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/New_York',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    });
+    const parts = formatter.formatToParts(now);
+    const year = parts.find(p => p.type === 'year')!.value;
+    const month = parts.find(p => p.type === 'month')!.value;
+    const day = parts.find(p => p.type === 'day')!.value;
+    const today = `${year}-${month}-${day}`; // YYYY-MM-DD in EST
 
-    console.log('[Admin Reset] Starting reset for date:', today);
+    console.log('[Admin Reset] Starting reset for date:', today, '(UTC:', now.toISOString(), ')');
 
     // Get today's puzzle ID first (if exists) to delete related data
     const { data: todayPuzzle, error: puzzleQueryError } = await supabaseAdmin

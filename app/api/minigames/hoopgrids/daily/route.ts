@@ -5,19 +5,37 @@ import { validateCriterionHasPlayers, validateTeamHasPlayers } from '@/lib/hoopg
 // Generate or fetch today's hoopgrid puzzle
 export async function GET() {
   try {
-    // Use EST timezone (America/New_York)
+    // Use EST timezone (America/New_York) - properly extract date components
     const now = new Date();
-    const estDate = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
-    const today = `${estDate.getFullYear()}-${String(estDate.getMonth() + 1).padStart(2, '0')}-${String(estDate.getDate()).padStart(2, '0')}`; // YYYY-MM-DD in EST
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/New_York',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    });
+    const parts = formatter.formatToParts(now);
+    const year = parts.find(p => p.type === 'year')!.value;
+    const month = parts.find(p => p.type === 'month')!.value;
+    const day = parts.find(p => p.type === 'day')!.value;
+    const today = `${year}-${month}-${day}`; // YYYY-MM-DD in EST
+    
+    console.log('[HoopGrids Daily] Current EST date:', today, '(UTC:', now.toISOString(), ')');
 
     // Check if puzzle exists for today
-    const { data: existingPuzzle } = await supabaseAdmin
+    const { data: existingPuzzle, error: queryError } = await supabaseAdmin
       .from('hoopgrid_puzzles')
       .select('*')
       .eq('puzzle_date', today)
       .single();
 
+    if (queryError && queryError.code !== 'PGRST116') {
+      // PGRST116 = no rows found (expected when puzzle doesn't exist yet)
+      console.error('[HoopGrids Daily] Error querying puzzle:', queryError);
+      throw queryError;
+    }
+
     if (existingPuzzle) {
+      console.log('[HoopGrids Daily] Found existing puzzle:', existingPuzzle.id, 'for', today);
       return NextResponse.json(await formatPuzzle(existingPuzzle), {
         headers: {
           'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
@@ -26,6 +44,8 @@ export async function GET() {
         },
       });
     }
+
+    console.log('[HoopGrids Daily] No puzzle found for', today, '- generating new puzzle...');
 
     // Generate new puzzle for today
     const newPuzzle = await generateDailyPuzzle(today);
