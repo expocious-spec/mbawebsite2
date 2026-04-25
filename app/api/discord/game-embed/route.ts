@@ -60,8 +60,12 @@ export async function POST(req: NextRequest) {
     // Fetch player of the game if exists
     let potgPlayer = null;
     let potgStats = null;
+    
+    console.log('[POTG Debug] Game object:', JSON.stringify(game, null, 2));
+    console.log('[POTG Debug] player_of_game_id value:', game.player_of_game_id);
+    
     if (game.player_of_game_id) {
-      console.log('POTG ID found:', game.player_of_game_id);
+      console.log('[POTG] ID found:', game.player_of_game_id);
       
       const { data: player, error: playerError } = await supabase
         .from('users')
@@ -76,13 +80,18 @@ export async function POST(req: NextRequest) {
         .eq('player_id', game.player_of_game_id)
         .single();
 
-      console.log('POTG Player:', player, 'Error:', playerError);
-      console.log('POTG Stats:', stats, 'Error:', statsError);
+      console.log('[POTG] Player:', player, 'Error:', playerError);
+      console.log('[POTG] Stats:', stats, 'Error:', statsError);
 
-      potgPlayer = player;
-      potgStats = stats;
+      if (player && stats) {
+        potgPlayer = player;
+        potgStats = stats;
+        console.log('[POTG] Successfully loaded POTG data');
+      } else {
+        console.error('[POTG] Failed to load player or stats');
+      }
     } else {
-      console.log('No POTG ID found for game:', gameId);
+      console.log('[POTG] No POTG ID found for game:', gameId, '- Available fields:', Object.keys(game));
     }
 
     // Format the date
@@ -92,10 +101,15 @@ export async function POST(req: NextRequest) {
       year: 'numeric'
     });
 
+    // Determine game type (Regular Season or Playoffs based on week)
+    const gameType = game.week && game.week > 10 ? 'Playoffs' : 'Regular Season';
+    const seasonText = game.season ? `Season ${game.season}` : 'Season';
+    const fullTypeText = game.week ? `${seasonText} ${gameType}` : seasonText;
+
     // Build Discord embed
     const embed: any = {
-      title: '🏀 MBA Scores',
-      description: `**${awayAbbr} ${game.away_score} — ${game.home_score} ${homeAbbr}**\n\n${game.is_forfeit ? '⚠️ **FORFEIT**' : '✅ **FINAL**'} • ${gameDate}`,
+      title: '🏀 MBA',
+      description: `**${awayTeam.name} ${game.away_score} — ${game.home_score} ${homeTeam.name}**`,
       color: 0x1E40AF, // Blue color
       fields: [],
       timestamp: new Date().toISOString(),
@@ -103,6 +117,19 @@ export async function POST(req: NextRequest) {
         text: 'MBA League'
       }
     };
+
+    // Add game info fields
+    embed.fields.push({
+      name: 'Type',
+      value: fullTypeText,
+      inline: false
+    });
+
+    embed.fields.push({
+      name: 'Game Ended',
+      value: gameDate,
+      inline: false
+    });
 
     // Add team info as thumbnail (use winner's logo)
     const winningTeam = game.home_score > game.away_score ? homeTeam : awayTeam;
@@ -114,12 +141,18 @@ export async function POST(req: NextRequest) {
 
     // Add Player of the Game if exists
     if (potgPlayer && potgStats) {
+      console.log('[POTG] Adding POTG field to embed');
       const playerName = potgPlayer.minecraft_username || potgPlayer.username;
+      const totalReb = (potgStats.offensive_rebounds || 0) + (potgStats.defensive_rebounds || 0);
+      
       embed.fields.push({
         name: '🏆 Player of the Game',
-        value: `**${playerName}**\n${potgStats.points || 0} PTS • ${potgStats.rebounds || 0} REB • ${potgStats.assists || 0} AST • ${potgStats.steals || 0} STL • ${potgStats.blocks || 0} BLK`,
+        value: `**${playerName}**\n${potgStats.points || 0} PTS • ${totalReb} REB • ${potgStats.assists || 0} AST • ${potgStats.steals || 0} STL • ${potgStats.blocks || 0} BLK`,
         inline: false
       });
+      console.log('[POTG] POTG field added to embed');
+    } else {
+      console.log('[POTG] Skipping POTG field - no data available');
     }
 
     // Add box score link

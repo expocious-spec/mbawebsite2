@@ -1,31 +1,55 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 export default function MinigameTimer() {
   const [timeToNextPuzzle, setTimeToNextPuzzle] = useState('');
+  const hasReloadedRef = useRef(false);
 
   useEffect(() => {
     const updateCountdown = () => {
-      // Use EST midnight for consistency with API
+      // Get current time in EST timezone
       const now = new Date();
+      const formatter = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'America/New_York',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        hour12: false,
+        minute: '2-digit',
+        second: '2-digit'
+      });
       
-      // Get current time in EST
-      const estNow = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+      const parts = formatter.formatToParts(now);
+      const year = parseInt(parts.find(p => p.type === 'year')!.value);
+      const month = parseInt(parts.find(p => p.type === 'month')!.value) - 1; // JS months are 0-indexed
+      const day = parseInt(parts.find(p => p.type === 'day')!.value);
+      const hour = parseInt(parts.find(p => p.type === 'hour')!.value);
+      const minute = parseInt(parts.find(p => p.type === 'minute')!.value);
+      const second = parseInt(parts.find(p => p.type === 'second')!.value);
+      
+      // Create a date object representing current EST time
+      const estNow = new Date(year, month, day, hour, minute, second);
       
       // Get tomorrow at midnight EST
-      const tomorrow = new Date(estNow);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      tomorrow.setHours(0, 0, 0, 0);
+      const tomorrowMidnight = new Date(year, month, day + 1, 0, 0, 0);
       
-      // Convert back to UTC for calculation
-      const estOffset = new Date().getTimezoneOffset() * 60000;
-      const tomorrowEST = new Date(tomorrow.toLocaleString('en-US', { timeZone: 'America/New_York' }));
-      const diff = tomorrowEST.getTime() - estNow.getTime();
+      // Calculate difference in milliseconds
+      const diff = tomorrowMidnight.getTime() - estNow.getTime();
       
       const hours = Math.floor(diff / (1000 * 60 * 60));
       const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+      
+      // Check if we've hit midnight (within 2 seconds to account for timing)
+      if (diff <= 2000 && !hasReloadedRef.current) {
+        hasReloadedRef.current = true;
+        console.log('[MinigameTimer] Midnight reached! Reloading page for new puzzle...');
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000); // Wait 1 second to ensure new puzzle is generated
+      }
       
       setTimeToNextPuzzle(`${hours}h ${minutes}m ${seconds}s`);
     };

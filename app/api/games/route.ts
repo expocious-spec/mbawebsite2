@@ -55,7 +55,10 @@ export async function POST(request: Request) {
     // Only add forfeit fields if they're provided (for completed games)
     if (body.isForfeit !== undefined) insertData.is_forfeit = body.isForfeit;
     if (body.forfeitWinner !== undefined) insertData.forfeit_winner = body.forfeitWinner;
-    if (body.playerOfGameId !== undefined) insertData.player_of_game_id = body.playerOfGameId;
+    if (body.playerOfGameId !== undefined) {
+      insertData.player_of_game_id = body.playerOfGameId || null;
+      console.log('[POTG Insert] Setting player_of_game_id to:', insertData.player_of_game_id);
+    }
 
     const { data, error } = await supabaseAdmin
       .from('games')
@@ -115,8 +118,11 @@ export async function PUT(request: Request) {
     if (updates.week !== undefined) updateData.week = updates.week;
     if (updates.isForfeit !== undefined) updateData.is_forfeit = updates.isForfeit;
     if (updates.forfeitWinner !== undefined) updateData.forfeit_winner = updates.forfeitWinner;
-    if (updates.playerOfGameId !== undefined) updateData.player_of_game_id = updates.playerOfGameId;
-    if (updates.playerOfGameId !== undefined) updateData.player_of_game_id = updates.playerOfGameId;
+    if (updates.playerOfGameId !== undefined) {
+      // Save POTG even if empty string (to clear previous selection)
+      updateData.player_of_game_id = updates.playerOfGameId || null;
+      console.log('[POTG Update] Setting player_of_game_id to:', updateData.player_of_game_id);
+    }
 
     console.log('Update data:', updateData);
 

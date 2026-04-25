@@ -10,6 +10,7 @@ export default function MinigamesPage() {
   const [hoopgridsCompleted, setHoopgridsCompleted] = useState(false);
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [loadingLeaderboard, setLoadingLeaderboard] = useState(true);
+  const [currentPuzzleId, setCurrentPuzzleId] = useState<number | null>(null);
 
   const checkHoopgridsStatus = async () => {
     if (!session?.user?.id) return;
@@ -22,6 +23,14 @@ export default function MinigamesPage() {
       const puzzleData = await puzzleRes.json();
       
       if (puzzleData.id) {
+        // Detect puzzle ID change (new day!) and force refresh
+        if (currentPuzzleId && currentPuzzleId !== puzzleData.id) {
+          console.log('[Minigames] New puzzle detected! Refreshing page...');
+          window.location.reload();
+          return;
+        }
+        setCurrentPuzzleId(puzzleData.id);
+        
         // Check if completed
         const completionRes = await fetch(`/api/minigames/hoopgrids/completion?puzzleId=${puzzleData.id}&userId=${session.user.id}`, {
           cache: 'no-store',
