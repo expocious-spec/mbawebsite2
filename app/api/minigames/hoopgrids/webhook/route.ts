@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     
     const { data: userById, error: errorById } = await supabaseAdmin
       .from('users')
-      .select('username, discord_username, discord_id, minecraft_username, avatar_url, minecraft_user_id')
+      .select('id, username, discord_username, minecraft_username, avatar_url, minecraft_user_id')
       .eq('id', userId)
       .maybeSingle();
 
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
       console.log('[HoopGrids Webhook] User not found by ID, trying minecraft_username:', userId);
       const { data: userByUsername, error: errorByUsername } = await supabaseAdmin
         .from('users')
-        .select('username, discord_username, discord_id, minecraft_username, avatar_url, minecraft_user_id')
+        .select('id, username, discord_username, minecraft_username, avatar_url, minecraft_user_id')
         .eq('minecraft_username', userId)
         .maybeSingle();
       
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
         // Try by username as last resort
         const { data: userByUsernameField, error: errorByUsernameField } = await supabaseAdmin
           .from('users')
-          .select('username, discord_username, discord_id, minecraft_username, avatar_url, minecraft_user_id')
+          .select('id, username, discord_username, minecraft_username, avatar_url, minecraft_user_id')
           .eq('username', userId)
           .maybeSingle();
         
@@ -67,10 +67,15 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('[HoopGrids Webhook] Found user:', {
+      id: user.id,
       username: user.username,
-      discordId: user.discord_id,
+      discordUsername: user.discord_username,
       minecraftUsername: user.minecraft_username,
     });
+
+    // Extract Discord ID from user ID (format: "discord-123456789" -> "123456789")
+    const discordId = user.id.startsWith('discord-') ? user.id.substring(8) : user.id;
+    console.log('[HoopGrids Webhook] Extracted Discord ID:', discordId);
 
     // Longer delay to ensure all attempts are saved before querying
     // This prevents race condition where webhook is called before last validate completes
@@ -156,17 +161,14 @@ export async function POST(request: NextRequest) {
       const year = dateObj.getFullYear();
       formattedDate = `${month}/${day}/${year}`;
     }
-
-    // Prepare data payload for Discord bot
+discordI
+    // Prepare data payload for Discord bot (exact format expected by bot)
     const botPayload = {
       minigame: 'hoopgrids',
-      minigameName: 'HoopGrids',
       player: {
         userId: user.discord_id,
         username: user.username,
-        discordUsername: user.discord_username,
         minecraftUsername: user.minecraft_username,
-        minecraftUserId: user.minecraft_user_id,
         avatarUrl: user.avatar_url,
       },
       completion: {
@@ -193,10 +195,9 @@ export async function POST(request: NextRequest) {
           formatted: `#${userRank} of ${completions?.length || 0}`,
         },
       },
-      timestamp: Math.floor(Date.now() / 1000), // Unix timestamp in seconds (timezone-agnostic)
     };
 
-    // Send to Discord bot API
+    // Send to Discordiscord
     const botApiUrl = process.env.DISCORD_BOT_API_URL;
     
     console.log('[HoopGrids Webhook] Preparing to send to bot:', {
