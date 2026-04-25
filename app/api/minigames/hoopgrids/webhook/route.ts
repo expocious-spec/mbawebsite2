@@ -161,12 +161,12 @@ export async function POST(request: NextRequest) {
       const year = dateObj.getFullYear();
       formattedDate = `${month}/${day}/${year}`;
     }
-discordI
+
     // Prepare data payload for Discord bot (exact format expected by bot)
     const botPayload = {
       minigame: 'hoopgrids',
       player: {
-        userId: user.discord_id,
+        userId: discordId,
         username: user.username,
         minecraftUsername: user.minecraft_username,
         avatarUrl: user.avatar_url,
