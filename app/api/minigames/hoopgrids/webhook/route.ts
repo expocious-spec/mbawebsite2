@@ -72,9 +72,9 @@ export async function POST(request: NextRequest) {
       minecraftUsername: user.minecraft_username,
     });
 
-    // Small delay to ensure all attempts are saved before querying
+    // Longer delay to ensure all attempts are saved before querying
     // This prevents race condition where webhook is called before last validate completes
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     // Get puzzle details
     const { data: puzzle } = await supabaseAdmin
@@ -93,30 +93,58 @@ export async function POST(request: NextRequest) {
 
     const userRank = completions ? completions.findIndex(c => c.user_id === userId) + 1 : 0;
 
-    // Get user's attempt details
-    const { data: attempts } = await supabaseAdmin
-      .from('hoopgrid_attempts')
-      .select('cell_row, cell_col, is_correct, rarity')
-      .eq('puzzle_id', puzzleId)
-      .eq('user_id', userId);
+    // Retry mechanism to ensure attempts are fully saved
+    let attempts = null;
+    let attemptsError = null;
+    let retryCount = 0;
+    const maxRetries = 3;
+    
+    while (retryCount < maxRetries) {
+      const delayMs = retryCount * 500; // 0ms, 500ms, 1000ms
+      if (delayMs > 0) {
+        console.log(`[HoopGrids Webhook] Retry ${retryCount}, waiting ${delayMs}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delayMs));
+      }
+      
+      console.log('[HoopGrids Webhook] Querying attempts with:', { puzzleId, userId, retry: retryCount });
+      const result = await supabaseAdmin
+        .from('hoopgrid_attempts')
+        .select('cell_row, cell_col, is_correct, rarity, guessed_player_id')
+        .eq('puzzle_id', puzzleId)
+        .eq('user_id', userId);
+      
+      attempts = result.data;
+      attemptsError = result.error;
+      
+      // If we have attempts, break
+      if (attempts && attempts.length > 0) {
+        console.log(`[HoopGrids Webhook] Found ${attempts.length} attempts on retry ${retryCount}`);
+        break;
+      }
+      
+      retryCount++;
+    }
 
-    console.log('[HoopGrids Webhook] Found attempts:', attempts?.length || 0);
-    console.log('[HoopGrids Webhook] Attempt details:', attempts?.map(a => ({ 
-      row: a.cell_row, 
-      col: a.cell_col, 
-      correct: a.is_correct 
-    })));
+    if (attemptsError) {
+      console.error('[HoopGrids Webhook] Error fetching attempts:', attemptsError);
+    }
 
+    console.log('[HoopGrids Webhook] Final attempt count:', attempts?.length || 0);
+    console.log('[HoopGrids Webhook] All attempt details:', JSON.stringify(attempts, null, 2));
+    
     const totalCells = 9;
     const correctCount = attempts?.filter(a => a.is_correct).length || 0;
+    const totalAttempts = attempts?.length || 0;
     const completionPercentage = Math.round((correctCount / totalCells) * 100);
     const isPerfect = correctCount === 9;
 
     console.log('[HoopGrids Webhook] Calculated score:', {
       correctCount,
+      totalAttempts,
       totalCells,
       percentage: completionPercentage,
       isPerfect,
+      attemptsData: attempts,
     });
 
     // Format puzzle date as MM/DD/YYYY for Discord
